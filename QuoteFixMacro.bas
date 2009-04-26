@@ -58,6 +58,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'Version TRUNK - not released
 ' * included %C patch 2778722 by Karsten Heimrich
+' * check for beginning of quote is now language independent
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -80,7 +81,8 @@ Attribute VB_Name = "QuoteFixMacro"
 Option Explicit
 
 'Private Const Outlook_OriginalMessage = "> -----Urspr?ngliche Nachricht-----"
-Private Const Outlook_OriginalMessage = "> -----Original Message-----"
+'Private Const Outlook_OriginalMessage = "> -----Original Message-----"
+Private Const Outlook_OriginalMessage = "> -----"
 
 Private Const Outlook_Headerfinish = "> "
 
@@ -522,11 +524,14 @@ catch:
     ' parse until we find the header finish "> " (Outlook_Headerfinish)
     Dim OutlookHeader As String
     For i = i To BodyLineCount
-        OutlookHeader = OutlookHeader & BodyLines(i) & vbCrLf
         If (BodyLines(i) = Outlook_Headerfinish) Then
             Exit For
         End If
+        OutlookHeader = OutlookHeader & BodyLines(i) & vbCrLf
     Next i
+    
+    'skip Outlook_Headerfinish
+    i = i + 1
     
     ' parse the rest of the message
     Dim QuotedText As String
@@ -550,20 +555,26 @@ catch:
     'Put text in signature (=Template for text)
     MySignature = Replace(MySignature, "PATTERN_OUTLOOK_HEADER" & vbCrLf, OutlookHeader)
     
+    Dim downCount As Integer
+    downCount = -1
+        
     If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
+        If (InStr(MySignature, PATTERN_CURSOR_POSITION) = 0) Then
+            'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT, then the cursor is moved to the quote
+            downCount = CalcDownCount(PATTERN_QUOTED_TEXT, MySignature)
+        End If
         MySignature = Replace(MySignature, PATTERN_QUOTED_TEXT, NewText)
     Else
         'There's no placeholder. Fall back to outlook behavior
         MySignature = vbCrLf & vbCrLf & MySignature & OutlookHeader & NewText
     End If
    
-    'Calculate number of downs to sent
-    Dim downCount As Integer
-    downCount = -1
-    
-    If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
-        downCount = CalcDownCount(PATTERN_CURSOR_POSITION, MySignature)
-        MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
+    'Calculate number of downs to sent (if not calculated above)
+    If (downCount = -1) Then
+      If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
+          downCount = CalcDownCount(PATTERN_CURSOR_POSITION, MySignature)
+          MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
+      End If
     End If
     
     NewMail.Body = MySignature

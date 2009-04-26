@@ -1,7 +1,7 @@
 Attribute VB_Name = "QuoteFixMacro"
-'QuoteFix Macro 1.2b
-'QuoteFix Macro is part of the Outlook Theurgists - tools for ms Outlook.
-'see http://www.flupp.de/OutlookTheurgists for more information
+'QuoteFix Macro TRUNK
+'QuoteFix Macro is part of the macros4outlook project
+'see http://sourceforge.net/projects/macros4outlook/ for more information
 '
 'For more information on Outlook see http://www.microsoft.com/outlook
 'Outlook is (C) by Microsoft
@@ -16,7 +16,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'If you don't have money (or don't like the software that much, but
 'appreciate the development), please send an email to
-'daniel309 [at] users [dot] sourceforge [dot] net  or theurgists [at] flupp [dot] de
+'theurgists [at] flupp [dot] de
 '
 'Thank you :-)
 
@@ -24,7 +24,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '****************************************************************************
 'License:
 '
-'QuoteFix Macro 1.2b copyright 2006 Oliver Kopp and Daniel Martin. All rights reserved.
+'QuoteFix Macro TRUNK copyright 2006-2009 Oliver Kopp and Daniel Martin. All rights reserved.
 '
 'Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 '
@@ -55,6 +55,9 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'Version 1.2b - 2007-01-24
 ' * included on-behalf-of handling written by Per Soderlind (per [at] soderlind [dot] no)
+'
+'Version TRUNK - not released
+' * included %C patch 2778722 by Karsten Heimrich
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -405,7 +408,6 @@ End Function
 
 
 Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
-   
     Dim TempObj As Object
     
     'wir verstehen nur mail items, keine PostItems, NoteItems, ...
@@ -608,7 +610,6 @@ End Function
 'Note:
 '  * Order of parameters taken from "InStr"
 Public Function CountOccurencesOfStringInString(InString As String, What As String) As Integer
-
     Dim count As Integer
     Dim lastPos As Integer
     Dim curPos As Integer
@@ -624,5 +625,3 @@ Public Function CountOccurencesOfStringInString(InString As String, What As Stri
         
     CountOccurencesOfStringInString = count
 End Function
-
-

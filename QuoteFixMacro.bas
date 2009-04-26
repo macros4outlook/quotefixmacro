@@ -59,6 +59,7 @@ Attribute VB_Name = "QuoteFixMacro"
 'Version TRUNK - not released
 ' * included %C patch 2778722 by Karsten Heimrich
 ' * check for beginning of quote is now language independent
+' * added support to strip quotes of level N and greater
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -94,6 +95,9 @@ Private Const PATTERN_SENT_DATE = "%D"
 Private Const PATTERN_OUTLOOK_HEADER = "%OH"
 
 Private Const DATE_FORMAT = "yyyy-mm-dd"
+
+'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
+Private Const INCLUDE_QUOTES_TO_LEVEL = -1
 
 
 'At which column should the text be wrapped?
@@ -534,22 +538,25 @@ catch:
     i = i + 1
     
     ' parse the rest of the message
-    Dim QuotedText As String
+    Dim quotedText As String
     For i = i To BodyLineCount
-        QuotedText = QuotedText & BodyLines(i) & vbCrLf
+        quotedText = quotedText & BodyLines(i) & vbCrLf
     Next i
     
-    QuotedText = ReFormatText(QuotedText)
+    quotedText = ReFormatText(quotedText)
+    If INCLUDE_QUOTES_TO_LEVEL <> -1 Then
+        quotedText = StripQuotes(quotedText, INCLUDE_QUOTES_TO_LEVEL)
+    End If
     
     Dim NewText As String
     'Mail je nach Knopf einzusetzenden Text zusammenbauen
     Select Case MailMode
         Case TypeReply:
-                NewText = QuotedText
+                NewText = quotedText
         Case TypeReplyAll:
-                NewText = QuotedText
+                NewText = quotedText
         Case TypeForward:
-                NewText = OutlookHeader & QuotedText
+                NewText = OutlookHeader & quotedText
     End Select
     
     'Put text in signature (=Template for text)
@@ -635,4 +642,25 @@ Public Function CountOccurencesOfStringInString(InString As String, What As Stri
     Loop
         
     CountOccurencesOfStringInString = count
+End Function
+
+
+
+Private Function StripQuotes(quotedText As String, stripLevel As Integer) As String
+    Dim quoteLines() As String
+    quoteLines = Split(quotedText, vbCrLf)
+    
+    Dim level As Integer
+    Dim curLine As String
+    Dim res As String
+    Dim i As Integer
+    
+    For i = 1 To UBound(quoteLines)
+        level = InStr(quoteLines(i), " ") - 1
+        If level <= stripLevel Then
+            res = res + quoteLines(i) + vbCrLf
+        End If
+    Next i
+    
+    StripQuotes = res
 End Function

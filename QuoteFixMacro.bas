@@ -96,6 +96,8 @@ Private Const PATTERN_SENT_DATE = "%D"
 Private Const PATTERN_OUTLOOK_HEADER = "%OH"
 
 Private Const DATE_FORMAT = "yyyy-mm-dd"
+'alternative date format
+'Private Const DATE_FORMAT = "ddd, d MMM yyyy at HH:mm:ss"
 
 'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
 Private Const INCLUDE_QUOTES_TO_LEVEL = -1

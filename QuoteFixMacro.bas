@@ -60,6 +60,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * included %C patch 2778722 by Karsten Heimrich
 ' * check for beginning of quote is now language independent
 ' * added support to strip quotes of level N and greater
+' * added support of reversed name format ("Lastname, Firstname" instead of "Firstname Lastname")
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -513,13 +514,22 @@ catch:
         fromName = OriginalMail.SenderName
     End If
     
-    Dim pos As Integer
-    pos = InStr(fromName, " ")
-    
     Dim firstName As String
+    'default: fullname
+    firstName = fromName
+    
+    Dim pos As Integer
+    
+    pos = InStr(fromName, ",")
     If pos > 0 Then
-        firstName = Left(fromName, pos - 1)
+        firstName = Trim(mid(fromName, pos + 1))
+    Else
+        pos = InStr(fromName, " ")
+        If pos > 0 Then
+            firstName = Trim(Left(fromName, pos - 1))
+        End If
     End If
+    
     
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))

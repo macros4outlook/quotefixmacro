@@ -61,6 +61,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * check for beginning of quote is now language independent
 ' * added support to strip quotes of level N and greater
 ' * added support of reversed name format ("Lastname, Firstname" instead of "Firstname Lastname")
+' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -101,9 +102,8 @@ Private Const DATE_FORMAT = "yyyy-mm-dd"
 
 'Private Const Outlook_OriginalMessage = "> -----Urspr?ngliche Nachricht-----"
 'Private Const Outlook_OriginalMessage = "> -----Original Message-----"
-Private Const Outlook_OriginalMessage = "> -----"
-
-Private Const Outlook_Headerfinish = "> "
+Private Const OUTLOOK_ORIGINALMESSAGE = "> -----"
+Private Const OUTLOOK_HEADERFINISH = "> "
 
 Private Const PATTERN_QUOTED_TEXT = "%Q"
 Private Const PATTERN_CURSOR_POSITION = "%C"
@@ -506,7 +506,7 @@ catch:
     Dim i As Integer
     ' drop the first two lines, they're empty
     For i = 2 To BodyLineCount
-        If (InStr(BodyLines(i), Outlook_OriginalMessage) <> 0) Then
+        If (InStr(BodyLines(i), OUTLOOK_ORIGINALMESSAGE) <> 0) Then
             If (CalcNesting(BodyLines(i)).level = 1) Then
                 Exit For
             End If
@@ -546,7 +546,7 @@ catch:
     ' parse until we find the header finish "> " (Outlook_Headerfinish)
     Dim OutlookHeader As String
     For i = i To BodyLineCount
-        If (BodyLines(i) = Outlook_Headerfinish) Then
+        If (BodyLines(i) = OUTLOOK_HEADERFINISH) Then
             Exit For
         End If
         OutlookHeader = OutlookHeader & BodyLines(i) & vbCrLf
@@ -582,7 +582,7 @@ catch:
     
     Dim downCount As Integer
     downCount = -1
-        
+LAMPERIECHTKOMISCH
     If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
         If (InStr(MySignature, PATTERN_CURSOR_POSITION) = 0) Then
             'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT, then the cursor is moved to the quote

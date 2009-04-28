@@ -82,6 +82,23 @@ Attribute VB_Name = "QuoteFixMacro"
 
 Option Explicit
 
+'--------------------------------------------------------
+'*** Configuration constants ***
+'--------------------------------------------------------
+'Should mails be colorized?
+Private Const USE_COLORIZER As Boolean = False
+
+'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
+Private Const INCLUDE_QUOTES_TO_LEVEL = -1
+
+'At which column should the text be wrapped?
+Public Const LINE_WRAP_AFTER = 75
+
+Private Const DATE_FORMAT = "yyyy-mm-dd"
+'alternative date format
+'Private Const DATE_FORMAT = "ddd, d MMM yyyy at HH:mm:ss"
+'--------------------------------------------------------
+
 'Private Const Outlook_OriginalMessage = "> -----Urspr?ngliche Nachricht-----"
 'Private Const Outlook_OriginalMessage = "> -----Original Message-----"
 Private Const Outlook_OriginalMessage = "> -----"
@@ -95,28 +112,17 @@ Private Const PATTERN_FIRST_NAME = "%FN"
 Private Const PATTERN_SENT_DATE = "%D"
 Private Const PATTERN_OUTLOOK_HEADER = "%OH"
 
-Private Const DATE_FORMAT = "yyyy-mm-dd"
-'alternative date format
-'Private Const DATE_FORMAT = "ddd, d MMM yyyy at HH:mm:ss"
-
-'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
-Private Const INCLUDE_QUOTES_TO_LEVEL = -1
-
-
-'At which column should the text be wrapped?
-Public Const LINE_WRAP_AFTER = 75
-
 Private Enum ReplyType
     TypeReply = 1
     TypeReplyAll = 2
     TypeForward = 3
 End Enum
 
-Type NestingType
+Public Type NestingType
     level As Integer
     additionalSpacesCount As Integer
     
-    'the sum + 1 - +1 because of the tailing space
+    'the sum + 1 (+1 because of the tailing space)
     total As Integer
 End Type
 
@@ -419,70 +425,70 @@ End Function
 Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
     Dim TempObj As Object
     
-    'wir verstehen nur mail items, keine PostItems, NoteItems, ...
+    'we only understand mail items, no PostItems, NoteItems, ...
     If Not (TypeName(SelectedObject) = "MailItem") Then
-        On Error GoTo catch:   'try, catch ersatz
+        On Error GoTo catch:   'try, catch replacement
         Dim HadError As Boolean
         HadError = True
                           
         Select Case MailMode
             Case TypeReply:
-                    Set TempObj = SelectedObject.reply
-                    TempObj.Display
-                    HadError = False
-                    Exit Sub  'ende, wir koennen nix mehr machen ausser anzeigen
+                Set TempObj = SelectedObject.reply
+                TempObj.Display
+                HadError = False
+                Exit Sub
             Case TypeReplyAll:
-                    Set TempObj = SelectedObject.ReplyAll
-                    TempObj.Display
-                    HadError = False
-                    Exit Sub 'ende, wir koennen nix mehr machen ausser anzeigen
+                Set TempObj = SelectedObject.ReplyAll
+                TempObj.Display
+                HadError = False
+                Exit Sub
             Case TypeForward:
-                    Set TempObj = SelectedObject.Forward
-                    TempObj.Display
-                    HadError = False
-                    Exit Sub 'ende, wir koennen nix mehr machen ausser anzeigen
+                Set TempObj = SelectedObject.Forward
+                TempObj.Display
+                HadError = False
+                Exit Sub
         End Select
         
 catch:
-        On Error GoTo 0  'fehlerbehandlung wieder auschalten
+        On Error GoTo 0  'deactivate errorhandling
         
         If (HadError = True) Then
-            'reply / replyall / forward hat fehler erzeugt
-            ' --> einfach nur anzeigen
+            'reply / replyall / forward caused error
+            ' -->  just display it
             SelectedObject.Display
-            Exit Sub 'ENDE
+            Exit Sub
         End If
     End If
 
     Dim OriginalMail As MailItem
-    Set OriginalMail = SelectedObject  'cast machen!!!
+    Set OriginalMail = SelectedObject  'cast!!!
 
-    'wir verstehen keine HTML mails!!!   ...noch nicht, Olly, magst du da mal ran?
+    'we don´t understand HTML mails!!!
     If Not (OriginalMail.BodyFormat = olFormatPlain) Then
         Dim ReplyObj As MailItem
         
         Select Case MailMode
             Case TypeReply:
-                    Set ReplyObj = OriginalMail.reply
+                Set ReplyObj = OriginalMail.reply
             Case TypeReplyAll:
-                    Set ReplyObj = OriginalMail.ReplyAll
+                Set ReplyObj = OriginalMail.ReplyAll
             Case TypeForward:
-                    Set ReplyObj = OriginalMail.Forward
+                Set ReplyObj = OriginalMail.Forward
         End Select
         
         ReplyObj.Display
-        Exit Sub   'ENDE
+        Exit Sub
     End If
     
-    'erzeuge reply --> outlook style!
+    'create reply --> outlook style!
     Dim NewMail As MailItem
     Select Case MailMode
         Case TypeReply:
-                Set NewMail = OriginalMail.reply
+            Set NewMail = OriginalMail.reply
         Case TypeReplyAll:
-                Set NewMail = OriginalMail.ReplyAll
+            Set NewMail = OriginalMail.ReplyAll
         Case TypeForward:
-                Set NewMail = OriginalMail.Forward
+            Set NewMail = OriginalMail.Forward
     End Select
     
     Dim BodyLines() As String
@@ -561,14 +567,14 @@ catch:
     End If
     
     Dim NewText As String
-    'Mail je nach Knopf einzusetzenden Text zusammenbauen
+    'create mail according to reply mode
     Select Case MailMode
         Case TypeReply:
-                NewText = quotedText
+            NewText = quotedText
         Case TypeReplyAll:
-                NewText = quotedText
+            NewText = quotedText
         Case TypeForward:
-                NewText = OutlookHeader & quotedText
+            NewText = OutlookHeader & quotedText
     End Select
     
     'Put text in signature (=Template for text)
@@ -598,9 +604,21 @@ catch:
     
     NewMail.Body = MySignature
     
-    'Display window
-    NewMail.Display
-    
+    'Extensions, in case Colorize and SoftWrap are activated
+    If USE_COLORIZER Then
+        Dim mailID As String
+        mailID = QuoteColorizerMacro.ColorizeMailItem(NewMail)
+        If (Trim("" & mailID) <> "") Then  'no error occured or quotefix macro not there...
+            Call QuoteColorizerMacro.DisplayMailItemByID(mailID)
+            Call SoftWrapMacro.ResizeWindowForSoftWrap
+        Else
+            'Display window
+            NewMail.Display
+        End If
+    Else
+        NewMail.Display
+    End If
+
     'jump to the right place
     For i = 1 To downCount
         SendKeys "{DOWN}"
@@ -626,10 +644,10 @@ Function GetCurrentItem() As Object  'changed to default scope
         'Dim MailObj As Object
                 
         Select Case TypeName(objApp.ActiveWindow)
-                Case "Explorer":  'Wenn einfach reply in der ?bersicht ged?ckt wird!
-                        Set GetCurrentItem = objApp.ActiveExplorer.Selection.Item(1)
-                Case "Inspector": 'Dr?cke reply in der mail in eigenem fenster!
-                        Set GetCurrentItem = objApp.ActiveInspector.CurrentItem
+            Case "Explorer":  'on clicking reply in the main window
+                Set GetCurrentItem = objApp.ActiveExplorer.Selection.Item(1)
+            Case "Inspector": 'on clicking reply when mail is shown in separate window
+                Set GetCurrentItem = objApp.ActiveInspector.CurrentItem
         End Select
         
 End Function

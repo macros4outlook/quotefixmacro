@@ -62,6 +62,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * added support to strip quotes of level N and greater
 ' * more support of alternative name formatting
 '   * added support of reversed name format ("Lastname, Firstname" instead of "Firstname Lastname")
+'   * added support of "LASTNAME firstname" format
 '   * if no firstname is found, then the destination is used
 ' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
 
@@ -435,7 +436,7 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
                           
         Select Case MailMode
             Case TypeReply:
-                Set TempObj = SelectedObject.reply
+                Set TempObj = SelectedObject.Reply
                 TempObj.Display
                 HadError = False
                 Exit Sub
@@ -471,7 +472,7 @@ catch:
         
         Select Case MailMode
             Case TypeReply:
-                Set ReplyObj = OriginalMail.reply
+                Set ReplyObj = OriginalMail.Reply
             Case TypeReplyAll:
                 Set ReplyObj = OriginalMail.ReplyAll
             Case TypeForward:
@@ -486,7 +487,7 @@ catch:
     Dim NewMail As MailItem
     Select Case MailMode
         Case TypeReply:
-            Set NewMail = OriginalMail.reply
+            Set NewMail = OriginalMail.Reply
         Case TypeReplyAll:
             Set NewMail = OriginalMail.ReplyAll
         Case TypeForward:
@@ -537,6 +538,11 @@ catch:
         pos = InStr(fromName, " ")
         If pos > 0 Then
             firstName = Trim(Left(fromName, pos - 1))
+            If firstName = UCase(firstName) Then
+                'in case the firstName is written in uppercase letters,
+                'we assume that
+                firstName = Trim(mid(fromName, pos + 1))
+            End If
         Else
             pos = InStr(fromName, "@")
             If pos > 0 Then
@@ -701,5 +707,3 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     
     StripQuotes = res
 End Function
-
-

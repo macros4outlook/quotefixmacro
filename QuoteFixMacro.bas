@@ -60,7 +60,9 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * included %C patch 2778722 by Karsten Heimrich
 ' * check for beginning of quote is now language independent
 ' * added support to strip quotes of level N and greater
-' * added support of reversed name format ("Lastname, Firstname" instead of "Firstname Lastname")
+' * more support of alternative name formatting
+'   * added support of reversed name format ("Lastname, Firstname" instead of "Firstname Lastname")
+'   * if no firstname is found, then the destination is used
 ' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
 
 'Ideas were taken from
@@ -535,6 +537,11 @@ catch:
         pos = InStr(fromName, " ")
         If pos > 0 Then
             firstName = Trim(Left(fromName, pos - 1))
+        Else
+            pos = InStr(fromName, "@")
+            If pos > 0 Then
+                firstName = Left(fromName, pos - 1)
+            End If
         End If
     End If
     
@@ -582,7 +589,7 @@ catch:
     
     Dim downCount As Integer
     downCount = -1
-LAMPERIECHTKOMISCH
+
     If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
         If (InStr(MySignature, PATTERN_CURSOR_POSITION) = 0) Then
             'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT, then the cursor is moved to the quote
@@ -694,3 +701,5 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     
     StripQuotes = res
 End Function
+
+

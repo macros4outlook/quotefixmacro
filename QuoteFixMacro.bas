@@ -64,6 +64,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '   * added support of reversed name format ("Lastname, Firstname" instead of "Firstname Lastname")
 '   * added support of "LASTNAME firstname" format
 '   * if no firstname is found, then the destination is used
+'     * "firstname.lastname@domain" is supported
 ' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
 
 'Ideas were taken from
@@ -547,10 +548,15 @@ catch:
             pos = InStr(fromName, "@")
             If pos > 0 Then
                 firstName = Left(fromName, pos - 1)
+                pos = InStr(fromName, ".")
+                If pos > 0 Then
+                    firstName = Left(fromName, pos - 1)
+                    'fix casing of firstname
+                    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
+                End If
             End If
         End If
     End If
-    
     
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
@@ -707,3 +713,4 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     
     StripQuotes = res
 End Function
+

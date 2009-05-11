@@ -548,7 +548,7 @@ catch:
             pos = InStr(fromName, "@")
             If pos > 0 Then
                 firstName = Left(fromName, pos - 1)
-                pos = InStr(fromName, ".")
+                pos = InStr(firstName, ".")
                 If pos > 0 Then
                     firstName = Left(fromName, pos - 1)
                     'fix casing of firstname

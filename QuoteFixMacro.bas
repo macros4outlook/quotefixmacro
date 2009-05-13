@@ -550,7 +550,7 @@ catch:
                 firstName = Left(fromName, pos - 1)
                 pos = InStr(firstName, ".")
                 If pos > 0 Then
-                    firstName = Left(fromName, pos - 1)
+                    firstName = Left(firstName, pos - 1)
                     'fix casing of firstname
                     firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
                 End If
@@ -713,4 +713,3 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     
     StripQuotes = res
 End Function
-

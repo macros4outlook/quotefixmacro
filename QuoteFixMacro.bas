@@ -65,6 +65,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '   * added support of "LASTNAME firstname" format
 '   * if no firstname is found, then the destination is used
 '     * "firstname.lastname@domain" is supported
+'   * firstName always starts with an uppercase letter
 ' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
 
 'Ideas were taken from
@@ -541,7 +542,7 @@ catch:
             firstName = Trim(Left(fromName, pos - 1))
             If firstName = UCase(firstName) Then
                 'in case the firstName is written in uppercase letters,
-                'we assume that
+                'we assume that the latsName is the real firstName
                 firstName = Trim(mid(fromName, pos + 1))
             End If
         Else
@@ -551,12 +552,12 @@ catch:
                 pos = InStr(firstName, ".")
                 If pos > 0 Then
                     firstName = Left(firstName, pos - 1)
-                    'fix casing of firstname
-                    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
                 End If
             End If
         End If
     End If
+    'fix casing of firstname
+    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
     
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))

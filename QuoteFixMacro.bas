@@ -67,6 +67,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '     * "firstname.lastname@domain" is supported
 '   * firstName always starts with an uppercase letter
 ' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
+' * splitted code for parsing mailtext from FixMailText() into smaller functions
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -438,7 +439,7 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
                           
         Select Case MailMode
             Case TypeReply:
-                Set TempObj = SelectedObject.Reply
+                Set TempObj = SelectedObject.reply
                 TempObj.Display
                 HadError = False
                 Exit Sub
@@ -474,7 +475,7 @@ catch:
         
         Select Case MailMode
             Case TypeReply:
-                Set ReplyObj = OriginalMail.Reply
+                Set ReplyObj = OriginalMail.reply
             Case TypeReplyAll:
                 Set ReplyObj = OriginalMail.ReplyAll
             Case TypeForward:
@@ -489,102 +490,46 @@ catch:
     Dim NewMail As MailItem
     Select Case MailMode
         Case TypeReply:
-            Set NewMail = OriginalMail.Reply
+            Set NewMail = OriginalMail.reply
         Case TypeReplyAll:
             Set NewMail = OriginalMail.ReplyAll
         Case TypeForward:
             Set NewMail = OriginalMail.Forward
     End Select
     
+    'put the whole mail as composed by Outlook into an array
     Dim BodyLines() As String
     BodyLines = Split(NewMail.Body, vbCrLf)
     
-    Dim BodyLineCount As Integer
-    BodyLineCount = UBound(BodyLines)
-    
+    'lineCounter is used to provide information about how many lines we already parsed.
+    'This variable is always passed to the various parser functions by reference to get
+    'back the new value.
+    Dim lineCounter As Long
+
     ' A new mail starts with signature -if- set, try to parse until we find the the
     ' original message separator - might loop until the end of the whole message since
     ' this depends on the International Option settings (english), even worse it might
     ' find some separator in-between and mess up the whole reply, so check the nesting too.
     Dim MySignature As String
+    MySignature = getSignature(BodyLines, lineCounter)
     
-    Dim i As Integer
-    ' drop the first two lines, they're empty
-    For i = 2 To BodyLineCount
-        If (InStr(BodyLines(i), OUTLOOK_ORIGINALMESSAGE) <> 0) Then
-            If (CalcNesting(BodyLines(i)).level = 1) Then
-                Exit For
-            End If
-        End If
-        MySignature = MySignature & BodyLines(i) & vbCrLf
-    Next i
-    
-    'Wildcard replaces
+
     Dim fromName As String
-    fromName = OriginalMail.SentOnBehalfOfName
-    
-    If fromName = "" Then
-        fromName = OriginalMail.SenderName
-    End If
-    
     Dim firstName As String
-    'default: fullname
-    firstName = fromName
+    Call getNames(OriginalMail, fromName, firstName)
     
-    Dim pos As Integer
-    
-    pos = InStr(fromName, ",")
-    If pos > 0 Then
-        firstName = Trim(mid(fromName, pos + 1))
-    Else
-        pos = InStr(fromName, " ")
-        If pos > 0 Then
-            firstName = Trim(Left(fromName, pos - 1))
-            If firstName = UCase(firstName) Then
-                'in case the firstName is written in uppercase letters,
-                'we assume that the latsName is the real firstName
-                firstName = Trim(mid(fromName, pos + 1))
-            End If
-        Else
-            pos = InStr(fromName, "@")
-            If pos > 0 Then
-                firstName = Left(fromName, pos - 1)
-                pos = InStr(firstName, ".")
-                If pos > 0 Then
-                    firstName = Left(firstName, pos - 1)
-                End If
-            End If
-        End If
-    End If
-    'fix casing of firstname
-    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
     
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, fromName)
     
-    ' parse until we find the header finish "> " (Outlook_Headerfinish)
+    
     Dim OutlookHeader As String
-    For i = i To BodyLineCount
-        If (BodyLines(i) = OUTLOOK_HEADERFINISH) Then
-            Exit For
-        End If
-        OutlookHeader = OutlookHeader & BodyLines(i) & vbCrLf
-    Next i
-    
-    'skip Outlook_Headerfinish
-    i = i + 1
-    
-    ' parse the rest of the message
+    OutlookHeader = getOutlookHeader(BodyLines, lineCounter)
+
     Dim quotedText As String
-    For i = i To BodyLineCount
-        quotedText = quotedText & BodyLines(i) & vbCrLf
-    Next i
+    quotedText = getQuotedText(BodyLines, lineCounter)
     
-    quotedText = ReFormatText(quotedText)
-    If INCLUDE_QUOTES_TO_LEVEL <> -1 Then
-        quotedText = StripQuotes(quotedText, INCLUDE_QUOTES_TO_LEVEL)
-    End If
     
     Dim NewText As String
     'create mail according to reply mode
@@ -600,27 +545,29 @@ catch:
     'Put text in signature (=Template for text)
     MySignature = Replace(MySignature, "PATTERN_OUTLOOK_HEADER" & vbCrLf, OutlookHeader)
     
-    Dim downCount As Integer
-    downCount = -1
-
     If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
-        If (InStr(MySignature, PATTERN_CURSOR_POSITION) = 0) Then
-            'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT, then the cursor is moved to the quote
-            downCount = CalcDownCount(PATTERN_QUOTED_TEXT, MySignature)
-        End If
         MySignature = Replace(MySignature, PATTERN_QUOTED_TEXT, NewText)
     Else
         'There's no placeholder. Fall back to outlook behavior
         MySignature = vbCrLf & vbCrLf & MySignature & OutlookHeader & NewText
     End If
    
-    'Calculate number of downs to sent (if not calculated above)
-    If (downCount = -1) Then
-      If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
-          downCount = CalcDownCount(PATTERN_CURSOR_POSITION, MySignature)
-          MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
-      End If
+    
+
+    'Calculate number of downs to sent
+    Dim downCount As Integer
+    downCount = -1
+    
+    If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
+        downCount = CalcDownCount(PATTERN_CURSOR_POSITION, MySignature)
+    ElseIf InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
+        'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT is, then the cursor is moved to the quote
+        downCount = CalcDownCount(PATTERN_QUOTED_TEXT, MySignature)
     End If
+        
+    'remove cursor_position pattern from mail text
+    MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
+    
     
     NewMail.Body = MySignature
     
@@ -640,10 +587,105 @@ catch:
     End If
 
     'jump to the right place
+    Dim i As Integer
     For i = 1 To downCount
         SendKeys "{DOWN}"
     Next i
 End Sub
+
+
+Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
+    
+    ' drop the first two lines, they're empty
+    For lineCounter = 2 To UBound(BodyLines)
+        If (InStr(BodyLines(lineCounter), OUTLOOK_ORIGINALMESSAGE) <> 0) Then
+            If (CalcNesting(BodyLines(lineCounter)).level = 1) Then
+                Exit For
+            End If
+        End If
+        getSignature = getSignature & BodyLines(lineCounter) & vbCrLf
+    Next lineCounter
+
+End Function
+
+
+'Names are returned by reference
+Private Function getNames(ByRef OriginalMail As MailItem, ByRef firstName As String, ByRef fromName As String)
+    
+    'Wildcard replaces
+    fromName = OriginalMail.SentOnBehalfOfName
+    
+    If fromName = "" Then
+        fromName = OriginalMail.SenderName
+    End If
+    
+    'default: fullname
+    firstName = fromName
+    
+    Dim pos As Integer
+    
+    pos = InStr(fromName, ",")
+    If pos > 0 Then
+        'Firstname is separated by comma and positioned behind the lastname
+        firstName = Trim(mid(fromName, pos + 1))
+    Else
+        pos = InStr(fromName, " ")
+        If pos > 0 Then
+            firstName = Trim(Left(fromName, pos - 1))
+            If firstName = UCase(firstName) Then
+                'in case the firstName is written in uppercase letters,
+                'we assume that the lastName is the real firstName
+                firstName = Trim(Mid(fromName, pos + 1))
+            End If
+        Else
+            pos = InStr(fromName, "@")
+            If pos > 0 Then
+                firstName = Left(fromName, pos - 1)
+                pos = InStr(firstName, ".")
+                If pos > 0 Then
+                    firstName = Left(firstName, pos - 1)
+                End If
+            End If
+        End If
+    End If
+
+   'fix casing of firstname
+   firstName = UCase(Left(firstName, 1)) + Mid(firstName, 2)
+
+End Function
+
+
+Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
+
+    ' parse until we find the header finish "> " (Outlook_Headerfinish)
+    
+    For lineCounter = lineCounter To UBound(BodyLines)
+        If (BodyLines(lineCounter) = OUTLOOK_HEADERFINISH) Then
+            Exit For
+        End If
+        getOutlookHeader = getOutlookHeader & BodyLines(lineCounter) & vbCrLf
+    Next lineCounter
+    
+    'skip OUTLOOK_HEADERFINISH
+    lineCounter = lineCounter + 1
+
+End Function
+
+
+Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
+
+    ' parse the rest of the message
+    For lineCounter = lineCounter To UBound(BodyLines)
+        getQuotedText = getQuotedText & BodyLines(lineCounter) & vbCrLf
+    Next lineCounter
+    
+    getQuotedText = ReFormatText(getQuotedText)
+
+    If INCLUDE_QUOTES_TO_LEVEL <> -1 Then
+        getQuotedText = StripQuotes(getQuotedText, INCLUDE_QUOTES_TO_LEVEL)
+    End If
+
+End Function
 
 
 Private Function CalcDownCount(pattern As String, textToSearch As String)

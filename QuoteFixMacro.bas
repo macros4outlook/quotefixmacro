@@ -97,14 +97,14 @@ Option Explicit
 Private Const USE_COLORIZER As Boolean = False
 
 'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
-Private Const INCLUDE_QUOTES_TO_LEVEL = -1
+Private Const INCLUDE_QUOTES_TO_LEVEL As Integer = -1
 
 'At which column should the text be wrapped?
-Public Const LINE_WRAP_AFTER = 75
+Public Const LINE_WRAP_AFTER As Integer = 75
 
-Private Const DATE_FORMAT = "yyyy-mm-dd"
+Private Const DATE_FORMAT As String = "yyyy-mm-dd"
 'alternative date format
-'Private Const DATE_FORMAT = "ddd, d MMM yyyy at HH:mm:ss"
+'Private Const DATE_FORMAT As String = "ddd, d MMM yyyy at HH:mm:ss"
 
 'Strip the sender´s signature?
 Private Const STRIP_SIGNATURE As Boolean = True
@@ -112,16 +112,16 @@ Private Const STRIP_SIGNATURE As Boolean = True
 
 'Private Const Outlook_OriginalMessage = "> -----Urspr?ngliche Nachricht-----"
 'Private Const Outlook_OriginalMessage = "> -----Original Message-----"
-Private Const OUTLOOK_ORIGINALMESSAGE = "> -----"
-Private Const OUTLOOK_HEADERFINISH = "> "
-Private Const SIGNATURE_SEPARATOR As String = "> --"
+Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> -----"
+Private Const OUTLOOK_HEADERFINISH      As String = "> "
+Private Const SIGNATURE_SEPARATOR       As String = "> --"
 
-Private Const PATTERN_QUOTED_TEXT = "%Q"
-Private Const PATTERN_CURSOR_POSITION = "%C"
-Private Const PATTERN_SENDER_NAME = "%SN"
-Private Const PATTERN_FIRST_NAME = "%FN"
-Private Const PATTERN_SENT_DATE = "%D"
-Private Const PATTERN_OUTLOOK_HEADER = "%OH"
+Private Const PATTERN_QUOTED_TEXT       As String = "%Q"
+Private Const PATTERN_CURSOR_POSITION   As String = "%C"
+Private Const PATTERN_SENDER_NAME       As String = "%SN"
+Private Const PATTERN_FIRST_NAME        As String = "%FN"
+Private Const PATTERN_SENT_DATE         As String = "%D"
+Private Const PATTERN_OUTLOOK_HEADER    As String = "%OH"
 
 Private Enum ReplyType
     TypeReply = 1
@@ -560,7 +560,7 @@ catch:
     
 
     'Calculate number of downs to sent
-    Dim downCount As Integer
+    Dim downCount As Long
     downCount = -1
     
     If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
@@ -615,7 +615,7 @@ End Function
 
 
 'Names are returned by reference
-Private Function getNames(ByRef OriginalMail As MailItem, ByRef firstName As String, ByRef fromName As String)
+Private Sub getNames(ByRef OriginalMail As MailItem, ByRef firstName As String, ByRef fromName As String)
     
     'Wildcard replaces
     fromName = OriginalMail.SentOnBehalfOfName
@@ -657,7 +657,7 @@ Private Function getNames(ByRef OriginalMail As MailItem, ByRef firstName As Str
    'fix casing of firstname
    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
 
-End Function
+End Sub
 
 
 Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
@@ -698,8 +698,8 @@ Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As
 End Function
 
 
-Private Function CalcDownCount(pattern As String, textToSearch As String)
-    Dim PosOfPattern As Integer
+Private Function CalcDownCount(pattern As String, textToSearch As String) As Long
+    Dim PosOfPattern As Long
     Dim TextBeforePattern As String
     
     PosOfPattern = InStr(textToSearch, pattern)
@@ -729,10 +729,10 @@ End Function
 '  What:     What to count
 'Note:
 '  * Order of parameters taken from "InStr"
-Public Function CountOccurencesOfStringInString(InString As String, What As String) As Integer
-    Dim count As Integer
-    Dim lastPos As Integer
-    Dim curPos As Integer
+Public Function CountOccurencesOfStringInString(InString As String, What As String) As Long
+    Dim count As Long
+    Dim lastPos As Long
+    Dim curPos As Long
     
     count = 0
     lastPos = 0

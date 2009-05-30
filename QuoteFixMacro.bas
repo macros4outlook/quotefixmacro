@@ -68,6 +68,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '   * firstName always starts with an uppercase letter
 ' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
 ' * splitted code for parsing mailtext from FixMailText() into smaller functions
+' * added support of removing the sender´s signature
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -104,12 +105,16 @@ Public Const LINE_WRAP_AFTER = 75
 Private Const DATE_FORMAT = "yyyy-mm-dd"
 'alternative date format
 'Private Const DATE_FORMAT = "ddd, d MMM yyyy at HH:mm:ss"
+
+'Strip the sender´s signature?
+Private Const STRIP_SIGNATURE As Boolean = True
 '--------------------------------------------------------
 
 'Private Const Outlook_OriginalMessage = "> -----Urspr?ngliche Nachricht-----"
 'Private Const Outlook_OriginalMessage = "> -----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE = "> -----"
 Private Const OUTLOOK_HEADERFINISH = "> "
+Private Const SIGNATURE_SEPARATOR As String = "> --"
 
 Private Const PATTERN_QUOTED_TEXT = "%Q"
 Private Const PATTERN_CURSOR_POSITION = "%C"
@@ -635,7 +640,7 @@ Private Function getNames(ByRef OriginalMail As MailItem, ByRef firstName As Str
             If firstName = UCase(firstName) Then
                 'in case the firstName is written in uppercase letters,
                 'we assume that the lastName is the real firstName
-                firstName = Trim(Mid(fromName, pos + 1))
+                firstName = Trim(mid(fromName, pos + 1))
             End If
         Else
             pos = InStr(fromName, "@")
@@ -650,7 +655,7 @@ Private Function getNames(ByRef OriginalMail As MailItem, ByRef firstName As Str
     End If
 
    'fix casing of firstname
-   firstName = UCase(Left(firstName, 1)) + Mid(firstName, 2)
+   firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
 
 End Function
 
@@ -676,6 +681,11 @@ Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As
 
     ' parse the rest of the message
     For lineCounter = lineCounter To UBound(BodyLines)
+        If STRIP_SIGNATURE And (BodyLines(lineCounter) = SIGNATURE_SEPARATOR) Then
+            'beginning of signature reached
+            Exit For
+        End If
+        
         getQuotedText = getQuotedText & BodyLines(lineCounter) & vbCrLf
     Next lineCounter
     

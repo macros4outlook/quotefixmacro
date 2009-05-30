@@ -69,6 +69,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
 ' * splitted code for parsing mailtext from FixMailText() into smaller functions
 ' * added support of removing the sender´s signature
+' * bugfix: FinishBlock() would in some cases throw error 5
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -300,9 +301,12 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
     
         Do While Len(curBlock) > maxLength
             i = maxLength
-            Do While (i > 0) And (mid(curBlock, i, 1) <> " ")
-                i = i - 1
-            Loop
+            If i > 0 Then
+                Do While (mid(curBlock, i, 1) <> " ")
+                    i = i - 1
+                    If i = 0 Then Exit Do
+                Loop
+            End If
     
             If i = 0 Then
                 'No space found -> use the full line

@@ -449,7 +449,7 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
                           
         Select Case MailMode
             Case TypeReply:
-                Set TempObj = SelectedObject.reply
+                Set TempObj = SelectedObject.Reply
                 TempObj.Display
                 HadError = False
                 Exit Sub
@@ -485,7 +485,7 @@ catch:
         
         Select Case MailMode
             Case TypeReply:
-                Set ReplyObj = OriginalMail.reply
+                Set ReplyObj = OriginalMail.Reply
             Case TypeReplyAll:
                 Set ReplyObj = OriginalMail.ReplyAll
             Case TypeForward:
@@ -500,7 +500,7 @@ catch:
     Dim NewMail As MailItem
     Select Case MailMode
         Case TypeReply:
-            Set NewMail = OriginalMail.reply
+            Set NewMail = OriginalMail.Reply
         Case TypeReplyAll:
             Set NewMail = OriginalMail.ReplyAll
         Case TypeForward:
@@ -624,7 +624,7 @@ End Function
 
 
 'Names are returned by reference
-Private Sub getNames(ByRef OriginalMail As MailItem, ByRef firstName As String, ByRef fromName As String)
+Private Sub getNames(ByRef OriginalMail As MailItem, ByRef fromName As String, ByRef firstName As String)
     
     'Wildcard replaces
     fromName = OriginalMail.SentOnBehalfOfName

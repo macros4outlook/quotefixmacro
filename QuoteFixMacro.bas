@@ -94,7 +94,7 @@ Option Explicit
 '--------------------------------------------------------
 '*** Configuration constants ***
 '--------------------------------------------------------
-'Should mails be colorized?
+'Should mails be colorized? - May only be set to True if QuoteColorizerMacro.bas is installed.
 Private Const USE_COLORIZER As Boolean = False
 
 'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL

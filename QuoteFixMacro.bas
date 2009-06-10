@@ -70,6 +70,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * splitted code for parsing mailtext from FixMailText() into smaller functions
 ' * added support of removing the sender´s signature
 ' * bugfix: FinishBlock() would in some cases throw error 5
+' * bugfix: Prevent error 91 when mail is marked as possible phishing mail
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -505,6 +506,10 @@ catch:
         Case TypeForward:
             Set NewMail = OriginalMail.Forward
     End Select
+    
+    'if the mail is marked as a possible phishing mail, a warning will be shown and
+    'the reply methods will return null (forward method is ok)
+    If NewMail Is Nothing Then Exit Sub
     
     'put the whole mail as composed by Outlook into an array
     Dim BodyLines() As String

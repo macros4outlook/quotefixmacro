@@ -58,6 +58,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'Version TRUNK - not released
 ' * included %C patch 2778722 by Karsten Heimrich
+' * included %SE patch 2807638 by Peter Lindgren
 ' * check for beginning of quote is now language independent
 ' * added support to strip quotes of level N and greater
 ' * more support of alternative name formatting
@@ -121,6 +122,7 @@ Private Const SIGNATURE_SEPARATOR       As String = "> --"
 Private Const PATTERN_QUOTED_TEXT       As String = "%Q"
 Private Const PATTERN_CURSOR_POSITION   As String = "%C"
 Private Const PATTERN_SENDER_NAME       As String = "%SN"
+Private Const PATTERN_SENDER_EMAIL      As String = "%SE"
 Private Const PATTERN_FIRST_NAME        As String = "%FN"
 Private Const PATTERN_SENT_DATE         As String = "%D"
 Private Const PATTERN_OUTLOOK_HEADER    As String = "%OH"
@@ -532,7 +534,10 @@ catch:
     Dim firstName As String
     Call getNames(OriginalMail, fromName, firstName)
     
+    Dim senderEmail As String
+    senderEmail = getSenderEmailAdress(OriginalMail)
     
+    MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, fromName)
@@ -622,6 +627,33 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
 
 End Function
 
+Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
+    Dim senderEmail As String
+    If OriginalMail.SenderEmailType = "SMTP" Then
+        senderEmail = OriginalMail.SenderEmailAddress
+    ElseIf OriginalMail.SenderEmailType = "EX" Then
+        
+        Dim gal As Outlook.AddressList
+        Dim exchAddressEntries As Outlook.AddressEntries
+        Dim exchAddressEntry As Outlook.AddressEntry
+        Dim i As Integer, found As Boolean
+        
+        Set gal = OriginalMail.Session.GetGlobalAddressList
+        Set exchAddressEntries = gal.AddressEntries
+        Set exchAddressEntry = exchAddressEntries.GetFirst
+        found = False
+        While (Not found) And (Not exchAddressEntry Is Nothing)
+            found = (LCase(exchAddressEntry.Address) = LCase(OriginalMail.SenderEmailAddress))
+            If Not found Then Set exchAddressEntry = exchAddressEntries.GetNext
+        Wend
+        If Not exchAddressEntry Is Nothing Then
+            senderEmail = exchAddressEntry.GetExchangeUser.PrimarySmtpAddress
+        Else
+            senderEmail = ""
+        End If
+    End If
+    getSenderEmailAdress = senderEmail
+End Function
 
 'Names are returned by reference
 Private Sub getNames(ByRef OriginalMail As MailItem, ByRef fromName As String, ByRef firstName As String)

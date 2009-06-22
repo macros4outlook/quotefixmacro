@@ -72,6 +72,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * added support of removing the sender´s signature
 ' * bugfix: FinishBlock() would in some cases throw error 5
 ' * bugfix: Prevent error 91 when mail is marked as possible phishing mail
+' * Original mail is marked as read
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -610,6 +611,10 @@ catch:
     For i = 1 To downCount
         SendKeys "{DOWN}"
     Next i
+
+    'mark original mail as read
+    OriginalMail.UnRead = False
+
 End Sub
 
 

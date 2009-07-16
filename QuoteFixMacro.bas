@@ -692,10 +692,10 @@ Private Sub getNames(ByRef OriginalMail As MailItem, ByRef fromName As String, B
             pos = InStr(fromName, "@")
             If pos > 0 Then
                 firstName = Left(fromName, pos - 1)
-                pos = InStr(firstName, ".")
-                If pos > 0 Then
-                    firstName = Left(firstName, pos - 1)
-                End If
+            End If
+            pos = InStr(firstName, ".")
+            If pos > 0 Then
+                firstName = Left(firstName, pos - 1)
             End If
         End If
     End If

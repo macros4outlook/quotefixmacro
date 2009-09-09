@@ -67,7 +67,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '   * if no firstname is found, then the destination is used
 '     * "firstname.lastname@domain" is supported
 '   * firstName always starts with an uppercase letter
-' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER is set)
+' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER for conditional compiling is set)
 ' * splitted code for parsing mailtext from FixMailText() into smaller functions
 ' * added support of removing the sender´s signature
 ' * bugfix: FinishBlock() would in some cases throw error 5
@@ -95,11 +95,17 @@ Attribute VB_Name = "QuoteFixMacro"
 Option Explicit
 
 '--------------------------------------------------------
+'*** Constants for conditional compiling ***
+'
+'Enter these constants in the VBA project properties. The lines here only document the
+'available constants. Multiple entries can be separated via colon
+'--------------------------------------------------------
+'Should mails be colorized? (needs QuoteColorizerMacro.bas)
+'USE_COLORIZER = -1
+
+'--------------------------------------------------------
 '*** Configuration constants ***
 '--------------------------------------------------------
-'Should mails be colorized? - May only be set to True if QuoteColorizerMacro.bas is installed.
-Private Const USE_COLORIZER As Boolean = False
-
 'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
 Private Const INCLUDE_QUOTES_TO_LEVEL As Integer = -1
 
@@ -592,7 +598,7 @@ catch:
     NewMail.Body = MySignature
     
     'Extensions, in case Colorize and SoftWrap are activated
-    If USE_COLORIZER Then
+    #If USE_COLORIZER Then
         Dim mailID As String
         mailID = QuoteColorizerMacro.ColorizeMailItem(NewMail)
         If (Trim("" & mailID) <> "") Then  'no error occured or quotefix macro not there...
@@ -602,9 +608,9 @@ catch:
             'Display window
             NewMail.Display
         End If
-    Else
+    #Else
         NewMail.Display
-    End If
+    #End If
 
     'jump to the right place
     Dim i As Integer

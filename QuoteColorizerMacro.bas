@@ -41,7 +41,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     MyMailItem.BodyFormat = olFormatRichText
     MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates ExtryID if not saved before)!
         
-    Set folder = Session.GetDefaultFolder(olFolderInbox) 'TODO, maybe needs to be changed! if this causes errors further down!
+    Set folder = Session.GetDefaultFolder(olFolderInbox)
     
     rtf = Space(99999)  'init rtf to max length of message!
     ret = ReadRTF("MAPI", MyMailItem.EntryID, folder.StoreID, rtf)

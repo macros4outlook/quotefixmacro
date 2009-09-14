@@ -89,9 +89,6 @@ Attribute VB_Name = "QuoteFixMacro"
 '   > > > w3
 '   won't be fixed to w1 w2 w3. How can it be known, that w2 belongs to w1 and w3?
 
-'Todo:
-' * Implement own wrap algorithm instead of relying on the bad output of the Outlook wrap algorithm
-
 Option Explicit
 
 '--------------------------------------------------------
@@ -144,7 +141,7 @@ Public Type NestingType
     level As Integer
     additionalSpacesCount As Integer
     
-    'the sum + 1 (+1 because of the tailing space)
+    'the sum + 1 (+1 because of the trailing space)
     total As Integer
 End Type
 
@@ -249,14 +246,9 @@ End Function
 
 Private Function CalcPrefix(ByRef nesting As NestingType) As String
     Dim res As String
-    Dim i As Integer
     
-    For i = 1 To nesting.level
-        res = res & ">"
-    Next i
-    For i = 1 To nesting.additionalSpacesCount
-        res = res & " "
-    Next i
+    res = String(nesting.level, ">")
+    res = res & String(nesting.additionalSpacesCount, " ")
     
     CalcPrefix = res & " "
 End Function
@@ -286,7 +278,7 @@ Private Sub HandleParagraph(ByRef prefix As String)
         'lastline was already a paragraph. No further action required
     End If
     
-    'Add a <br> in all cases...
+    'Add a new line in all cases...
     result = result & prefix & vbCrLf
 End Sub
 
@@ -312,6 +304,7 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
         maxLength = LINE_WRAP_AFTER - nesting.total
     
         Do While Len(curBlock) > maxLength
+            'go through block from maxLength to beginning to find a space
             i = maxLength
             If i > 0 Then
                 Do While (mid(curBlock, i, 1) <> " ")
@@ -347,9 +340,7 @@ End Sub
 Private Function ReFormatText(text As String) As String
     Dim curLine As String
     Dim rows() As String
-    
     Dim lastPrefix As String
-    
     Dim i As Integer
     Dim curNesting As NestingType
     Dim nextNesting As NestingType
@@ -368,10 +359,12 @@ Private Function ReFormatText(text As String) As String
         curLine = StripLine(rows(i))
         lastNesting = curNesting
         curNesting = CalcNesting(rows(i))
+        
         If curNesting.total <> lastNesting.total Then
             lastPrefix = curPrefix
             curPrefix = CalcPrefix(curNesting)
         End If
+        
         If curNesting.total = lastNesting.total Then
             'Quote continues
             If curLine = "" Then
@@ -391,6 +384,7 @@ Private Function ReFormatText(text As String) As String
                     End If
                 End If
             End If
+        
         ElseIf curNesting.total < lastNesting.total Then 'curNesting.level = lastNesting.level - 1 doesn't work, because ">>", ">>>", ... are also killed by Office
             lastLineWasParagraph = False
             
@@ -416,7 +410,7 @@ Private Function ReFormatText(text As String) As String
                     End If
                 Else
                     'No wrong line wrap found. Last block is finished
-                    FinishBlock lastNesting ', unformatedBlock, curBlock, curBlockNeedsToBeReFormated, result
+                    FinishBlock lastNesting
                     
                     If curLine = "" Then
                         If curNesting.level <> lastNesting.level Then
@@ -432,6 +426,7 @@ Private Function ReFormatText(text As String) As String
                 'Quote is the last one - just use it
                 AppendCurLine curLine
             End If
+        
         Else
             lastLineWasParagraph = False
             
@@ -446,7 +441,6 @@ Private Function ReFormatText(text As String) As String
             End If
             
             'next block starts with curLine
-            'Debug.Assert(curBlock == "")
             AppendCurLine curLine
         End If
     Next i
@@ -656,10 +650,11 @@ End Function
 
 Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
     Dim senderEmail As String
+    
     If OriginalMail.SenderEmailType = "SMTP" Then
         senderEmail = OriginalMail.SenderEmailAddress
+    
     ElseIf OriginalMail.SenderEmailType = "EX" Then
-        
         Dim gal As Outlook.AddressList
         Dim exchAddressEntries As Outlook.AddressEntries
         Dim exchAddressEntry As Outlook.AddressEntry
@@ -722,8 +717,8 @@ Private Sub getNames(ByRef OriginalMail As MailItem, ByRef fromName As String, B
         End If
     End If
     
-   'fix casing of firstname
-   firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
+    'fix casing of firstname
+    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
 
 End Sub
 
@@ -781,8 +776,6 @@ Function GetCurrentItem() As Object  'changed to default scope
         Dim objApp As Application
         Set objApp = Session.Application
         
-        'Dim MailObj As Object
-                
         Select Case TypeName(objApp.ActiveWindow)
             Case "Explorer":  'on clicking reply in the main window
                 Set GetCurrentItem = objApp.ActiveExplorer.Selection.Item(1)
@@ -818,12 +811,12 @@ End Function
 
 Private Function StripQuotes(quotedText As String, stripLevel As Integer) As String
     Dim quoteLines() As String
-    quoteLines = Split(quotedText, vbCrLf)
-    
     Dim level As Integer
     Dim curLine As String
     Dim res As String
     Dim i As Integer
+    
+    quoteLines = Split(quotedText, vbCrLf)
     
     For i = 1 To UBound(quoteLines)
         level = InStr(quoteLines(i), " ") - 1

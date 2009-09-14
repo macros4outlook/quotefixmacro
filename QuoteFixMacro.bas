@@ -268,6 +268,8 @@ Private Sub AppendCurLine(ByRef curLine As String)
         'unformatedBlock has to be used here, because it might be the case that the first
         '  line is "". Therefore curBlock remains "", while unformatedBlock gets <> ""
         
+        If curLine = "" Then Exit Sub
+        
         curBlock = curLine
         unformatedBlock = curPrefix & curLine & vbCrLf
     Else
@@ -416,6 +418,13 @@ Private Function ReFormatText(text As String) As String
                     'No wrong line wrap found. Last block is finished
                     FinishBlock lastNesting ', unformatedBlock, curBlock, curBlockNeedsToBeReFormated, result
                     
+                    If curLine = "" Then
+                        If curNesting.level <> lastNesting.level Then
+                            lastLineWasParagraph = True
+                            HandleParagraph curPrefix
+                        End If
+                    End If
+                    
                     'next block starts with curLine
                     AppendCurLine curLine
                 End If
@@ -429,6 +438,13 @@ Private Function ReFormatText(text As String) As String
             'it's nested one level deeper. Current block is finished
             FinishBlock lastNesting
         
+            If curLine = "" Then
+                If curNesting.level <> lastNesting.level Then
+                    lastLineWasParagraph = True
+                    HandleParagraph curPrefix
+                End If
+            End If
+            
             'next block starts with curLine
             'Debug.Assert(curBlock == "")
             AppendCurLine curLine
@@ -705,7 +721,7 @@ Private Sub getNames(ByRef OriginalMail As MailItem, ByRef fromName As String, B
             End If
         End If
     End If
-
+    
    'fix casing of firstname
    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
 
@@ -818,3 +834,5 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     
     StripQuotes = res
 End Function
+
+

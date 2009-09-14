@@ -271,7 +271,7 @@ Private Sub AppendCurLine(ByRef curLine As String)
         curBlock = curLine
         unformatedBlock = curPrefix & curLine & vbCrLf
     Else
-        curBlock = curBlock & " " & curLine
+        curBlock = curBlock & IIf(curBlock = "", "", " ") & curLine
         unformatedBlock = unformatedBlock & curPrefix & curLine & vbCrLf
     End If
 End Sub

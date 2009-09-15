@@ -337,7 +337,9 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
     'lastLineWasParagraph = False
 End Sub
 
-Private Function ReFormatText(text As String) As String
+'Reformat text to correct broken wrap inserted by Outlook.
+'Needs to be public so the test cases can run this function.
+Public Function ReFormatText(text As String) As String
     Dim curLine As String
     Dim rows() As String
     Dim lastPrefix As String

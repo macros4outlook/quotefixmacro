@@ -377,7 +377,7 @@ Public Function ReFormatText(text As String) As String
                 lastLineWasParagraph = False
             
                 If (curNesting.level = 1) And (i < UBound(rows)) Then
-                    'possibly a wrong break is found
+                    'check if the next line contains a wrong break
                     nextNesting = CalcNesting(rows(i + 1))
                     If (CountOccurencesOfStringInString(curLine, " ") = 0) And (curNesting.total = nextNesting.total) _
                         And (Len(rows(i - 1)) > LINE_WRAP_AFTER - Len(curLine) - 10) Then '10 is only a rough heuristics... - should be improved
@@ -664,19 +664,26 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
         
         Set gal = OriginalMail.Session.GetGlobalAddressList
         Set exchAddressEntries = gal.AddressEntries
-        Set exchAddressEntry = exchAddressEntries.GetFirst
+        
+        'check if we can get the correct item by sendername
+        Set exchAddressEntry = exchAddressEntries.Item(OriginalMail.SenderName)
+        If exchAddressEntry.Name <> OriginalMail.SenderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
+
         found = False
         While (Not found) And (Not exchAddressEntry Is Nothing)
             found = (LCase(exchAddressEntry.Address) = LCase(OriginalMail.SenderEmailAddress))
             If Not found Then Set exchAddressEntry = exchAddressEntries.GetNext
         Wend
+        
         If Not exchAddressEntry Is Nothing Then
             senderEmail = exchAddressEntry.GetExchangeUser.PrimarySmtpAddress
         Else
             senderEmail = ""
         End If
     End If
+    
     getSenderEmailAdress = senderEmail
+    
 End Function
 
 'Names are returned by reference

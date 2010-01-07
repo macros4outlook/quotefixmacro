@@ -16,7 +16,9 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'If you don't have money (or don't like the software that much, but
 'appreciate the development), please send an email to
-'theurgists [at] flupp [dot] de
+'macros4outlook-users -> lists.sourceforge.net. 
+'
+'For bug reports please go to our sourceforge bugtracker: http://sourceforge.net/projects/macros4outlook/support
 '
 'Thank you :-)
 

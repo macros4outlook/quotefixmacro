@@ -1,4 +1,5 @@
 Attribute VB_Name = "QuoteFixMacro"
+'$Id$
 'QuoteFix Macro TRUNK
 'QuoteFix Macro is part of the macros4outlook project
 'see http://sourceforge.net/projects/macros4outlook/ for more information

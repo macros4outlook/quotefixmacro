@@ -17,7 +17,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'If you don't have money (or don't like the software that much, but
 'appreciate the development), please send an email to
-'macros4outlook-users -> lists.sourceforge.net. 
+'macros4outlook-users -> lists.sourceforge.net.
 '
 'For bug reports please go to our sourceforge bugtracker: http://sourceforge.net/projects/macros4outlook/support
 '
@@ -556,10 +556,12 @@ catch:
     Dim firstName As String
     Call getNames(OriginalMail, fromName, firstName)
     
-    Dim senderEmail As String
-    senderEmail = getSenderEmailAdress(OriginalMail)
+    If InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0 Then
+        Dim senderEmail As String
+        senderEmail = getSenderEmailAdress(OriginalMail)
+        MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
+    End If
     
-    MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, fromName)
@@ -665,6 +667,7 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
         Dim exchAddressEntry As Outlook.AddressEntry
         Dim i As Integer, found As Boolean
         
+        'FIXME: This seems only to work in Outlook 2007
         Set gal = OriginalMail.Session.GetGlobalAddressList
         Set exchAddressEntries = gal.AddressEntries
         
@@ -839,5 +842,3 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     
     StripQuotes = res
 End Function
-
-

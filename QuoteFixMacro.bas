@@ -586,7 +586,7 @@ catch:
     End Select
     
     'Put text in signature (=Template for text)
-    MySignature = Replace(MySignature, "PATTERN_OUTLOOK_HEADER" & vbCrLf, OutlookHeader)
+    MySignature = Replace(MySignature, PATTERN_OUTLOOK_HEADER & vbCrLf, OutlookHeader)
     
     If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
         MySignature = Replace(MySignature, PATTERN_QUOTED_TEXT, NewText)

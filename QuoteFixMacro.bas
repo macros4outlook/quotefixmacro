@@ -118,6 +118,9 @@ Private Const DATE_FORMAT As String = "yyyy-mm-dd"
 
 'Strip the sender´s signature?
 Private Const STRIP_SIGNATURE As Boolean = True
+
+'Automatically convert HTML/RTF-Mails to plain text?
+Private Const CONVERT_TO_PLAIN As Boolean = False
 '--------------------------------------------------------
 
 'Private Const Outlook_OriginalMessage = "> -----Urspr?ngliche Nachricht-----"
@@ -502,22 +505,27 @@ catch:
 
     Dim OriginalMail As MailItem
     Set OriginalMail = SelectedObject  'cast!!!
+    
 
     'we don´t understand HTML mails!!!
     If Not (OriginalMail.BodyFormat = olFormatPlain) Then
-        Dim ReplyObj As MailItem
-        
-        Select Case MailMode
-            Case TypeReply:
-                Set ReplyObj = OriginalMail.Reply
-            Case TypeReplyAll:
-                Set ReplyObj = OriginalMail.ReplyAll
-            Case TypeForward:
-                Set ReplyObj = OriginalMail.Forward
-        End Select
-        
-        ReplyObj.Display
-        Exit Sub
+        If CONVERT_TO_PLAIN Then
+            SelectedObject.BodyFormat = olFormatPlain
+        Else
+            Dim ReplyObj As MailItem
+            
+            Select Case MailMode
+                Case TypeReply:
+                    Set ReplyObj = OriginalMail.Reply
+                Case TypeReplyAll:
+                    Set ReplyObj = OriginalMail.ReplyAll
+                Case TypeForward:
+                    Set ReplyObj = OriginalMail.Forward
+            End Select
+            
+            ReplyObj.Display
+            Exit Sub
+        End If
     End If
     
     'create reply --> outlook style!

@@ -506,7 +506,13 @@ catch:
     Dim OriginalMail As MailItem
     Set OriginalMail = SelectedObject  'cast!!!
     
-
+    
+    'mails that have not been sent can´t be replied to (draft mails)
+    If Not OriginalMail.Sent Then
+        MsgBox "This mail seems to be a draft, so it cannot be replied to.", vbExclamation
+        Exit Sub
+    End If
+    
     'we don´t understand HTML mails!!!
     If Not (OriginalMail.BodyFormat = olFormatPlain) Then
         If CONVERT_TO_PLAIN Then

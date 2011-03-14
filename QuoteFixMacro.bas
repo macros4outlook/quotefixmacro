@@ -516,6 +516,10 @@ catch:
     'we don´t understand HTML mails!!!
     If Not (OriginalMail.BodyFormat = olFormatPlain) Then
         If CONVERT_TO_PLAIN Then
+            'Unfortunately, it´s only possible to convert the original mail as there is
+            'no easy way to create a clone. Therefore, you cannot go back to the original format!
+            'If you e.g. would decide that you need to forward the mail in HTML format,
+            'this will not be possible anymore.
             SelectedObject.BodyFormat = olFormatPlain
         Else
             Dim ReplyObj As MailItem

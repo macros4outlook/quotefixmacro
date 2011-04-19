@@ -1,6 +1,8 @@
 Attribute VB_Name = "QuoteFixMacro"
 '$Id$
+'
 'QuoteFix Macro TRUNK
+'
 'QuoteFix Macro is part of the macros4outlook project
 'see http://sourceforge.net/projects/macros4outlook/ for more information
 '
@@ -11,7 +13,7 @@ Attribute VB_Name = "QuoteFixMacro"
 'If you like this software, please write a post card to
 '
 'Oliver Kopp
-'Schwabstrasse 70a
+'Schwabstr. 70a
 '70193 Stuttgart
 'Germany
 '
@@ -27,7 +29,10 @@ Attribute VB_Name = "QuoteFixMacro"
 '****************************************************************************
 'License:
 '
-'QuoteFix Macro TRUNK copyright 2006-2009 Oliver Kopp and Daniel Martin. All rights reserved.
+'QuoteFix Macro 
+'  copyright 2006-2009 Oliver Kopp and Daniel Martin. All rights reserved.
+'  copyright 2010-2011 Oliver Kopp and Lars Monsees. All rights reserved.
+'
 '
 'Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 '
@@ -76,6 +81,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * bugfix: FinishBlock() would in some cases throw error 5
 ' * bugfix: Prevent error 91 when mail is marked as possible phishing mail
 ' * Original mail is marked as read
+' * Added CONVERT_TO_PLAIN flag to enable viewing mails as HTML first.
 
 'Ideas were taken from
 '  * Daniele Bochicchio

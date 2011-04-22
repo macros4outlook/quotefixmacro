@@ -1,7 +1,15 @@
 Attribute VB_Name = "TestCases_ReFormatText"
 '$Id$
 '
-'These test cases part of the macros4outlook project
+'This module defines test cases that can be run to test if the quotefix macros
+'return the expected results.
+'
+'Required settings:
+'USE_COLORIZER unset
+'INCLUDE_QUOTES_TO_LEVEL = -1
+'LINE_WRAP_AFTER = 75
+'
+'These test cases are part of the macros4outlook project
 'see http://sourceforge.net/projects/macros4outlook/ for more information
 '
 'For more information on Outlook see http://www.microsoft.com/outlook
@@ -23,14 +31,10 @@ Attribute VB_Name = "TestCases_ReFormatText"
 'THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '****************************************************************************
 
-'This module defines some test cases that can be run to test if the quotefix macros
-'return the expected results.
+'Changelog
 '
-'Required settings:
-'USE_COLORIZER unset
-'INCLUDE_QUOTES_TO_LEVEL = -1
-'LINE_WRAP_AFTER = 75
-'
+'$Revision$ - not released
+
 Option Explicit
 
 Private Type typeTestCase

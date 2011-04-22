@@ -1,10 +1,11 @@
 Attribute VB_Name = "QuoteColorizerMacro"
 '$Id$
 '
-'QuoteColorizerMacro TRUNK
+'Quote Colorizer Macro TRUNK
 '
-'QuoteColorizerMacro is part of the macros4outlook project
-'see http://sourceforge.net/projects/macros4outlook/ for more information
+'Quote Colorizer Macro is part of the macros4outlook project
+'see http://sourceforge.net/apps/mediawiki/macros4outlook/index.php?title=Quote_Colorizer_Macro or
+'    http://sourceforge.net/projects/macros4outlook/ for more information
 '
 'For more information on Outlook see http://www.microsoft.com/outlook
 'Outlook is (C) by Microsoft
@@ -25,6 +26,9 @@ Attribute VB_Name = "QuoteColorizerMacro"
 'THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '****************************************************************************
 
+'Changelog
+'
+'$Revision$ - not released
 
 Option Explicit
 
@@ -77,7 +81,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         rtf = Trim(rtf)  'kill unnecessary spaces (from rtf var init with Space(rtf))
         Debug.Print rtf & vbCrLf & "*************************************************************" & vbCrLf
         
-        'we have out own rtf haeder, remove generated one
+        'we have our own rtf haeder, remove generated one
         Dim PosHeaderEnd As Integer
         Dim sTestString As String
         PosHeaderEnd = InStr(rtf, "\uc1\pard\plain\deftab360")
@@ -141,7 +145,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     End If
     
     
-    'dereference all objects! otherwise, rtf isnt going to be updated!
+    'dereference all objects! otherwise, rtf isn't going to be updated!
     Set folder = Nothing
     'save return value
     ColorizeMailItem = MyMailItem.EntryID

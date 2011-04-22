@@ -1,10 +1,38 @@
 Attribute VB_Name = "QuoteFixWithPAR"
+'$Id$
+'
+'QuoteFix with PAR TRUNK
+'
+'QuoteFix with PAR is part of the macros4outlook project
+'see http://sourceforge.net/projects/macros4outlook/ for more information
+'
+'For more information on Outlook see http://www.microsoft.com/outlook
+'Outlook is (C) by Microsoft
+
+'****************************************************************************
+'License:
+'
+'QuoteFix with PAR
+'  copyright 2008-2009 Daniel Martin. All rights reserved.
+'
+'
+'Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+'
+'   1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+'   2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+'   3. The name of the author may not be used to endorse or promote products derived from this software without specific prior written permission.
+'
+'THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+'****************************************************************************
+
+'Changelog
+'
+'$Revision$ - not released
+
 Option Explicit
                                                                                           
 Private Const PAR_OPTIONS As String = "75q"                                             'DEFAULT=rTbgqR B=.,?_A_a Q=_s>|
-Private Const PAR_CMD As String = "C:\Programme\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgq B=.,?_A_a Q=_s>|"" ; par " & PAR_OPTIONS & "'"
-
-Public Const ENABLE_MACRO_PAR_QUOTEFIX As Boolean = True
+Private Const PAR_CMD As String = "C:\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgq B=.,?_A_a Q=_s>|"" ; par " & PAR_OPTIONS & "'"
 
 ' clipboard interaction in win32
 ' Provided by Allen Browne, allen@allenbrowne.com
@@ -66,7 +94,6 @@ Public Sub ReformatSelectedText()
 
     'copy selection to clipboard
     SendKeys "^c", True 'ctrl-c, wait until done
-    
     
     'get text from clipboard
     ret = Clipboard2Text

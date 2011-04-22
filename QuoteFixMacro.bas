@@ -85,6 +85,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * Original mail is marked as read
 ' * Added CONVERT_TO_PLAIN flag to enable viewing mails as HTML first.
 ' * renamed "fromName" to "senderName" in order to reflect real content of the variable
+' * fixed cursor position in the case of absence of "%C", but presence of "%Q"
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -623,28 +624,26 @@ catch:
     'Put text in signature (=Template for text)
     MySignature = Replace(MySignature, PATTERN_OUTLOOK_HEADER & vbCrLf, OutlookHeader)
     
+    'Stores number of downs to send
+    Dim downCount As Long
+    downCount = -1
+    
     If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
+        If InStr(MySignature, PATTERN_CURSOR_POSITION) = 0 Then
+            'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT is, then the cursor is moved to the quote
+            downCount = CalcDownCount(PATTERN_QUOTED_TEXT, MySignature)
+        End If
         MySignature = Replace(MySignature, PATTERN_QUOTED_TEXT, NewText)
     Else
         'There's no placeholder. Fall back to outlook behavior
         MySignature = vbCrLf & vbCrLf & MySignature & OutlookHeader & NewText
     End If
-   
-    
 
-    'Calculate number of downs to sent
-    Dim downCount As Long
-    downCount = -1
-    
     If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
         downCount = CalcDownCount(PATTERN_CURSOR_POSITION, MySignature)
-    ElseIf InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
-        'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT is, then the cursor is moved to the quote
-        downCount = CalcDownCount(PATTERN_QUOTED_TEXT, MySignature)
+        'remove cursor_position pattern from mail text
+        MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
     End If
-        
-    'remove cursor_position pattern from mail text
-    MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
     
     NewMail.Body = MySignature
     

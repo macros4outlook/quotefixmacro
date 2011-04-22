@@ -1,7 +1,7 @@
 Attribute VB_Name = "QuoteFixWithPAR"
 '$Id$
 '
-'QuoteFix with PAR TRUNK
+'QuoteFix with PAR - branch "no clipboard"
 '
 'QuoteFix with PAR is part of the macros4outlook project
 'see http://sourceforge.net/projects/macros4outlook/ for more information
@@ -14,6 +14,7 @@ Attribute VB_Name = "QuoteFixWithPAR"
 '
 'QuoteFix with PAR
 '  copyright 2008-2009 Daniel Martin. All rights reserved.
+'  copyright 2011 Oliver Kopp. All rights reserved.
 '
 '
 'Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -28,31 +29,21 @@ Attribute VB_Name = "QuoteFixWithPAR"
 'Changelog
 '
 '$Revision$ - not released
+' * Removed dependency on clipboard. Currently, par does not work with certain quotes (see Tools.bas).
 
 Option Explicit
                                                                                           
 Private Const PAR_OPTIONS As String = "75q"                                             'DEFAULT=rTbgqR B=.,?_A_a Q=_s>|
 Private Const PAR_CMD As String = "C:\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgq B=.,?_A_a Q=_s>|"" ; par " & PAR_OPTIONS & "'"
 
-' clipboard interaction in win32
-' Provided by Allen Browne, allen@allenbrowne.com
-Declare Function abOpenClipboard Lib "User32" Alias "OpenClipboard" (ByVal Hwnd As Long) As Long
-Declare Function abCloseClipboard Lib "User32" Alias "CloseClipboard" () As Long
-Declare Function abEmptyClipboard Lib "User32" Alias "EmptyClipboard" () As Long
-Declare Function abIsClipboardFormatAvailable Lib "User32" Alias "IsClipboardFormatAvailable" (ByVal wFormat As Long) As Long
-Declare Function abSetClipboardData Lib "User32" Alias "SetClipboardData" (ByVal wFormat As Long, ByVal hMem As Long) As Long
-Declare Function abGetClipboardData Lib "User32" Alias "GetClipboardData" (ByVal wFormat As Long) As Long
-Declare Function abGlobalAlloc Lib "Kernel32" Alias "GlobalAlloc" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
-Declare Function abGlobalLock Lib "Kernel32" Alias "GlobalLock" (ByVal hMem As Long) As Long
-Declare Function abGlobalUnlock Lib "Kernel32" Alias "GlobalUnlock" (ByVal hMem As Long) As Boolean
-Declare Function abLstrcpy Lib "Kernel32" Alias "lstrcpyA" (ByVal lpString1 As Any, ByVal lpString2 As Any) As Long
-Declare Function abGlobalFree Lib "Kernel32" Alias "GlobalFree" (ByVal hMem As Long) As Long
-Declare Function abGlobalSize Lib "Kernel32" Alias "GlobalSize" (ByVal hMem As Long) As Long
-Const GHND = &H42
-Const CF_TEXT = 1
-Const APINULL = 0
+'Automatically convert HTML/RTF-Mails to plain text?
+Private Const CONVERT_TO_PLAIN As Boolean = False
 
-
+Private Enum ReplyType
+    TypeReply = 1
+    TypeReplyAll = 2
+    TypeForward = 3
+End Enum
 
 Function ExecPar(mailtext As String) As String
     Dim ret As String
@@ -69,7 +60,7 @@ Function ExecPar(mailtext As String) As String
     pipe.StdIn.Write (mailtext)
     pipe.StdIn.Close
     
-    Debug.Print "READING..."
+    'Debug.Print "READING..."
     While (pipe.StdOut.AtEndOfStream = False)
         line = pipe.StdOut.ReadLine()
         If (Left(line, 1) = ">") Then
@@ -78,8 +69,8 @@ Function ExecPar(mailtext As String) As String
             ret = ret & "> " & line & vbCrLf
         End If
     Wend
-    'ret = pipe.StdOut.ReadAll()
-    Debug.Print ret
+    ret = pipe.StdOut.ReadAll()
+    'Debug.Print ret
     
     Set pipe = Nothing
     Set shell = Nothing
@@ -88,145 +79,134 @@ Function ExecPar(mailtext As String) As String
 End Function
 
 
-Public Sub ReformatSelectedText()
-    Dim text As String
-    Dim ret As Variant
 
-    'copy selection to clipboard
-    SendKeys "^c", True 'ctrl-c, wait until done
+Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
+    Dim TempObj As Object
     
-    'get text from clipboard
-    ret = Clipboard2Text
-    If (IsNull(ret)) Then Exit Sub 'error or no text in clipboard
-    text = CStr(ret)
-    Debug.Print "FROM CLIPBOARD: " & vbCrLf & text
+    'we only understand mail items, no PostItems, NoteItems, ...
+    If Not (TypeName(SelectedObject) = "MailItem") Then
+        On Error GoTo catch:   'try, catch replacement
+        Dim HadError As Boolean
+        HadError = True
+                          
+        Select Case MailMode
+            Case TypeReply:
+                Set TempObj = SelectedObject.reply
+                TempObj.Display
+                HadError = False
+                Exit Sub
+            Case TypeReplyAll:
+                Set TempObj = SelectedObject.ReplyAll
+                TempObj.Display
+                HadError = False
+                Exit Sub
+            Case TypeForward:
+                Set TempObj = SelectedObject.Forward
+                TempObj.Display
+                HadError = False
+                Exit Sub
+        End Select
+        
+catch:
+        On Error GoTo 0  'deactivate errorhandling
+        
+        If (HadError = True) Then
+            'reply / replyall / forward caused error
+            ' -->  just display it
+            SelectedObject.Display
+            Exit Sub
+        End If
+    End If
+
+    Dim OriginalMail As MailItem
+    Set OriginalMail = SelectedObject  'cast!!!
     
+    
+    'mails that have not been sent can´t be replied to (draft mails)
+    If Not OriginalMail.Sent Then
+        MsgBox "This mail seems to be a draft, so it cannot be replied to.", vbExclamation
+        Exit Sub
+    End If
+    
+    'we don´t understand HTML mails!!!
+    If Not (OriginalMail.BodyFormat = olFormatPlain) Then
+        If CONVERT_TO_PLAIN Then
+            'Unfortunately, it´s only possible to convert the original mail as there is
+            'no easy way to create a clone. Therefore, you cannot go back to the original format!
+            'If you e.g. would decide that you need to forward the mail in HTML format,
+            'this will not be possible anymore.
+            SelectedObject.BodyFormat = olFormatPlain
+        Else
+            Dim ReplyObj As MailItem
+            
+            Select Case MailMode
+                Case TypeReply:
+                    Set ReplyObj = OriginalMail.reply
+                Case TypeReplyAll:
+                    Set ReplyObj = OriginalMail.ReplyAll
+                Case TypeForward:
+                    Set ReplyObj = OriginalMail.Forward
+            End Select
+            
+            ReplyObj.Display
+            Exit Sub
+        End If
+    End If
+    
+    'create reply --> outlook style!
+    Dim NewMail As MailItem
+    Select Case MailMode
+        Case TypeReply:
+            Set NewMail = OriginalMail.reply
+        Case TypeReplyAll:
+            Set NewMail = OriginalMail.ReplyAll
+        Case TypeForward:
+            Set NewMail = OriginalMail.Forward
+    End Select
+    
+    'if the mail is marked as a possible phishing mail, a warning will be shown and
+    'the reply methods will return null (forward method is ok)
+    If NewMail Is Nothing Then Exit Sub
+    
+    'put the whole mail as composed by Outlook into an array
+    Dim BodyLines() As String
+    BodyLines = Split(NewMail.Body, vbCrLf)
+
     'reformat
+    Dim text As String
+    text = NewMail.Body
+    Debug.Print "BEFORE PAR: " & vbCrLf & text
     text = ExecPar(text)
     Debug.Print "AFTER PAR: " & vbCrLf & text
+    NewMail.Body = text
     
-    'write back to clipboard
-    Text2Clipboard (text)
-    
-    
-    'finally, replace selected text
-    SendKeys "^v", True 'ctrl-v, wait until done
+    NewMail.Display
+
+    'mark original mail as read
+    OriginalMail.UnRead = False
+End Sub
+
+'these are the macros called by the custom buttons
+Sub FixedReply()
+    Dim m As Object
+    Set m = GetCurrentItem()
+
+    Call FixMailText(m, TypeReply)
 End Sub
 
 
-Function Text2Clipboard(szText As String)
-    Dim wLen As Integer
-    Dim hMemory As Long
-    Dim lpMemory As Long
-    Dim retval As Variant
-    Dim wFreeMemory As Boolean
+Sub FixedReplyAll()
+    Dim m As Object
+    Set m = GetCurrentItem()
 
-    ' Get the length, including one extra for a CHR$(0) at the end.
-    wLen = Len(szText) + 1
-    szText = szText & Chr$(0)
-    hMemory = abGlobalAlloc(GHND, wLen + 1)
-    If hMemory = APINULL Then
-        MsgBox "Unable to allocate memory."
-        Exit Function
-    End If
-    wFreeMemory = True
-    lpMemory = abGlobalLock(hMemory)
-    If lpMemory = APINULL Then
-        MsgBox "Unable to lock memory."
-        GoTo T2CB_Free
-    End If
-
-    ' Copy our string into the locked memory.
-    retval = abLstrcpy(lpMemory, szText)
-    ' Don't send clipboard locked memory.
-    retval = abGlobalUnlock(hMemory)
-
-    If abOpenClipboard(0&) = APINULL Then
-        MsgBox "Unable to open Clipboard.  Perhaps some other application is using it."
-        GoTo T2CB_Free
-    End If
-    If abEmptyClipboard() = APINULL Then
-        MsgBox "Unable to empty the clipboard."
-        GoTo T2CB_Close
-    End If
-    If abSetClipboardData(CF_TEXT, hMemory) = APINULL Then
-        MsgBox "Unable to set the clipboard data."
-        GoTo T2CB_Close
-    End If
-    wFreeMemory = False
-
-T2CB_Close:
-    If abCloseClipboard() = APINULL Then
-        MsgBox "Unable to close the Clipboard."
-    End If
-    If wFreeMemory Then GoTo T2CB_Free
-    Exit Function
-
-T2CB_Free:
-    If abGlobalFree(hMemory) <> APINULL Then
-        MsgBox "Unable to free global memory."
-    End If
-End Function
+    Call FixMailText(m, TypeReplyAll)
+End Sub
 
 
+Sub FixedForward()
+    Dim m As Object
+    Set m = GetCurrentItem()
 
-Function Clipboard2Text()
-    Dim wLen As Integer
-    Dim hMemory As Long
-    Dim hMyMemory As Long
+    Call FixMailText(m, TypeForward)
+End Sub
 
-    Dim lpMemory As Long
-    Dim lpMyMemory As Long
-
-    Dim retval As Variant
-    Dim wFreeMemory As Boolean
-    Dim wClipAvail As Integer
-    Dim szText As String
-    Dim wSize As Long
-
-    If abIsClipboardFormatAvailable(CF_TEXT) = APINULL Then
-        Clipboard2Text = Null
-        Exit Function
-    End If
-
-    If abOpenClipboard(0&) = APINULL Then
-        MsgBox "Unable to open Clipboard.  Perhaps some other application is using it."
-        GoTo CB2T_Free
-    End If
-
-    hMemory = abGetClipboardData(CF_TEXT)
-    If hMemory = APINULL Then
-        MsgBox "Unable to retrieve text from the Clipboard."
-        Exit Function
-    End If
-    wSize = abGlobalSize(hMemory)
-    szText = Space(wSize)
-
-    wFreeMemory = True
-
-    lpMemory = abGlobalLock(hMemory)
-    If lpMemory = APINULL Then
-        MsgBox "Unable to lock clipboard memory."
-        GoTo CB2T_Free
-    End If
-
-    ' Copy our string into the locked memory.
-    retval = abLstrcpy(szText, lpMemory)
-    ' Get rid of trailing stuff.
-    szText = Trim(szText)
-    ' Get rid of trailing 0.
-    Clipboard2Text = Left(szText, Len(szText) - 1)
-    wFreeMemory = False
-
-CB2T_Close:
-    If abCloseClipboard() = APINULL Then
-        MsgBox "Unable to close the Clipboard."
-    End If
-    If wFreeMemory Then GoTo CB2T_Free
-    Exit Function
-
-CB2T_Free:
-    If abGlobalFree(hMemory) <> APINULL Then
-        MsgBox "Unable to free global clipboard memory."
-    End If
-End Function

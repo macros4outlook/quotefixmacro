@@ -660,8 +660,12 @@ catch:
         Else
             'Display window
             NewMail.Display
+            #If USE_SOFTWRAP Then
+                Call SoftWrapMacro.ResizeWindowForSoftWrap
+            #End If
         End If
     #Else
+        'Display window
         NewMail.Display
         #If USE_SOFTWRAP Then
             Call SoftWrapMacro.ResizeWindowForSoftWrap

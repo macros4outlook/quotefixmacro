@@ -89,7 +89,7 @@ End Sub
 
 
 Public Sub TestPar()
-    Dim s As String
+    Dim s, s2 As String
     Dim ret As String
     Dim cmd As String
     
@@ -97,14 +97,41 @@ Public Sub TestPar()
     Dim pipe As Object
     Set shell = CreateObject("WScript.Shell")
     
+'    s = "test daniel 23e " & vbCrLf & _
+'        "> asd asd sad " & vbCrLf & _
+'        "> sad asdad as " & vbCrLf & _
+'        ">> sa asddsa asd aas kj kj kj k jlkjhlkjhsda asdf asdf adsf as df asdf ads fa dsfa dsf " & vbCrLf & _
+'        ">> aasd asdaasdf asd fasdf asd f asd fa sdf adsf asdf saas " & vbCrLf & _
+'        "> sasad asda  sasd asd asd asd asd aasdf asdf as df asdf a sd f asd f as df asd fasdf a sdf asdf sdasdasd "
+
+    'par does not work as expected
+    '  --> par combines all the lines together and seems to completely ignore the quoting characters
     s = "test daniel 23e " & vbCrLf & _
         "> asd asd sad " & vbCrLf & _
         "> sad asdad as " & vbCrLf & _
-        ">> sa asddsa asd aas kj kj kj k jlkjhlkjhsda asdf asdf adsf as df asdf ads fa dsfa dsf " & vbCrLf & _
-        ">> aasd asdaasdf asd fasdf asd f asd fa sdf adsf asdf saas " & vbCrLf & _
-        "> sasad asda  sasd asd asd asd asd aasdf asdf as df asdf a sd f asd f as df asd fasdf a sdf asdf sdasdasd "
-  
-    cmd = "C:\Programme\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgqR B=.,?_A_a Q=_s>|"" ; par 60q'"
+        "> > sa asddsa asd aas kj kj kj k jlkjhlkjhsda asdf asdf adsf as df asdf ads fa dsfa dsf " & vbCrLf & _
+        "> > aasd asdaasdf asd fasdf asd f asd fa sdf adsf asdf saas " & vbCrLf & _
+        "> Nur mit einem Quote " & vbCrLf & _
+        "Testtext."
+        
+    'From the manual of par
+    'Result is fine
+    s2 = "Joe Public writes:" & vbCrLf & _
+          "> Jane Doe writes:" & vbCrLf & _
+          "> >" & vbCrLf & _
+          "> >" & vbCrLf & _
+          "> > I can't find the source for uncompress." & vbCrLf & _
+          "> Oh no, not again!!!" & vbCrLf & _
+          ">" & vbCrLf & _
+          ">" & vbCrLf & _
+          "> Isn't there a FAQ for this?" & vbCrLf & _
+          ">" & vbCrLf & _
+          ">" & vbCrLf & _
+          "That wasn 't very helpful, Joe. Jane," & vbCrLf & _
+          "just make a link from uncompress to compress."
+
+    cmd = "C:\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgqR B=.,?_A_a Q=_s>|"" ; par 60q'"
+    'cmd = "C:\cygwin\bin\bash.exe --login -c 'par 60q'"
   
     Debug.Print cmd
     Set pipe = shell.Exec(cmd)

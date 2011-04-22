@@ -64,7 +64,7 @@ Attribute VB_Name = "QuoteFixMacro"
 'Version 1.2b - 2007-01-24
 ' * included on-behalf-of handling written by Per Soderlind (per [at] soderlind [dot] no)
 '
-'Version TRUNK - not released
+'$Revision$ - not released
 ' * included %C patch 2778722 by Karsten Heimrich
 ' * included %SE patch 2807638 by Peter Lindgren
 ' * check for beginning of quote is now language independent
@@ -111,14 +111,14 @@ Option Explicit
 '--------------------------------------------------------
 
 'Should mails be colorized? (needs QuoteColorizerMacro.bas)
-'USE_COLORIZER = 1
+'#Const USE_COLORIZER = True
 
 'Enable SoftWrap
 'resize window so that the text editor wraps the text automatically
 'after N charaters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
-'USE_SOFTWRAP = 1
+'#Const USE_SOFTWRAP = True
 
 '--------------------------------------------------------
 '*** Configuration constants ***

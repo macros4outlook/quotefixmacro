@@ -29,7 +29,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '****************************************************************************
 'License:
 '
-'QuoteFix Macro 
+'QuoteFix Macro
 '  copyright 2006-2009 Oliver Kopp and Daniel Martin. All rights reserved.
 '  copyright 2010-2011 Oliver Kopp and Lars Monsees. All rights reserved.
 '
@@ -75,13 +75,16 @@ Attribute VB_Name = "QuoteFixMacro"
 '   * if no firstname is found, then the destination is used
 '     * "firstname.lastname@domain" is supported
 '   * firstName always starts with an uppercase letter
-' * added call to QuoteColorizerMacro and SoftWrapMacro (if constant USE_COLORIZER for conditional compiling is set)
+'   * Added support for "Dr."
+' * added USE_COLORIZER and USE_SOFTWRAP conditional compiling flags.
+'     They enable QuoteColorizerMacro and SoftWrapMacro
 ' * splitted code for parsing mailtext from FixMailText() into smaller functions
 ' * added support of removing the sender´s signature
 ' * bugfix: FinishBlock() would in some cases throw error 5
 ' * bugfix: Prevent error 91 when mail is marked as possible phishing mail
 ' * Original mail is marked as read
 ' * Added CONVERT_TO_PLAIN flag to enable viewing mails as HTML first.
+' * renamed "fromName" to "senderName" in order to reflect real content of the variable
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -106,8 +109,16 @@ Option Explicit
 'Enter these constants in the VBA project properties. The lines here only document the
 'available constants. Multiple entries can be separated via colon
 '--------------------------------------------------------
+
 'Should mails be colorized? (needs QuoteColorizerMacro.bas)
-'USE_COLORIZER = -1
+'USE_COLORIZER = 1
+
+'Enable SoftWrap
+'resize window so that the text editor wraps the text automatically
+'after N charaters. Outlook wraps text automatically after sending it,
+'but doesn't display the wrap when editing
+'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
+'USE_SOFTWRAP = 1
 
 '--------------------------------------------------------
 '*** Configuration constants ***
@@ -129,8 +140,8 @@ Private Const STRIP_SIGNATURE As Boolean = True
 Private Const CONVERT_TO_PLAIN As Boolean = False
 '--------------------------------------------------------
 
-'Private Const Outlook_OriginalMessage = "> -----Urspr?ngliche Nachricht-----"
-'Private Const Outlook_OriginalMessage = "> -----Original Message-----"
+'Private Const OUTLOOK_ORIGINALMESSAGE = "> -----Ursprüngliche Nachricht-----"
+'Private Const OUTLOOK_ORIGINALMESSAGE = "> -----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> -----"
 Private Const OUTLOOK_HEADERFINISH      As String = "> "
 Private Const SIGNATURE_SEPARATOR       As String = "> --"
@@ -576,9 +587,9 @@ catch:
     MySignature = getSignature(BodyLines, lineCounter)
     
 
-    Dim fromName As String
+    Dim senderName As String
     Dim firstName As String
-    Call getNames(OriginalMail, fromName, firstName)
+    Call getNames(OriginalMail, senderName, firstName)
     
     If InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0 Then
         Dim senderEmail As String
@@ -588,7 +599,7 @@ catch:
     
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
-    MySignature = Replace(MySignature, PATTERN_SENDER_NAME, fromName)
+    MySignature = Replace(MySignature, PATTERN_SENDER_NAME, senderName)
     
     
     Dim OutlookHeader As String
@@ -635,7 +646,6 @@ catch:
     'remove cursor_position pattern from mail text
     MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
     
-    
     NewMail.Body = MySignature
     
     'Extensions, in case Colorize and SoftWrap are activated
@@ -644,13 +654,18 @@ catch:
         mailID = QuoteColorizerMacro.ColorizeMailItem(NewMail)
         If (Trim("" & mailID) <> "") Then  'no error occured or quotefix macro not there...
             Call QuoteColorizerMacro.DisplayMailItemByID(mailID)
-            Call SoftWrapMacro.ResizeWindowForSoftWrap
+            #If USE_SOFTWRAP Then
+                Call SoftWrapMacro.ResizeWindowForSoftWrap
+            #End If
         Else
             'Display window
             NewMail.Display
         End If
     #Else
         NewMail.Display
+        #If USE_SOFTWRAP Then
+            Call SoftWrapMacro.ResizeWindowForSoftWrap
+        #End If
     #End If
 
     'jump to the right place
@@ -696,8 +711,8 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
         Set exchAddressEntries = gal.AddressEntries
         
         'check if we can get the correct item by sendername
-        Set exchAddressEntry = exchAddressEntries.Item(OriginalMail.SenderName)
-        If exchAddressEntry.Name <> OriginalMail.SenderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
+        Set exchAddressEntry = exchAddressEntries.Item(OriginalMail.senderName)
+        If exchAddressEntry.Name <> OriginalMail.senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
 
         found = False
         While (Not found) And (Not exchAddressEntry Is Nothing)
@@ -716,49 +731,86 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
     
 End Function
 
-'Names are returned by reference
-Private Sub getNames(ByRef OriginalMail As MailItem, ByRef fromName As String, ByRef firstName As String)
+'Extracts the name of the sender from the sender's name provided in the E-Mail.
+'
+'In:
+'  originalName - name as presented by Outlook
+'Out:
+'  senderName - complete name of sender
+'  firstName - first name of sender
+'Notes:
+'  * Public to enable testing
+'  * Names are returned by reference
+Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String)
+    'Find out firstName
     
-    'Wildcard replaces
-    fromName = OriginalMail.SentOnBehalfOfName
-    
-    If fromName = "" Then
-        fromName = OriginalMail.SenderName
-    End If
+    Dim tmpName As String
+    tmpName = originalName
+    senderName = originalName
     
     'default: fullname
-    firstName = fromName
+    firstName = tmpName
+    
+    Dim title As String
+    title = ""
+    'Has to be later used for extracting the last name
     
     Dim pos As Integer
     
-    pos = InStr(fromName, ",")
+    If (Left(tmpName, 3) = "Dr.") Then
+        tmpName = mid(tmpName, 5)
+        title = "Dr. "
+    End If
+        
+    pos = InStr(tmpName, ",")
     If pos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
-        firstName = Trim(mid(fromName, pos + 1))
+        firstName = Trim(mid(tmpName, pos + 1))
     Else
-        pos = InStr(fromName, " ")
+        pos = InStr(tmpName, " ")
         If pos > 0 Then
-            firstName = Trim(Left(fromName, pos - 1))
+            'first name separated by space
+            firstName = Trim(Left(tmpName, pos - 1))
             If firstName = UCase(firstName) Then
                 'in case the firstName is written in uppercase letters,
                 'we assume that the lastName is the real firstName
-                firstName = Trim(mid(fromName, pos + 1))
+                firstName = Trim(mid(tmpName, pos + 1))
             End If
         Else
-            pos = InStr(fromName, "@")
+            pos = InStr(tmpName, "@")
             If pos > 0 Then
-                firstName = Left(fromName, pos - 1)
+                'first name is (currenty) an eMail-Adress. Just take the prefix
+                tmpName = Left(tmpName, pos - 1)
             End If
-            pos = InStr(firstName, ".")
+            pos = InStr(tmpName, ".")
             If pos > 0 Then
-                firstName = Left(firstName, pos - 1)
+                'first name is separated by a dot
+                tmpName = Left(tmpName, pos - 1)
             End If
+            firstName = tmpName
         End If
     End If
     
-    'fix casing of firstname
+    'fix casing of names
     firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
+End Sub
 
+
+'Extracts the name of the sender from the sender's name provided in the E-Mail.
+'Future work is to extract the first name out of the stored Outlook contacts (if that contact exists)
+'
+'Notes:
+'  * Names are returned by reference
+Private Sub getNames(ByRef OriginalMail As MailItem, ByRef senderName As String, ByRef firstName As String)
+    
+    'Wildcard replaces
+    senderName = OriginalMail.SentOnBehalfOfName
+    
+    If senderName = "" Then
+        senderName = OriginalMail.senderName
+    End If
+    
+    Call getNamesOutOfString(senderName, senderName, firstName)
 End Sub
 
 
@@ -866,3 +918,4 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     
     StripQuotes = res
 End Function
+

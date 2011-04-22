@@ -64,7 +64,7 @@ Attribute VB_Name = "QuoteFixMacro"
 'Version 1.2b - 2007-01-24
 ' * included on-behalf-of handling written by Per Soderlind (per [at] soderlind [dot] no)
 '
-'$Revision$ - not released
+'Version 1.3 - 2011-04-22
 ' * included %C patch 2778722 by Karsten Heimrich
 ' * included %SE patch 2807638 by Peter Lindgren
 ' * check for beginning of quote is now language independent
@@ -86,6 +86,8 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * Added CONVERT_TO_PLAIN flag to enable viewing mails as HTML first.
 ' * renamed "fromName" to "senderName" in order to reflect real content of the variable
 ' * fixed cursor position in the case of absence of "%C", but presence of "%Q"
+'
+'$Revision$ - not released
 
 'Ideas were taken from
 '  * Daniele Bochicchio

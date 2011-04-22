@@ -25,14 +25,16 @@ Attribute VB_Name = "SoftWrapMacro"
 'THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 '****************************************************************************
 
+'Changelog
+'
+'$Revision$ - not released
+
 Option Explicit
 
-
 Private Const SEVENTY_SIX_CHARS As String = "123456789x123456789x123456789x123456789x123456789x123456789x123456789x123456"
+
+'This constant has to be adapted to fit your needs (incoprating the used font, display size, ...)
 Private Const PIXEL_PER_CHARACTER As Double = 8.61842105263158
-
-Private Const ENABLE_MACRO As Boolean = True
-
 
 'resize window so that the text editor wraps the text automatically
 'after N charaters. Outlook wraps text automatically after sending it,
@@ -40,9 +42,8 @@ Private Const ENABLE_MACRO As Boolean = True
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
 Public Sub ResizeWindowForSoftWrap()
     'Application.ActiveInspector.CurrentItem.Body = SEVENTY_SIX_CHARS
-    If ((ENABLE_MACRO = True) And _
-            (TypeName(Application.ActiveWindow) = "Inspector") And Not _
-            (Application.ActiveInspector.WindowState = olMaximized)) Then
+    If (TypeName(Application.ActiveWindow) = "Inspector") And Not _
+        (Application.ActiveInspector.WindowState = olMaximized) Then
             
         Application.ActiveInspector.Width = (LINE_WRAP_AFTER + 2) * PIXEL_PER_CHARACTER
     End If

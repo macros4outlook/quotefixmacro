@@ -1,4 +1,4 @@
-Attribute VB_Name = "TestCases"
+Attribute VB_Name = "TestCases_ReFormatText"
 '$Id$
 '
 'These test cases part of the macros4outlook project
@@ -27,7 +27,7 @@ Attribute VB_Name = "TestCases"
 'return the expected results.
 '
 'Required settings:
-'USE_COLORIZER = False
+'USE_COLORIZER unset
 'INCLUDE_QUOTES_TO_LEVEL = -1
 'LINE_WRAP_AFTER = 75
 '
@@ -55,7 +55,11 @@ Private Sub compareResults(ByVal sProcessedMail As String, ByVal sExpectedResult
     Dim char2 As String
     
     
-    If False Then
+    If True Then
+        Debug.Print "Expected Result"
+        Debug.Print sExpectedResult
+        Debug.Print "Processed Mail"
+        Debug.Print sProcessedMail
         For i = 1 To Len(sProcessedMail)
             If i > Len(sExpectedResult) Then
                 'output is longer than expected result
@@ -132,6 +136,8 @@ Private Sub initTestCases()
     Call addTestCaseToArray(testcase)
 
 
+    'This testcase currently does not run through
+    'The algorithm has to be adapted not to requote greetings
     testcase.OutlookOutput = "" + _
         "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" + vbNewLine + _
         "> habe" + vbNewLine + _
@@ -181,7 +187,7 @@ Public Function runTestCaseNo(ByVal nIndex As Integer) As Boolean
 End Function
 
 
-Public Sub runTests()
+Public Sub runTests_ReformatText()
 
     Dim i As Integer
     

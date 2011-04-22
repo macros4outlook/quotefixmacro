@@ -655,22 +655,13 @@ catch:
         mailID = QuoteColorizerMacro.ColorizeMailItem(NewMail)
         If (Trim("" & mailID) <> "") Then  'no error occured or quotefix macro not there...
             Call QuoteColorizerMacro.DisplayMailItemByID(mailID)
-            #If USE_SOFTWRAP Then
-                Call SoftWrapMacro.ResizeWindowForSoftWrap
-            #End If
         Else
             'Display window
             NewMail.Display
-            #If USE_SOFTWRAP Then
-                Call SoftWrapMacro.ResizeWindowForSoftWrap
-            #End If
         End If
     #Else
         'Display window
         NewMail.Display
-        #If USE_SOFTWRAP Then
-            Call SoftWrapMacro.ResizeWindowForSoftWrap
-        #End If
     #End If
 
     'jump to the right place
@@ -679,7 +670,11 @@ catch:
         SendKeys "{DOWN}"
     Next i
 
-    'mark original mail as read
+        #If USE_SOFTWRAP Then
+                Call SoftWrapMacro.ResizeWindowForSoftWrap
+        #End If
+
+        'mark original mail as read
     OriginalMail.UnRead = False
 
 End Sub

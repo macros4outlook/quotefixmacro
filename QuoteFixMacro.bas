@@ -515,7 +515,14 @@ TimeFailure:        On Error GoTo 0
 DateFailure:        'leave sDate as is -> date is output as found in email
 
 DateTimeContinue:   On Error GoTo 0
-                    i = i + 3 'skip next three lines (To, CC, Subject)
+                    i = i + 4 'skip next four lines (To, CC, Subject, empty line)
+                    
+                    'Strip empty lines
+                    Do
+                        i = i + 1
+                        curLine = StripLine(rows(i))
+                    Loop Until (curLine <> "") Or (i > UBound(rows))
+                    i = i - 1 'i now points to the last empty line
                     
                     Dim condensedHeader As String
                     condensedHeader = CONDENSED_HEADER_FORMAT

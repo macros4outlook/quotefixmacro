@@ -103,23 +103,9 @@ Private Function runTestCase(ByRef testcase As typeTestCase, ByRef curNum As Int
     If firstNameDiffers Or senderNameDiffers Then
         Debug.Print "TestCase " + CStr(curNum) + " failed:"
         
-        Dim fiS As String
-        If firstNameDiffers Then
-          fiS = " <> "
-        Else
-          fiS = " = "
-        End If
-        
-        Dim srS As String
-        If senderNameDiffers Then
-          srS = " <> "
-        Else
-          srS = " = "
-        End If
-        
         Debug.Print testcase.originalName + ":"
-        Debug.Print firstName + fiS + testcase.ExpectedFirstName
-        Debug.Print senderName + srS + testcase.ExpectedSenderName
+        Debug.Print firstName + IIf(firstNameDiffers, " <> ", " = ") + testcase.ExpectedFirstName
+        Debug.Print senderName + IIf(senderNameDiffers, " <> ", " = ") + testcase.ExpectedSenderName
         Debug.Print
         
         'MsgBox "TestCase " + CStr(curNum) + " failed", vbExclamation

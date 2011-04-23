@@ -88,6 +88,8 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * fixed cursor position in the case of absence of "%C", but presence of "%Q"
 '
 '$Revision$ - not released
+'  * Added CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS, which condenses quoted outlook headers
+'    The format of the condensed header is configured at CONDENSED_HEADER_FORMAT
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -139,13 +141,18 @@ Private Const DATE_FORMAT As String = "yyyy-mm-dd"
 'Strip the sender´s signature?
 Private Const STRIP_SIGNATURE As Boolean = True
 
+'Condense embedded quoted Outlook headers?
+#Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = True
+Private Const CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"
+
 'Automatically convert HTML/RTF-Mails to plain text?
 Private Const CONVERT_TO_PLAIN As Boolean = False
 '--------------------------------------------------------
 
-'Private Const OUTLOOK_ORIGINALMESSAGE = "> -----Ursprüngliche Nachricht-----"
-'Private Const OUTLOOK_ORIGINALMESSAGE = "> -----Original Message-----"
-Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> -----"
+Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Original Message-----"
+Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE
 Private Const OUTLOOK_HEADERFINISH      As String = "> "
 Private Const SIGNATURE_SEPARATOR       As String = "> --"
 
@@ -164,10 +171,15 @@ Private Enum ReplyType
 End Enum
 
 Public Type NestingType
+    'the level of the current quote plus
     level As Integer
+    
+    'the amount of spaces until the next word
+    'needed as outlook sometimes inserts more than one space to separate the quoteprefix and the actual quote
+    'we use that information to fix the quote
     additionalSpacesCount As Integer
     
-    'the sum + 1 (+1 because of the trailing space)
+    'total = level + additionalSpacesCount + 1
     total As Integer
 End Type
 
@@ -248,7 +260,7 @@ Function CalcNesting(line As String) As NestingType 'changed to default scope
         res.additionalSpacesCount = 0
     End If
     
-    res.total = res.level + res.additionalSpacesCount + 1 '+1 = tailing space
+    res.total = res.level + res.additionalSpacesCount + 1 '+1 = trailing space
     
     CalcNesting = res
 End Function
@@ -284,7 +296,7 @@ End Function
 Private Sub AppendCurLine(ByRef curLine As String)
     If unformatedBlock = "" Then
         'unformatedBlock has to be used here, because it might be the case that the first
-        '  line is "". Therefore curBlock remains "", while unformatedBlock gets <> ""
+        '  line is "". Therefore curBlock remains "", whereas unformatedBlock gets <> ""
         
         If curLine = "" Then Exit Sub
         
@@ -416,7 +428,7 @@ Public Function ReFormatText(text As String) As String
         ElseIf curNesting.total < lastNesting.total Then 'curNesting.level = lastNesting.level - 1 doesn't work, because ">>", ">>>", ... are also killed by Office
             lastLineWasParagraph = False
             
-            'Quote is idented less. Maybe it 's a wrong line wrap of outlook?
+            'Quote is indented less. Maybe it's a wrong line wrap of outlook?
             
             If (i < UBound(rows)) Then
                 nextNesting = CalcNesting(rows(i + 1))
@@ -456,6 +468,8 @@ Public Function ReFormatText(text As String) As String
             End If
         
         Else
+            'curNesting.total > lastNesting.total
+            
             lastLineWasParagraph = False
             
             'it's nested one level deeper. Current block is finished
@@ -468,8 +482,56 @@ Public Function ReFormatText(text As String) As String
                 End If
             End If
             
-            'next block starts with curLine
-            AppendCurLine curLine
+            #If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS Then
+                If Left(curLine, Len(OUTLOOK_PLAIN_ORIGINALMESSAGE)) = OUTLOOK_PLAIN_ORIGINALMESSAGE Then
+                    'We found a header
+                    
+                    Dim posColon As Integer
+                    
+                    'Name
+                    i = i + 1
+                    Dim sName As String
+                    sName = StripLine(rows(i))
+                    posColon = InStr(sName, ":")
+                    sName = mid(sName, posColon + 2)
+                    
+                    'Date
+                    i = i + 1
+                    Dim sDate As String
+                    sDate = StripLine(rows(i))
+                    posColon = InStr(sDate, ":")
+                    sDate = mid(sDate, posColon + 2)
+                    Dim dDate As Date
+                    On Error GoTo DateFailure
+                    dDate = DateValue(sDate)
+                    
+                    Dim dTime As Date
+                    On Error GoTo TimeFailure
+                    dTime = TimeValue(sDate)
+                    dDate = dDate + dTime
+TimeFailure:        On Error GoTo 0
+                    sDate = Format(dDate, DATE_FORMAT)
+                    
+DateFailure:        'leave sDate as is -> date is output as found in email
+
+DateTimeContinue:   On Error GoTo 0
+                    i = i + 3 'skip next three lines (To, CC, Subject)
+                    
+                    Dim condensedHeader As String
+                    condensedHeader = CONDENSED_HEADER_FORMAT
+                    condensedHeader = Replace(condensedHeader, PATTERN_SENDER_NAME, sName)
+                    condensedHeader = Replace(condensedHeader, PATTERN_SENT_DATE, sDate)
+                    
+                    result = result & curPrefix & condensedHeader & vbCrLf
+                Else
+                    'fall back to default behavior
+                    'next block starts with curLine
+                    AppendCurLine curLine
+                End If
+            #Else
+                'next block starts with curLine
+                AppendCurLine curLine
+            #End If
         End If
     Next i
     
@@ -588,7 +650,8 @@ catch:
     ' find some separator in-between and mess up the whole reply, so check the nesting too.
     Dim MySignature As String
     MySignature = getSignature(BodyLines, lineCounter)
-    
+    ' lineCounter now indicates the line after the signature
+   
 
     Dim senderName As String
     Dim firstName As String
@@ -608,6 +671,7 @@ catch:
     Dim OutlookHeader As String
     OutlookHeader = getOutlookHeader(BodyLines, lineCounter)
 
+    
     Dim quotedText As String
     quotedText = getQuotedText(BodyLines, lineCounter)
     
@@ -712,7 +776,7 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
         
         'check if we can get the correct item by sendername
         Set exchAddressEntry = exchAddressEntries.Item(OriginalMail.senderName)
-        If exchAddressEntry.Name <> OriginalMail.senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
+        If exchAddressEntry.name <> OriginalMail.senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
 
         found = False
         While (Not found) And (Not exchAddressEntry Is Nothing)

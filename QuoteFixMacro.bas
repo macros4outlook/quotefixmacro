@@ -90,6 +90,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '$Revision$ - not released
 '  * Added CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS, which condenses quoted outlook headers
 '    The format of the condensed header is configured at CONDENSED_HEADER_FORMAT
+'  * Added CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -141,12 +142,24 @@ Private Const DATE_FORMAT As String = "yyyy-mm-dd"
 'Strip the sender´s signature?
 Private Const STRIP_SIGNATURE As Boolean = True
 
-'Condense embedded quoted Outlook headers?
-#Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = True
-Private Const CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"
-
 'Automatically convert HTML/RTF-Mails to plain text?
 Private Const CONVERT_TO_PLAIN As Boolean = False
+
+'--------------------------------------------------------
+'*** Configuration of condensing ***
+'--------------------------------------------------------
+
+'Condense embedded quoted Outlook headers?
+#Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = True
+
+'Should the first header also be condensed?
+'In case you use a custom header, (e.g., "You wrote on %D:", this should be set to false)
+#Const CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = True
+
+'Format of condensed header
+Private Const CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"
+
+
 '--------------------------------------------------------
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----"
@@ -493,13 +506,22 @@ Public Function ReFormatText(text As String) As String
                     Dim sName As String
                     sName = StripLine(rows(i))
                     posColon = InStr(sName, ":")
-                    sName = mid(sName, posColon + 2)
+                    Dim posLeftBracket As String
+                    posLeftBracket = InStr(sName, "[") '[ is the indication of the beginning of the E-Mail-Adress
+                    If (posLeftBracket) > 0 Then
+                        sName = mid(sName, posColon + 2, posLeftBracket - posColon - 3)
+                    Else
+                        sName = mid(sName, posColon + 2)
+                    End If
                     
                     'Date
                     i = i + 1
                     Dim sDate As String
                     sDate = StripLine(rows(i))
-                    posColon = InStr(sDate, ":")
+                    posColon = InStr(sDate, ",") 'Outlook puts the weekday before the actual date. DateValue() cannot deal with that. Thus, strip the weekday.
+                    If (posColon = 0) Then
+                        posColon = InStr(sDate, ":")
+                    End If
                     sDate = mid(sDate, posColon + 2)
                     Dim dDate As Date
                     On Error GoTo DateFailure
@@ -674,11 +696,17 @@ catch:
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, senderName)
     
-    
+        
     Dim OutlookHeader As String
-    OutlookHeader = getOutlookHeader(BodyLines, lineCounter)
+    #If CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER Then
+        OutlookHeader = ""
+        'The real condensing is made below, where CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS is checked
+        'Disabling getOutlookHeader leads to an unmodified lineCounter, which in turn gets the header included in "quotedText"
+    #Else
+        OutlookHeader = getOutlookHeader(BodyLines, lineCounter)
+    #End If
 
-    
+
     Dim quotedText As String
     quotedText = getQuotedText(BodyLines, lineCounter)
     

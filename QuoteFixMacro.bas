@@ -126,6 +126,7 @@ Option Explicit
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
 '#Const USE_SOFTWRAP = True
 
+
 '--------------------------------------------------------
 '*** Configuration constants ***
 '--------------------------------------------------------
@@ -145,6 +146,7 @@ Private Const STRIP_SIGNATURE As Boolean = True
 'Automatically convert HTML/RTF-Mails to plain text?
 Private Const CONVERT_TO_PLAIN As Boolean = False
 
+
 '--------------------------------------------------------
 '*** Configuration of condensing ***
 '--------------------------------------------------------
@@ -159,8 +161,8 @@ Private Const CONVERT_TO_PLAIN As Boolean = False
 'Format of condensed header
 Private Const CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"
 
-
 '--------------------------------------------------------
+
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
@@ -537,7 +539,9 @@ TimeFailure:        On Error GoTo 0
 DateFailure:        'leave sDate as is -> date is output as found in email
 
 DateTimeContinue:   On Error GoTo 0
-                    i = i + 4 'skip next four lines (To, CC, Subject, empty line)
+                    i = i + 3 'skip next three lines (To, [possibly CC], Subject, empty line)
+                    'if CC exists, then i points to the empty line
+                    'if CC does not exist, then i points to the first non-empty line
                     
                     'Strip empty lines
                     Do
@@ -551,7 +555,15 @@ DateTimeContinue:   On Error GoTo 0
                     condensedHeader = Replace(condensedHeader, PATTERN_SENDER_NAME, sName)
                     condensedHeader = Replace(condensedHeader, PATTERN_SENT_DATE, sDate)
                     
-                    result = result & curPrefix & condensedHeader & vbCrLf
+                    Dim prefix As String
+                    'the Prefix for the result has to be one level shorter as it is the quoted text is form the sender
+                    If (curNesting.level = 1) Then
+                        prefix = ""
+                    Else
+                        prefix = mid(curPrefix, 2)
+                    End If
+                    
+                    result = result & prefix & condensedHeader & vbCrLf
                 Else
                     'fall back to default behavior
                     'next block starts with curLine

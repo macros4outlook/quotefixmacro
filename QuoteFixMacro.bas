@@ -520,17 +520,27 @@ Public Function ReFormatText(text As String) As String
                     i = i + 1
                     Dim sDate As String
                     sDate = StripLine(rows(i))
-                    posColon = InStr(sDate, ",") 'Outlook puts the weekday before the actual date. DateValue() cannot deal with that. Thus, strip the weekday.
-                    If (posColon = 0) Then
-                        posColon = InStr(sDate, ":")
-                    End If
+                    posColon = InStr(sDate, ":")
                     sDate = mid(sDate, posColon + 2)
+                    posColon = InStr(sDate, ",")
+                    Dim posComma As Integer
+                    posComma = InStr(posColon + 1, sDate, ",")
+                    If posComma <> 0 Then
+                        'in case there are two ",", the first one separates a weekdate from the date
+                        sDate = mid(sDate, posColon + 2)
+                    End If
                     Dim dDate As Date
-                    On Error GoTo DateFailure
+                    On Error GoTo DateFailureOne
                     dDate = DateValue(sDate)
-                    
+                    GoTo DateSuccess
+DateFailureOne:     On Error GoTo DateFailure
+                    'Possibly the first thing before the "," is a weekday  some langauges only do not use a "," in the date
+                    posColon = InStr(sDate, ",") 'Outlook puts the weekday before the actual date. DateValue() cannot deal with that. Thus, strip the weekday.
+                    sDate = mid(sDate, posColon + 2)
+                    dDate = DateValue(sDate)
+
+DateSuccess:        On Error GoTo TimeFailure
                     Dim dTime As Date
-                    On Error GoTo TimeFailure
                     dTime = TimeValue(sDate)
                     dDate = dDate + dTime
 TimeFailure:        On Error GoTo 0

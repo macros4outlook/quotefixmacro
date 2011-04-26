@@ -91,6 +91,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Added CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS, which condenses quoted outlook headers
 '    The format of the condensed header is configured at CONDENSED_HEADER_FORMAT
 '  * Added CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
+'  * Fixed compile time constants to work with Outlook 2007
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -117,14 +118,15 @@ Option Explicit
 '--------------------------------------------------------
 
 'Should mails be colorized? (needs QuoteColorizerMacro.bas)
-'#Const USE_COLORIZER = True
+'Constant has to be "-1", as "True" only works with Outlook 2010, but not with Outlook 2007 and below
+'#Const USE_COLORIZER = -1
 
 'Enable SoftWrap
 'resize window so that the text editor wraps the text automatically
 'after N charaters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
-'#Const USE_SOFTWRAP = True
+'#Const USE_SOFTWRAP = -1
 
 
 '--------------------------------------------------------
@@ -152,11 +154,11 @@ Private Const CONVERT_TO_PLAIN As Boolean = False
 '--------------------------------------------------------
 
 'Condense embedded quoted Outlook headers?
-#Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = True
+#Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = -1
 
 'Should the first header also be condensed?
 'In case you use a custom header, (e.g., "You wrote on %D:", this should be set to false)
-#Const CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = True
+#Const CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = -1
 
 'Format of condensed header
 Private Const CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"

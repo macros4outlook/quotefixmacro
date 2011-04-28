@@ -91,7 +91,8 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Added CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS, which condenses quoted outlook headers
 '    The format of the condensed header is configured at CONDENSED_HEADER_FORMAT
 '  * Added CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
-'  * Fixed compile time constants to work with Outlook 2007
+'  * Fixed compile time constants to work with Outlook 2007 and 2010
+'  * Added support for custom template configured in the macro (QUOTING_TEMPLATE) - this can be used instead of the signature configuration
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -151,6 +152,13 @@ Private Const STRIP_SIGNATURE As Boolean = True
 'Automatically convert HTML/RTF-Mails to plain text?
 Private Const CONVERT_TO_PLAIN As Boolean = False
 
+'Enable QUOTING_TEMPLATE
+Private Const USE_QUOTING_TEMPLATE As Boolean = False
+
+'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
+Private Const QUOTING_TEMPLATE As String = _
+"%SN wrote on %D:" & vbCr & _
+"%Q"
 
 '--------------------------------------------------------
 '*** Configuration of condensing ***
@@ -708,6 +716,10 @@ catch:
     MySignature = getSignature(BodyLines, lineCounter)
     ' lineCounter now indicates the line after the signature
    
+    If USE_QUOTING_TEMPLATE Then
+        'Override MySignature in case the QUOTING_TEMPLATE should be used
+        MySignature = QUOTING_TEMPLATE
+    End If
 
     Dim senderName As String
     Dim firstName As String

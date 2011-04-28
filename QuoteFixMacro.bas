@@ -19,7 +19,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'If you don't have money (or don't like the software that much, but
 'appreciate the development), please send an email to
-'macros4outlook-users -> lists.sourceforge.net.
+'macros4outlook-users@lists.sourceforge.net.
 '
 'For bug reports please go to our sourceforge bugtracker: http://sourceforge.net/projects/macros4outlook/support
 '
@@ -118,15 +118,18 @@ Option Explicit
 '--------------------------------------------------------
 
 'Should mails be colorized? (needs QuoteColorizerMacro.bas)
-'Constant has to be "-1", as "True" only works with Outlook 2010, but not with Outlook 2007 and below
-'#Const USE_COLORIZER = -1
+'(Different configuration formats for Outlook 2010 and older outlooks. Please choose the right variant)
+'#Const USE_COLORIZER = True 'Outlook 2010
+'USE_COLORIZER = -1 'Outlook 2003 and 2007
 
 'Enable SoftWrap
 'resize window so that the text editor wraps the text automatically
 'after N charaters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
-'#Const USE_SOFTWRAP = -1
+'(Different configuration formats for Outlook 2010 and older outlooks. Please choose the right variant)
+'#Const USE_SOFTWRAP = True 'Outlook 2010
+'USE_SOFTWRAP = -1 'Outlook 2003 and 2007
 
 
 '--------------------------------------------------------
@@ -154,11 +157,11 @@ Private Const CONVERT_TO_PLAIN As Boolean = False
 '--------------------------------------------------------
 
 'Condense embedded quoted Outlook headers?
-#Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = -1
+Private Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = True
 
 'Should the first header also be condensed?
 'In case you use a custom header, (e.g., "You wrote on %D:", this should be set to false)
-#Const CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = -1
+Private Const CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = False
 
 'Format of condensed header
 Private Const CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"
@@ -499,7 +502,7 @@ Public Function ReFormatText(text As String) As String
                 End If
             End If
             
-            #If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS Then
+            If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS Then
                 If Left(curLine, Len(OUTLOOK_PLAIN_ORIGINALMESSAGE)) = OUTLOOK_PLAIN_ORIGINALMESSAGE Then
                     'We found a header
                     
@@ -581,10 +584,10 @@ DateTimeContinue:   On Error GoTo 0
                     'next block starts with curLine
                     AppendCurLine curLine
                 End If
-            #Else
+            Else
                 'next block starts with curLine
                 AppendCurLine curLine
-            #End If
+            End If
         End If
     Next i
     
@@ -722,13 +725,13 @@ catch:
     
         
     Dim OutlookHeader As String
-    #If CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER Then
+    If CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER Then
         OutlookHeader = ""
         'The real condensing is made below, where CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS is checked
         'Disabling getOutlookHeader leads to an unmodified lineCounter, which in turn gets the header included in "quotedText"
-    #Else
+    Else
         OutlookHeader = getOutlookHeader(BodyLines, lineCounter)
-    #End If
+    End If
 
 
     Dim quotedText As String

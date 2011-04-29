@@ -93,6 +93,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Added CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
 '  * Fixed compile time constants to work with Outlook 2007 and 2010
 '  * Added support for custom template configured in the macro (QUOTING_TEMPLATE) - this can be used instead of the signature configuration
+'  * Merged SoftWrap into QuoteFixMacro.bas
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -115,7 +116,7 @@ Option Explicit
 '*** Constants for conditional compiling ***
 '
 'Enter these constants in the VBA project properties. The lines here only document the
-'available constants. Multiple entries can be separated via colon
+'available constants.
 '--------------------------------------------------------
 
 'Should mails be colorized? (needs QuoteColorizerMacro.bas)
@@ -123,14 +124,22 @@ Option Explicit
 '#Const USE_COLORIZER = True 'Outlook 2010
 'USE_COLORIZER = -1 'Outlook 2003 and 2007
 
+
+'--------------------------------------------------------
+'*** Feature configuration ***
+'--------------------------------------------------------
 'Enable SoftWrap
 'resize window so that the text editor wraps the text automatically
 'after N charaters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
-'(Different configuration formats for Outlook 2010 and older outlooks. Please choose the right variant)
-'#Const USE_SOFTWRAP = True 'Outlook 2010
-'USE_SOFTWRAP = -1 'Outlook 2003 and 2007
+Private Const USE_SOFTWRAP = False
+
+'put as much characters as set in Outlook at "Tools / Options / Email Format / Internet Format"
+Private Const SEVENTY_SIX_CHARS As String = "123456789x123456789x123456789x123456789x123456789x123456789x123456789x123456"
+
+'This constant has to be adapted to fit your needs (incoprating the used font, display size, ...)
+Private Const PIXEL_PER_CHARACTER As Double = 8.61842105263158
 
 
 '--------------------------------------------------------
@@ -159,6 +168,7 @@ Private Const USE_QUOTING_TEMPLATE As Boolean = False
 Private Const QUOTING_TEMPLATE As String = _
 "%SN wrote on %D:" & vbCr & _
 "%Q"
+
 
 '--------------------------------------------------------
 '*** Configuration of condensing ***
@@ -791,7 +801,7 @@ catch:
     
     NewMail.Body = MySignature
     
-    'Extensions, in case Colorize and SoftWrap are activated
+    'Extensions, in case Colorize is activated
     #If USE_COLORIZER Then
         Dim mailID As String
         mailID = QuoteColorizerMacro.ColorizeMailItem(NewMail)
@@ -812,13 +822,12 @@ catch:
         SendKeys "{DOWN}"
     Next i
 
-        #If USE_SOFTWRAP Then
-                Call SoftWrapMacro.ResizeWindowForSoftWrap
-        #End If
+    If USE_SOFTWRAP Then
+           Call ResizeWindowForSoftWrap
+    End If
 
-        'mark original mail as read
+    'mark original mail as read
     OriginalMail.UnRead = False
-
 End Sub
 
 
@@ -1061,3 +1070,16 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     StripQuotes = res
 End Function
 
+
+'resize window so that the text editor wraps the text automatically
+'after N charaters. Outlook wraps text automatically after sending it,
+'but doesn't display the wrap when editing
+'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
+Public Sub ResizeWindowForSoftWrap()
+    'Application.ActiveInspector.CurrentItem.Body = SEVENTY_SIX_CHARS
+    If (TypeName(Application.ActiveWindow) = "Inspector") And Not _
+        (Application.ActiveInspector.WindowState = olMaximized) Then
+            
+        Application.ActiveInspector.Width = (LINE_WRAP_AFTER + 2) * PIXEL_PER_CHARACTER
+    End If
+End Sub

@@ -550,14 +550,18 @@ DateFailureOne:     On Error GoTo DateFailure
                     'Possibly the first thing before the "," is a weekday  some langauges only do not use a "," in the date
                     posColon = InStr(sDate, ",") 'Outlook puts the weekday before the actual date. DateValue() cannot deal with that. Thus, strip the weekday.
                     sDate = mid(sDate, posColon + 2)
-                    dDate = DateValue(sDate)
+                    If IsDate(sDate) Then dDate = DateValue(sDate)
 
 DateSuccess:        On Error GoTo TimeFailure
                     Dim dTime As Date
-                    dTime = TimeValue(sDate)
+                    If IsDate(sDate) Then dTime = TimeValue(sDate)
                     dDate = dDate + dTime
 TimeFailure:        On Error GoTo 0
-                    sDate = Format(dDate, DATE_FORMAT)
+                    If dDate <> CDate("00:00:00") Then
+                        sDate = Format(dDate, DATE_FORMAT)
+                    Else
+                        sDate = ""
+                    End If
                     
 DateFailure:        'leave sDate as is -> date is output as found in email
 

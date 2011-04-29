@@ -579,7 +579,7 @@ DateTimeContinue:   On Error GoTo 0
                     condensedHeader = Replace(condensedHeader, PATTERN_SENT_DATE, sDate)
                     
                     Dim prefix As String
-                    'the Prefix for the result has to be one level shorter as it is the quoted text is form the sender
+                    'the prefix for the result has to be one level shorter as it is the quoted text from the sender
                     If (curNesting.level = 1) Then
                         prefix = ""
                     Else

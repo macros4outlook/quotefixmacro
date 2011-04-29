@@ -570,7 +570,7 @@ DateTimeContinue:   On Error GoTo 0
                     Do
                         i = i + 1
                         curLine = StripLine(rows(i))
-                    Loop Until (curLine <> "") Or (i > UBound(rows))
+                    Loop Until (curLine <> "") Or (i = UBound(rows))
                     i = i - 1 'i now points to the last empty line
                     
                     Dim condensedHeader As String

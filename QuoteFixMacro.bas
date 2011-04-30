@@ -93,7 +93,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Added CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
 '  * Fixed compile time constants to work with Outlook 2007 and 2010
 '  * Added support for custom template configured in the macro (QUOTING_TEMPLATE) - this can be used instead of the signature configuration
-'  * Merged SoftWrap into QuoteFixMacro.bas
+'  * Merged SoftWrap and QuoteColorizerMacro into QuoteFixMacro.bas
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -113,20 +113,20 @@ Attribute VB_Name = "QuoteFixMacro"
 Option Explicit
 
 '--------------------------------------------------------
-'*** Constants for conditional compiling ***
+'*** Feature QuoteColorizer ***
+'--------------------------------------------------------
+Private Const USE_COLORIZER = False
+'If you enable it, you need MAPIRTF.DLL in C:\Windows\System32
+'Does NOT work at Windows 7/64bit Outlook 2010/32bit
 '
-'Enter these constants in the VBA project properties. The lines here only document the
-'available constants.
-'--------------------------------------------------------
+'Please enable convert RTF-to-Text at sending. Otherwise, the recipients will always receive HTML E-Mails
 
-'Should mails be colorized? (needs QuoteColorizerMacro.bas)
-'(Different configuration formats for Outlook 2010 and older outlooks. Please choose the right variant)
-'#Const USE_COLORIZER = True 'Outlook 2010
-'USE_COLORIZER = -1 'Outlook 2003 and 2007
+'How many different colors should be used for colorizing the quotes?
+Private Const NUM_RTF_COLORS As Integer = 4
 
 
 '--------------------------------------------------------
-'*** Feature configuration ***
+'*** Feature SoftWrap ***
 '--------------------------------------------------------
 'Enable SoftWrap
 'resize window so that the text editor wraps the text automatically
@@ -201,6 +201,26 @@ Private Const PATTERN_SENDER_EMAIL      As String = "%SE"
 Private Const PATTERN_FIRST_NAME        As String = "%FN"
 Private Const PATTERN_SENT_DATE         As String = "%D"
 Private Const PATTERN_OUTLOOK_HEADER    As String = "%OH"
+
+
+'For QuoteColorizer
+Public Declare Function WriteRTF _
+        Lib "mapirtf.dll" _
+        Alias "writertf" (ByVal ProfileName As String, _
+                          ByVal MessageID As String, _
+                          ByVal StoreID As String, _
+                          ByVal cText As String) _
+        As Integer
+
+'For QuoteColorizer
+Public Declare Function ReadRTF _
+        Lib "mapirtf.dll" _
+        Alias "readrtf" (ByVal ProfileName As String, _
+                         ByVal SrcMsgID As String, _
+                         ByVal SrcStoreID As String, _
+                         ByRef MsgRTF As String) _
+        As Integer
+
 
 Private Enum ReplyType
     TypeReply = 1
@@ -811,19 +831,19 @@ catch:
     NewMail.Body = MySignature
     
     'Extensions, in case Colorize is activated
-    #If USE_COLORIZER Then
+    If USE_COLORIZER Then
         Dim mailID As String
-        mailID = QuoteColorizerMacro.ColorizeMailItem(NewMail)
+        mailID = ColorizeMailItem(NewMail)
         If (Trim("" & mailID) <> "") Then  'no error occured or quotefix macro not there...
-            Call QuoteColorizerMacro.DisplayMailItemByID(mailID)
+            Call DisplayMailItemByID(mailID)
         Else
             'Display window
             NewMail.Display
         End If
-    #Else
+    Else
         'Display window
         NewMail.Display
-    #End If
+    End If
 
     'jump to the right place
     Dim i As Integer
@@ -1092,3 +1112,111 @@ Public Sub ResizeWindowForSoftWrap()
         Application.ActiveInspector.Width = (LINE_WRAP_AFTER + 2) * PIXEL_PER_CHARACTER
     End If
 End Sub
+
+
+Public Function ColorizeMailItem(MyMailItem As MailItem) As String
+    Dim folder As MAPIFolder
+    Dim rtf  As String, lines() As String, resRTF As String
+    Dim i As Integer, n As Integer, ret As Integer
+  
+    
+    'save the mailitem to get an entry id, then forget reference to that rtf gets commited.
+    'display mailitem by id later on.
+    If ((Not MyMailItem.BodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
+        ColorizeMailItem = ""
+        Exit Function
+    End If
+       
+    'richt text it
+    MyMailItem.BodyFormat = olFormatRichText
+    MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates ExtryID if not saved before)!
+        
+    Set folder = Session.GetDefaultFolder(olFolderInbox)
+    
+    rtf = Space(99999)  'init rtf to max length of message!
+    ret = ReadRTF("MAPI", MyMailItem.EntryID, folder.StoreID, rtf)
+    If (ret = 0) Then
+        'ole call success!!!
+        rtf = Trim(rtf)  'kill unnecessary spaces (from rtf var init with Space(rtf))
+        Debug.Print rtf & vbCrLf & "*************************************************************" & vbCrLf
+        
+        'we have our own rtf haeder, remove generated one
+        Dim PosHeaderEnd As Integer
+        Dim sTestString As String
+        PosHeaderEnd = InStr(rtf, "\uc1\pard\plain\deftab360")
+        If (PosHeaderEnd = 0) Then
+            sTestString = "\uc1\pard\f0\fs20\lang1031"
+            PosHeaderEnd = InStr(rtf, sTestString)
+        End If
+        If (PosHeaderEnd = 0) Then
+            sTestString = "\viewkind4\uc1\pard\f0\fs20"
+            PosHeaderEnd = InStr(rtf, sTestString)
+        End If
+        If (PosHeaderEnd = 0) Then
+            sTestString = "\pard\f0\fs20\lang1031"
+            PosHeaderEnd = InStr(rtf, sTestString)
+        End If
+        
+        rtf = mid(rtf, PosHeaderEnd + Len(sTestString))
+        
+        rtf = "{\rtf1\ansi\ansicpg1252 \deff0{\fonttbl" & vbCrLf & _
+                "{\f0\fswiss\fcharset0 Courier New;}}" & vbCrLf & _
+                "{\colortbl\red0\green0\blue0;\red106\green44\blue44;\red44\green106\blue44;\red44\green44\blue106;}" & vbCrLf & _
+                rtf
+                
+        lines = Split(rtf, vbCrLf)
+        Dim s As String
+        For i = LBound(lines) To UBound(lines)
+            n = QuoteFixMacro.CalcNesting(lines(i)).level
+            If (n = 0) Then
+                resRTF = resRTF & lines(i) & vbCrLf
+            Else
+                If (Right(lines(i), 4) = "\par") Then
+                    s = Left(lines(i), Len(lines(i)) - Len("\par"))
+                    resRTF = resRTF & "\cf" & n Mod NUM_RTF_COLORS & " " & s & "\cf0  " & "\par" & vbCrLf
+                Else
+                    resRTF = resRTF & "\cf" & n Mod NUM_RTF_COLORS & " " & lines(i) & "\cf0  " & vbCrLf
+                End If
+            End If
+        Next i
+    Else
+        Debug.Print "error while reading rtf! " & ret
+        ColorizeMailItem = ""
+        Exit Function
+    End If
+    
+    'remove some rtf commands
+    resRTF = Replace(resRTF, "\viewkind4\uc1", "")
+    resRTF = Replace(resRTF, "\uc1", "")
+    'VERY IMPORTANT, outlook will change the message back to PlainText otherwise!!!
+    resRTF = Replace(resRTF, "\fromtext", "")
+    Debug.Print resRTF
+    
+       
+    'write RTF back to form
+    ret = WriteRTF("MAPI", MyMailItem.EntryID, folder.StoreID, resRTF)
+    If (ret = 0) Then
+        Debug.Print "rtf write okay"
+    Else
+        Debug.Print "rtf write FAILURE"
+        ColorizeMailItem = ""
+        Exit Function
+    End If
+    
+    
+    'dereference all objects! otherwise, rtf isn't going to be updated!
+    Set folder = Nothing
+    'save return value
+    ColorizeMailItem = MyMailItem.EntryID
+    Set MyMailItem = Nothing
+End Function
+
+
+Public Sub DisplayMailItemByID(id As String)
+    Dim it As MailItem
+    Set it = Session.GetItemFromID(id, Session.GetDefaultFolder(olFolderInbox).StoreID)
+    it.Display
+    Set it = Nothing
+End Sub
+
+

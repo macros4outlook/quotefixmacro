@@ -526,56 +526,64 @@ Public Function ReFormatText(text As String) As String
                     
                     Dim posColon As Integer
                     
-                    'Name
+                    'Name and Email
                     i = i + 1
                     Dim sName As String
-                    sName = StripLine(rows(i))
-                    posColon = InStr(sName, ":")
+                    Dim sEmail As String
+                    curLine = StripLine(rows(i))
+                    posColon = InStr(curLine, ":")
                     Dim posLeftBracket As String
-                    posLeftBracket = InStr(sName, "[") '[ is the indication of the beginning of the E-Mail-Adress
+                    Dim posRightBracket As Integer
+                    posLeftBracket = InStr(curLine, "[") '[ is the indication of the beginning of the E-Mail-Adress
+                    posRightBracket = InStr(curLine, "]")
                     If (posLeftBracket) > 0 Then
-                        sName = mid(sName, posColon + 2, posLeftBracket - posColon - 3)
+                        sName = mid(curLine, posColon + 2, posLeftBracket - posColon - 3)
+                        If posRightBracket = 0 Then
+                            sEmail = mid(curLine, posLeftBracket + 8) '8 = Len("mailto: ")
+                        Else
+                            sEmail = mid(curLine, posLeftBracket + 8, posRightBracket - posLeftBracket - 8) '8 = Len("mailto: ")
+                        End If
                     Else
-                        sName = mid(sName, posColon + 2)
+                        sName = mid(curLine, posColon + 2)
+                        sEmail = ""
+                    End If
+                    
+                    i = i + 1
+                    curLine = StripLine(rows(i))
+                    If InStr(curLine, ":") = 0 Then
+                        'There is a wrap in the email-Adress
+                        posRightBracket = InStr(curLine, "]")
+                        If posRightBracket > 0 Then
+                            sEmail = sEmail + Left(curLine, posRightBracket - 1)
+                        Else
+                            'something wrent wrong, do nothing
+                        End If
+                        'go to next line
+                        i = i + 1
+                        curLine = StripLine(rows(i))
                     End If
                     
                     'Date
-                    i = i + 1
+                    'We assume that there is always a weekday present before the date
                     Dim sDate As String
                     sDate = StripLine(rows(i))
-                    posColon = InStr(sDate, ":")
-                    sDate = mid(sDate, posColon + 2)
-                    posColon = InStr(sDate, ",")
-                    Dim posComma As Integer
-                    posComma = InStr(posColon + 1, sDate, ",")
-                    If posComma <> 0 Then
-                        'in case there are two ",", the first one separates a weekdate from the date
-                        sDate = mid(sDate, posColon + 2)
-                    End If
+                    'posColon = InStr(sDate, ":")
+                    'sDate = mid(sDate, posColon + 2)
+                    Dim posFirstComma As Integer
+                    posFirstComma = InStr(sDate, ",")
+                    sDate = mid(sDate, posFirstComma + 2)
                     Dim dDate As Date
-                    On Error GoTo DateFailureOne
-                    dDate = DateValue(sDate)
-                    GoTo DateSuccess
-DateFailureOne:     On Error GoTo DateFailure
-                    'Possibly the first thing before the "," is a weekday  some langauges only do not use a "," in the date
-                    posColon = InStr(sDate, ",") 'Outlook puts the weekday before the actual date. DateValue() cannot deal with that. Thus, strip the weekday.
-                    sDate = mid(sDate, posColon + 2)
-                    If IsDate(sDate) Then dDate = DateValue(sDate)
-
-DateSuccess:        On Error GoTo TimeFailure
-                    Dim dTime As Date
-                    If IsDate(sDate) Then dTime = TimeValue(sDate)
-                    dDate = dDate + dTime
-TimeFailure:        On Error GoTo 0
+                    If IsDate(sDate) Then
+                        dDate = DateValue(sDate)
+                        'there is no function "IsTime", therefore try with brute force
+                        dDate = dDate + TimeValue(sDate)
+                    End If
                     If dDate <> CDate("00:00:00") Then
                         sDate = Format(dDate, DATE_FORMAT)
                     Else
-                        sDate = ""
+                        'leave sDate as is -> date is output as found in email
                     End If
                     
-DateFailure:        'leave sDate as is -> date is output as found in email
-
-DateTimeContinue:   On Error GoTo 0
                     i = i + 3 'skip next three lines (To, [possibly CC], Subject, empty line)
                     'if CC exists, then i points to the empty line
                     'if CC does not exist, then i points to the first non-empty line
@@ -591,6 +599,7 @@ DateTimeContinue:   On Error GoTo 0
                     condensedHeader = CONDENSED_HEADER_FORMAT
                     condensedHeader = Replace(condensedHeader, PATTERN_SENDER_NAME, sName)
                     condensedHeader = Replace(condensedHeader, PATTERN_SENT_DATE, sDate)
+                    condensedHeader = Replace(condensedHeader, PATTERN_SENDER_EMAIL, sEmail)
                     
                     Dim prefix As String
                     'the prefix for the result has to be one level shorter as it is the quoted text from the sender

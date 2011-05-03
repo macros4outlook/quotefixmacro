@@ -94,6 +94,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Fixed compile time constants to work with Outlook 2007 and 2010
 '  * Added support for custom template configured in the macro (QUOTING_TEMPLATE) - this can be used instead of the signature configuration
 '  * Merged SoftWrap and QuoteColorizerMacro into QuoteFixMacro.bas
+'  * Applied patch 3296731 by Matej Mihelic - Replaced hardcoded call to "MAPI"
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -1134,7 +1135,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     Set folder = Session.GetDefaultFolder(olFolderInbox)
     
     rtf = Space(99999)  'init rtf to max length of message!
-    ret = ReadRTF("MAPI", MyMailItem.EntryID, folder.StoreID, rtf)
+    ret = ReadRTF(Session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
     If (ret = 0) Then
         'ole call success!!!
         rtf = Trim(rtf)  'kill unnecessary spaces (from rtf var init with Space(rtf))
@@ -1194,7 +1195,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     
        
     'write RTF back to form
-    ret = WriteRTF("MAPI", MyMailItem.EntryID, folder.StoreID, resRTF)
+    ret = WriteRTF(Session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, resRTF)
     If (ret = 0) Then
         Debug.Print "rtf write okay"
     Else

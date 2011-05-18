@@ -95,6 +95,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Added support for custom template configured in the macro (QUOTING_TEMPLATE) - this can be used instead of the signature configuration
 '  * Merged SoftWrap and QuoteColorizerMacro into QuoteFixMacro.bas
 '  * Applied patch 3296731 by Matej Mihelic - Replaced hardcoded call to "MAPI"
+'  * Added LoadConfiguration() so you can store personal settings in the registry. These won´t get lost when updating the macro
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -113,17 +114,21 @@ Attribute VB_Name = "QuoteFixMacro"
 
 Option Explicit
 
+
+'----- CONFIGURATION ------------------------------------------------------------------------------------------
+'The default configuration values are set in LoadConfiguration()
+
 '--------------------------------------------------------
 '*** Feature QuoteColorizer ***
 '--------------------------------------------------------
-Private Const USE_COLORIZER = False
+Private USE_COLORIZER As Boolean
 'If you enable it, you need MAPIRTF.DLL in C:\Windows\System32
 'Does NOT work at Windows 7/64bit Outlook 2010/32bit
 '
 'Please enable convert RTF-to-Text at sending. Otherwise, the recipients will always receive HTML E-Mails
 
 'How many different colors should be used for colorizing the quotes?
-Private Const NUM_RTF_COLORS As Integer = 4
+Private NUM_RTF_COLORS As Integer
 
 
 '--------------------------------------------------------
@@ -134,41 +139,37 @@ Private Const NUM_RTF_COLORS As Integer = 4
 'after N charaters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
-Private Const USE_SOFTWRAP = False
+Private USE_SOFTWRAP As Boolean
 
 'put as much characters as set in Outlook at "Tools / Options / Email Format / Internet Format"
-Private Const SEVENTY_SIX_CHARS As String = "123456789x123456789x123456789x123456789x123456789x123456789x123456789x123456"
+Private SEVENTY_SIX_CHARS As String
 
 'This constant has to be adapted to fit your needs (incoprating the used font, display size, ...)
-Private Const PIXEL_PER_CHARACTER As Double = 8.61842105263158
+Private PIXEL_PER_CHARACTER As Double
 
 
 '--------------------------------------------------------
 '*** Configuration constants ***
 '--------------------------------------------------------
 'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
-Private Const INCLUDE_QUOTES_TO_LEVEL As Integer = -1
+Private INCLUDE_QUOTES_TO_LEVEL As Integer
 
 'At which column should the text be wrapped?
-Public Const LINE_WRAP_AFTER As Integer = 75
+Private LINE_WRAP_AFTER As Integer
 
-Private Const DATE_FORMAT As String = "yyyy-mm-dd"
-'alternative date format
-'Private Const DATE_FORMAT As String = "ddd, d MMM yyyy at HH:mm:ss"
+Private DATE_FORMAT As String
 
 'Strip the sender´s signature?
-Private Const STRIP_SIGNATURE As Boolean = True
+Private STRIP_SIGNATURE As Boolean
 
 'Automatically convert HTML/RTF-Mails to plain text?
-Private Const CONVERT_TO_PLAIN As Boolean = False
+Private CONVERT_TO_PLAIN As Boolean
 
 'Enable QUOTING_TEMPLATE
-Private Const USE_QUOTING_TEMPLATE As Boolean = False
+Private USE_QUOTING_TEMPLATE As Boolean
 
 'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
-Private Const QUOTING_TEMPLATE As String = _
-"%SN wrote on %D:" & vbCr & _
-"%Q"
+Private QUOTING_TEMPLATE As String
 
 
 '--------------------------------------------------------
@@ -176,17 +177,21 @@ Private Const QUOTING_TEMPLATE As String = _
 '--------------------------------------------------------
 
 'Condense embedded quoted Outlook headers?
-Private Const CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = True
+Private CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS As Boolean
 
 'Should the first header also be condensed?
 'In case you use a custom header, (e.g., "You wrote on %D:", this should be set to false)
-Private Const CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = False
+Private CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER As Boolean
 
 'Format of condensed header
-Private Const CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"
+Private CONDENSED_HEADER_FORMAT As String
 
-'--------------------------------------------------------
+'----- END OF CONFIGURATION -----------------------------------------------------------------------------------
 
+
+
+Private Const APPNAME As String = "QuoteFixMacro"
+Private Const REG_GROUP_CONFIG As String = "Config"
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
@@ -323,6 +328,37 @@ Function CalcNesting(line As String) As NestingType 'changed to default scope
     
     CalcNesting = res
 End Function
+
+'Loads the personal settings from the registry.
+'
+'You can store options by executing commands like this:
+'    Call SaveSetting(APPNAME, "Config", "CONVERT_TO_PLAIN", "true")
+
+'or by manually creating entries in this registry hive:
+'    HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro
+'
+Private Sub LoadConfiguration()
+
+    USE_COLORIZER = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_COLORIZER", False))
+    NUM_RTF_COLORS = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", 4))
+    USE_SOFTWRAP = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", False))
+    SEVENTY_SIX_CHARS = GetSetting(APPNAME, REG_GROUP_CONFIG, "SEVENTY_SIX_CHARS", "123456789x123456789x123456789x123456789x123456789x123456789x123456789x123456")
+    PIXEL_PER_CHARACTER = CDbl(GetSetting(APPNAME, REG_GROUP_CONFIG, "PIXEL_PER_CHARACTER", 8.61842105263158))
+    INCLUDE_QUOTES_TO_LEVEL = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "INCLUDE_QUOTES_TO_LEVEL", -1))
+    LINE_WRAP_AFTER = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "LINE_WRAP_AFTER", 75))
+    
+    DATE_FORMAT = GetSetting(APPNAME, REG_GROUP_CONFIG, "DATE_FORMAT", "yyyy-mm-dd")
+    'alternative date format: "ddd, d MMM yyyy at HH:mm:ss"
+    
+    STRIP_SIGNATURE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", True))
+    CONVERT_TO_PLAIN = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", False))
+    USE_QUOTING_TEMPLATE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", False))
+    QUOTING_TEMPLATE = GetSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", "%SN wrote on %D:" & vbCr & "%Q")
+    CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", True))
+    CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", False))
+    CONDENSED_HEADER_FORMAT = GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", "%SN wrote on %D:")
+
+End Sub
 
 'Description:
 '   Strips away ">" and " " at the beginning to have the plain text
@@ -657,6 +693,10 @@ End Function
 
 Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
     Dim TempObj As Object
+    
+    
+    Call LoadConfiguration
+   
     
     'we only understand mail items, no PostItems, NoteItems, ...
     If Not (TypeName(SelectedObject) = "MailItem") Then

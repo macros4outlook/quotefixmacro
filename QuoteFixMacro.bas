@@ -134,7 +134,7 @@ Private Const REG_GROUP_CONFIG As String = "Config"
 '--------------------------------------------------------
 '*** Feature QuoteColorizer ***
 '--------------------------------------------------------
-Private Const DEFAULT_USE_COLORIZER = False
+Private Const DEFAULT_USE_COLORIZER As Boolean = False
 'If you enable it, you need MAPIRTF.DLL in C:\Windows\System32
 'Does NOT work at Windows 7/64bit Outlook 2010/32bit
 '
@@ -206,7 +206,7 @@ Private Const DEFAULT_CONDENSED_HEADER_FORMAT As String = "%SN wrote on %D:"
 '----- END OF DEFAULT CONFIGURATION -----------------------------------------------------------------------------------
 
 
-Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----"
+Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE

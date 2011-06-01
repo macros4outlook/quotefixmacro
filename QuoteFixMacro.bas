@@ -515,7 +515,7 @@ Public Function ReFormatText(text As String) As String
     Dim curLine As String
     Dim rows() As String
     Dim lastPrefix As String
-    Dim i As Integer
+    Dim i As Long
     Dim curNesting As NestingType
     Dim nextNesting As NestingType
 

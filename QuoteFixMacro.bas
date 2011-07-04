@@ -87,7 +87,7 @@ Attribute VB_Name = "QuoteFixMacro"
 ' * renamed "fromName" to "senderName" in order to reflect real content of the variable
 ' * fixed cursor position in the case of absence of "%C", but presence of "%Q"
 '
-'$Revision$ - not released
+'Version 1.4 - 2011-07-04
 '  * Added CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS, which condenses quoted outlook headers
 '    The format of the condensed header is configured at CONDENSED_HEADER_FORMAT
 '  * Added CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER

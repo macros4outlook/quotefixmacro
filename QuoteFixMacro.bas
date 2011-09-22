@@ -98,7 +98,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Added LoadConfiguration() so you can store personal settings in the registry. These won´t get lost when updating the macro
 
 '$Revision$ - not released
-'  * <no changes until now>
+'  * bugfix: When a mail was signed or encrypted with PGP, the reformatting would yield incorrect results
 '
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -213,6 +213,7 @@ Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE
+Private Const PGP_MARKER                As String = "-----BEGIN PGP"
 Private Const OUTLOOK_HEADERFINISH      As String = "> "
 Private Const SIGNATURE_SEPARATOR       As String = "> --"
 
@@ -620,7 +621,9 @@ Public Function ReFormatText(text As String) As String
             End If
             
             If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS Then
-                If Left(curLine, Len(OUTLOOK_PLAIN_ORIGINALMESSAGE)) = OUTLOOK_PLAIN_ORIGINALMESSAGE Then
+                If Left(curLine, Len(OUTLOOK_PLAIN_ORIGINALMESSAGE)) = OUTLOOK_PLAIN_ORIGINALMESSAGE _
+                And Not Left(curLine, Len(PGP_MARKER)) = PGP_MARKER _
+                Then
                     'We found a header
                     
                     Dim posColon As Integer

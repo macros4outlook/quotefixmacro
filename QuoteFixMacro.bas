@@ -99,6 +99,7 @@ Attribute VB_Name = "QuoteFixMacro"
 
 '$Revision$ - not released
 '  * bugfix: When a mail was signed or encrypted with PGP, the reformatting would yield incorrect results
+'  * bugfix: When a sender´s name could not be determined correctly, it would have thrown an error 5
 '
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -639,7 +640,14 @@ Public Function ReFormatText(text As String) As String
                     posLeftBracket = InStr(curLine, "[") '[ is the indication of the beginning of the E-Mail-Adress
                     posRightBracket = InStr(curLine, "]")
                     If (posLeftBracket) > 0 Then
-                        sName = mid(curLine, posColon + 2, posLeftBracket - posColon - 3)
+                        Dim lengthName As Integer
+                        lengthName = posLeftBracket - posColon - 3
+                        If lengthName > 0 Then
+                            sName = mid(curLine, posColon + 2, lengthName)
+                        Else
+                            Debug.Print "Couldn´t get name. Is the header formatted correctly?"
+                        End If
+                        
                         If posRightBracket = 0 Then
                             sEmail = mid(curLine, posLeftBracket + 8) '8 = Len("mailto: ")
                         Else

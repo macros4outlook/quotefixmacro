@@ -100,6 +100,8 @@ Attribute VB_Name = "QuoteFixMacro"
 '$Revision$ - not released
 '  * bugfix: When a mail was signed or encrypted with PGP, the reformatting would yield incorrect results
 '  * bugfix: When a sender´s name could not be determined correctly, it would have thrown an error 5
+'  * Letters of first name are also lower cased
+'  * Only the first word of a potential first name is used as first name
 '
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -1065,8 +1067,14 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         End If
     End If
     
+    'Take only first word of firstName
+    pos = InStr(firstName, " ")
+    If (pos > 0) Then
+         firstName = Left(firstName, pos - 1)
+    End If
+    
     'fix casing of names
-    firstName = UCase(Left(firstName, 1)) + mid(firstName, 2)
+    firstName = UCase(Left(firstName, 1)) + LCase(mid(firstName, 2))
 End Sub
 
 

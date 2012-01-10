@@ -31,7 +31,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '
 'QuoteFix Macro
 '  copyright 2006-2009 Oliver Kopp and Daniel Martin. All rights reserved.
-'  copyright 2010-2011 Oliver Kopp and Lars Monsees. All rights reserved.
+'  copyright 2010-2012 Oliver Kopp and Lars Monsees. All rights reserved.
 '
 '
 'Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -102,6 +102,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * bugfix: When a sender´s name could not be determined correctly, it would have thrown an error 5
 '  * Letters of first name are also lower cased
 '  * Only the first word of a potential first name is used as first name
+'  * support for fixed firstNames for configured email adresses
 '
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -121,6 +122,16 @@ Attribute VB_Name = "QuoteFixMacro"
 Option Explicit
 
 
+'----- HOWTO CONFIGURE FIXED FIRSTNAMES -------------------------------------------------------------------------------
+'1. Open regedit
+'2. Navigate to HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro
+'3. Create key "firstnames"
+'4. Create string (!) "Count" with value X, where X is the number of replacements you want to configure
+'5. Create key "firstnames.1"
+'6. Create string value "email" with the email you want to specify a firstName for
+'7. Create string value "firstName" with the firstname to be used
+'8. Repeat steps 5 to 7 until X is reached. Replace 1 by the appropriate number
+
 '----- DEFAULT CONFIGURATION ------------------------------------------------------------------------------------------
 'The configuration is now stored in the registry
 'Below, the DEFAULT values are provided
@@ -135,6 +146,7 @@ Option Explicit
 '    HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro
 Private Const APPNAME As String = "QuoteFixMacro"
 Private Const REG_GROUP_CONFIG As String = "Config"
+Private Const REG_GROUP_FIRSTNAMES As String = "Firstnames" 'stores replacements for firstnames
 
 
 '--------------------------------------------------------
@@ -246,6 +258,10 @@ Private QUOTING_TEMPLATE As String
 Private CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS As Boolean
 Private CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER As Boolean
 Private CONDENSED_HEADER_FORMAT As String
+
+'These are fetched from the registry (LoadConfiguration), but not saved by StoreDefaultConfiguration
+Private FIRSTNAME_REPLACEMENT__EMAIL() As String
+Private FIRSTNAME_REPLACEMENT__FIRSTNAME() As String
 
 
 'For QuoteColorizer
@@ -404,6 +420,18 @@ Private Sub LoadConfiguration()
     CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS))
     CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER))
     CONDENSED_HEADER_FORMAT = GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", DEFAULT_CONDENSED_HEADER_FORMAT)
+    
+    Dim count As Variant
+    count = CDbl(GetSetting(APPNAME, REG_GROUP_FIRSTNAMES, "Count", 0))
+    ReDim FIRSTNAME_REPLACEMENT__EMAIL(count)
+    ReDim FIRSTNAME_REPLACEMENT__FIRSTNAME(count)
+    Dim i As Integer
+    For i = 1 To count
+        Dim group As String
+        group = REG_GROUP_FIRSTNAMES & "\" & i
+        FIRSTNAME_REPLACEMENT__EMAIL(i) = GetSetting(APPNAME, group, "email", vbNullString)
+        FIRSTNAME_REPLACEMENT__FIRSTNAME(i) = GetSetting(APPNAME, group, "firstName", vbNullString)
+    Next i
 End Sub
 
 'Description:
@@ -864,10 +892,23 @@ catch:
     Dim firstName As String
     Call getNames(OriginalMail, senderName, firstName)
     
-    If InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0 Then
+    If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
         Dim senderEmail As String
         senderEmail = getSenderEmailAdress(OriginalMail)
         MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
+    End If
+    
+    If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Then
+        'replace firstName by email stored in registry
+        Dim rEmail As Variant
+        Dim curIndex As Integer
+        For curIndex = 1 To UBound(FIRSTNAME_REPLACEMENT__EMAIL)
+            rEmail = FIRSTNAME_REPLACEMENT__EMAIL(curIndex)
+            If (StrComp(LCase(senderEmail), LCase(rEmail)) = 0) Then
+                firstName = FIRSTNAME_REPLACEMENT__FIRSTNAME(curIndex)
+                Exit For
+            End If
+        Next curIndex
     End If
     
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)

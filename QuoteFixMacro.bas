@@ -1,7 +1,7 @@
 Attribute VB_Name = "QuoteFixMacro"
 '$Id$
 
-'QuoteFix Macro 1.5
+'QuoteFix Macro TRUNK
 
 'QuoteFix Macro is part of the macros4outlook project
 'see http://sourceforge.net/projects/macros4outlook/ for more information
@@ -107,6 +107,9 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Letters of first name are also lower cased
 '  * Only the first word of a potential first name is used as first name
 '  * support for fixed firstNames for configured email adresses
+'
+'$Revision$ - not released
+'  * no changes yet
 
 'Ideas were taken from
 '  * Daniele Bochicchio

@@ -1,11 +1,15 @@
 Attribute VB_Name = "QuoteFixMacro"
 '$Id$
-'
-'QuoteFix Macro TRUNK
-'
+
+'QuoteFix Macro 1.5
+
 'QuoteFix Macro is part of the macros4outlook project
 'see http://sourceforge.net/projects/macros4outlook/ for more information
-'
+
+'The page
+'http://sourceforge.net/apps/mediawiki/macros4outlook/index.php?title=QuoteFix_Macro#Configuration
+'provides information about configuration of QuoteFixMacro
+
 'For more information on Outlook see http://www.microsoft.com/outlook
 'Outlook is (C) by Microsoft
 
@@ -96,14 +100,14 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * Merged SoftWrap and QuoteColorizerMacro into QuoteFixMacro.bas
 '  * Applied patch 3296731 by Matej Mihelic - Replaced hardcoded call to "MAPI"
 '  * Added LoadConfiguration() so you can store personal settings in the registry. These won´t get lost when updating the macro
-
-'$Revision$ - not released
+'
+'Version 1.5 - 2012-01-11
 '  * bugfix: When a mail was signed or encrypted with PGP, the reformatting would yield incorrect results
 '  * bugfix: When a sender´s name could not be determined correctly, it would have thrown an error 5
 '  * Letters of first name are also lower cased
 '  * Only the first word of a potential first name is used as first name
 '  * support for fixed firstNames for configured email adresses
-'
+
 'Ideas were taken from
 '  * Daniele Bochicchio
 '    Button integration and sample code - http://lab.aspitalia.com/35/Outlook-2007-2003-Reply-With-Quoting-Macro.aspx

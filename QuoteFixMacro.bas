@@ -122,16 +122,6 @@ Attribute VB_Name = "QuoteFixMacro"
 Option Explicit
 
 
-'----- HOWTO CONFIGURE FIXED FIRSTNAMES -------------------------------------------------------------------------------
-'1. Open regedit
-'2. Navigate to HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro
-'3. Create key "firstnames"
-'4. Create string (!) "Count" with value X, where X is the number of replacements you want to configure
-'5. Create key "firstnames.1"
-'6. Create string value "email" with the email you want to specify a firstName for
-'7. Create string value "firstName" with the firstname to be used
-'8. Repeat steps 5 to 7 until X is reached. Replace 1 by the appropriate number
-
 '----- DEFAULT CONFIGURATION ------------------------------------------------------------------------------------------
 'The configuration is now stored in the registry
 'Below, the DEFAULT values are provided

@@ -109,7 +109,8 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * support for fixed firstNames for configured email adresses
 '
 '$Revision$ - not released
-'  * If sender name is enclodes in quotes, these quotes are stripped
+'  * If sender name is encloded in quotes, these quotes are stripped
+'  * Now recognizes LastnameFirstname as sender name format, too.
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -1045,6 +1046,11 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
     
 End Function
 
+Private Function IsUpperCaseChar(ByVal c As String) As Boolean
+    IsUpperCaseChar = ((Asc(c) >= 65) And (Asc(c) <= 90))
+End Function
+
+
 'Extracts the name of the sender from the sender's name provided in the E-Mail.
 '
 'In:
@@ -1107,6 +1113,28 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
             If pos > 0 Then
                 'first name is separated by a dot
                 tmpName = Left(tmpName, pos - 1)
+            Else
+                'name is a single string, without "." or " "
+                'final guess: LastnameFirstname
+                If (IsUpperCaseChar(Left(tmpName, 1))) Then
+                    Dim i As Integer
+                    i = 2
+                    Dim UpperCaseCharCount As Integer
+                    UpperCaseCharCount = 0
+                    Dim LastUpperCaseCharPos As Integer
+                    LastUpperCaseCharPos = 0
+                    Do While (i < Len(tmpName) And (UpperCaseCharCount < 2))
+                        If (IsUpperCaseChar(mid(tmpName, i, 1))) Then
+                            LastUpperCaseCharPos = i
+                            UpperCaseCharCount = UpperCaseCharCount + 1
+                        End If
+                        i = i + 1
+                    Loop
+                    If (UpperCaseCharCount = 1) Then
+                        'LastnameFirstname format found
+                        tmpName = mid(tmpName, LastUpperCaseCharPos)
+                    End If
+                End If
             End If
             firstName = tmpName
         End If

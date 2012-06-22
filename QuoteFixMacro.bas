@@ -109,7 +109,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '  * support for fixed firstNames for configured email adresses
 '
 '$Revision$ - not released
-'  * no changes yet
+'  * If sender name is enclodes in quotes, these quotes are stripped
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -1060,9 +1060,16 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     
     Dim tmpName As String
     tmpName = originalName
-    senderName = originalName
     
-    'default: fullname
+    'cleanup quotes: if name is encloded in quotes, just remove them
+    If (Left(tmpName, 1) = """" And Right(tmpName, 1) = """") Then
+        tmpName = mid(tmpName, 2, Len(tmpName) - 2)
+    End If
+    
+    'full senderName is the originalName without quotes
+    senderName = tmpName
+    
+    'default firstName: fullname
     firstName = tmpName
     
     Dim title As String
@@ -1117,13 +1124,13 @@ End Sub
 
 
 'Extracts the name of the sender from the sender's name provided in the E-Mail.
-'Future work is to extract the first name out of the stored Outlook contacts (if that contact exists)
+'TODO: Future work is to extract the first name out of the stored Outlook contacts (if that contact exists)
 '
 'Notes:
 '  * Names are returned by reference
 Private Sub getNames(ByRef OriginalMail As MailItem, ByRef senderName As String, ByRef firstName As String)
     
-    'Wildcard replaces
+    'Wildcard replacements
     senderName = OriginalMail.SentOnBehalfOfName
     
     If senderName = "" Then

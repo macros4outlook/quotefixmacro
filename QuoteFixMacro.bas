@@ -111,6 +111,7 @@ Attribute VB_Name = "QuoteFixMacro"
 '$Revision$ - not released
 '  * If sender name is encloded in quotes, these quotes are stripped
 '  * Now recognizes LastnameFirstname as sender name format, too.
+'  * Applied fix by "helper-01" to enable macro usage at 64bit Outlook
 
 'Ideas were taken from
 '  * Daniele Bochicchio
@@ -263,7 +264,7 @@ Private FIRSTNAME_REPLACEMENT__FIRSTNAME() As String
 
 
 'For QuoteColorizer
-Public Declare Function WriteRTF _
+Public Declare PtrSafe Function WriteRTF _
         Lib "mapirtf.dll" _
         Alias "writertf" (ByVal ProfileName As String, _
                           ByVal MessageID As String, _
@@ -272,7 +273,7 @@ Public Declare Function WriteRTF _
         As Integer
 
 'For QuoteColorizer
-Public Declare Function ReadRTF _
+Public Declare PtrSafe Function ReadRTF _
         Lib "mapirtf.dll" _
         Alias "readrtf" (ByVal ProfileName As String, _
                          ByVal SrcMsgID As String, _

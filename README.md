@@ -1,7 +1,8 @@
 # QuoteFixMacro
 
-QuoteFix Macro is a VB-Macro for Outlook written by Oliver Kopp, Lars Monsees, and Daniel Martin. It works in Outlook 2003, 2007, and 2010. QuoteFix Macro is inspired by [Outlook-QuoteFix](http://web.archive.org/web/20120316151928/http://home.in.tum.de/%7Ejain/software/outlook-quotefix/) written by Dominik Jain and implemented as a Visual Basic macro. The ideas for integrating it in Outlook came from [Daniele Bochicchio](https://github.com/dbochicchio), especially from his [quoting macro](http://lab.aspitalia.com/35/Outlook-2007-2003-Reply-With-Quoting-Macro.aspx).
-Contents
+QuoteFix Macro is a VB-Macro for Outlook written by Oliver Kopp, Lars Monsees, and Daniel Martin.
+It works in Outlook 2003, 2007, and 2010. QuoteFix Macro is inspired by [Outlook-QuoteFix](http://web.archive.org/web/20120316151928/http://home.in.tum.de/%7Ejain/software/outlook-quotefix/) written by [Dominik Jain](https://github.com/opcode81/) and implemented as a Visual Basic macro.
+The ideas for integrating it in Outlook came from [Daniele Bochicchio](https://github.com/dbochicchio), especially from his [quoting macro](http://lab.aspitalia.com/35/Outlook-2007-2003-Reply-With-Quoting-Macro.aspx).
 
 ## Setup
 

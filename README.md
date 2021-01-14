@@ -1,12 +1,6 @@
 # QuoteFixMacro
 
-QuoteFix Macro is a VB-Macro for Outlook written by Oliver Kopp, Lars Monsees, and Daniel Martin.
-It works in Outlook 2003, 2007, and 2010. QuoteFix Macro is inspired by [Outlook-QuoteFix](http://web.archive.org/web/20120316151928/http://home.in.tum.de/%7Ejain/software/outlook-quotefix/) written by [Dominik Jain](https://github.com/opcode81/) and implemented as a Visual Basic macro.
-The ideas for integrating it in Outlook came from [Daniele Bochicchio](https://github.com/dbochicchio), especially from his [quoting macro](http://lab.aspitalia.com/35/Outlook-2007-2003-Reply-With-Quoting-Macro.aspx).
-
-## About QuoteFixMacro
-
-QuoteFix Macro can modify MS Outlook's message composition windows on-the-fly to allow for **correct quoting** and to change the appearance of your plain-text replies and forwards in general: move your signature, use compressed indentation, customize your quote header, etc.
+QuoteFixMacro can modify MS Outlook's message composition windows on-the-fly to allow for **correct quoting** and to change the appearance of your plain-text replies and forwards in general: move your signature, use compressed indentation, customize your quote header, etc.
 
 ### Quoting / Formatting
 
@@ -64,9 +58,9 @@ Now, what is wrong with this email?
 * Horribly broken quotes - line breaks in several wrong places!
 * Outlook basically forced me to do a 'top-post', because empty lines were inserted at the top and the cursor was positioned there. And if I had used a signature, it would have been inserted at the top, too.
 * Empty lines at the end of the message were quoted.
-* The quote header is far too long (5 lines + 2 empty lines) and cannot be modified for a 'personal touch'. 
+* The quote header is far too long (5 lines + 2 empty lines) and cannot be modified for a 'personal touch'.
 
-BUT... It doesn't have to be that way. Outlook-QuoteFix fixes all of the above - and more! The following is an example of how the above message dialog could have looked with Outlook-QuoteFix: 
+BUT... It doesn't have to be that way. QuoteFixMacro fixes all of the above - and more! The following is an example of how the above message dialog could have looked with QuoteFixMacro:
 
 ```text
 Dominik Jain wrote:
@@ -106,13 +100,13 @@ Download the latest version from the GitHub release page. The Basic Edition sole
 
 ### Assign macros to buttons
 
-After that, you need to replace the original "Reply" and "ReplyAll" buttons with buttons that trigger the macros defined in the file you just imported. Remember, these buttons are in Outlook´s main window, and also in the message window that pops up when you double click on an email.
+After that, you need to replace the original "Reply" and "ReplyAll" buttons with buttons that trigger the macros defined in the file you just imported. Remember, these buttons are in Outlook's main window, and also in the message window that pops up when you double click on an email.
 
 1. Right-click on the toolbar and select "Customize..."
 2. Go to the "Commands" tab and navigate to the "Macro" category
 3. Drag the "FixedReply" and "FixedReplyAll" entries and drop it onto the toolbar
 
-You can also change the name and image of the newly created buttons using the customization dialog. If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a shortcut for reply. Since Outlook does not support custom keybindings, you cannot map the shortcut CTRL+r to the new FixedReply macro. Neverthelesss, the mapping can be done by using Autohotkey (see below).
+You can also change the name and image of the newly created buttons using the customization dialog. If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a shortcut for reply. Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro. Neverthelesss, the mapping can be done by using AutoHotkey (see below).
 
 ### Set up eMail
 
@@ -128,17 +122,17 @@ You can also change the name and image of the newly created buttons using the cu
 
 3. Tools > Options > Mail Format > Internet Format...
 
-   * Automatic wordwrap after: 76 characters
+   * Automatic wordwrap after: 76 characters (which is the default when you did not touch that setting)
 
 4. Tools > Options > Mail Format > Signatures...
 
-   * Create a signature that is only used for reply and forward. You have to insert at least %Q to get the quoted original mail.
+   * Create a signature that is only used for reply and forward. You have to insert at least `%Q` to get the quoted original mail.
    * Assign this signature to every mail account you want to use.
 
 5. Display all E-Mail as Text
 
-   * Otherwise, QuoteFix does not work. -- See Microsoft KB 831607 for an explanation how to turn this feature on.
-   * For Outlook 2010: File / Options / Security Center / Options for the Security Center / E-Mail Security / "Read as Plain Text" / `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text"
+   * Otherwise, QuoteFix does not work. -- See Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature.
+   * For Outlook 2010 and later: File / Options / Security Center / Options for the Security Center / E-Mail Security / "Read as Plain Text" / `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text"
 
 ## Templates
 
@@ -153,10 +147,28 @@ Please double check that the template is used as "Forward/Reply" signature under
 | `%D` | Date of the quoted mail in `yyyy-mm-dd` |
 | `%FN` | Sender's first name |
 | `%OH` | Original Outlook header |
-| `%SN` | Sender´s name |
+| `%SN` | Sender's name |
 | `%Q` | Where to put the quote |
 
-This allows following templates for a reply:
+### Examples
+
+#### Simple with some QuoteFixMacro advertisement
+
+```
+Hello %FN,
+
+(inline reply powered by QuoteFixMacro - see https://macros4outlook.github.io/quotefixmacro/)
+
+You wrote on %D:
+
+%Q
+
+Cheers,
+
+Oliver
+```
+
+#### Cursor above the quote
 
 ```text
 %FN,
@@ -171,7 +183,7 @@ Greetings,
 Hans
 ```
 
-or
+#### Minimal template
 
 ```text
 %FN,
@@ -193,7 +205,7 @@ Configuration is done via constants in the QuoteFix code:
 
 ### Strip sender's signature
 
-By default, the sender's signature is removed from the reply. If you don´t want this, set `STRIP_SIGNATURE` to `false`.
+By default, the sender's signature is removed from the reply. If you don't want this, set `STRIP_SIGNATURE` to `false`.
 
 ### QuoteColorizer
 
@@ -221,7 +233,8 @@ At each entry, there are two keys: email stating the email to match and firstNam
 
 #### Direct Import Using .reg Files
 
-Alternatively, create a `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry. The distribution of QuoteFixMacro already contains an "exampleFirstNameConfiguration.reg" with the content below.
+Alternatively, create a `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry.
+The distribution of QuoteFixMacro already contains an [`exampleFirstNameConfiguration.reg`](exampleFirstNameConfiguration.reg) with the content below.
 
 ```reg
 Windows Registry Editor Version 5.00
@@ -262,12 +275,18 @@ Send !r
 
 Remark: In the message window, the reply button cannot be inserted as in Outlook 2003. The shortcut bar has to be used instead. The button was assigned <kbd>Alt</kbd>+<kbd>6</kbd> after insertion.
 
-### AutoHotkey Macro for a Outlook 2010
+### AutoHotkey Macro for Outlook 2010 and later
 
 Similar to the above. Outlook 2010, however, does not enable the use of `&` any more. You have to find out the number of the button in the shortcut bar. Just press <kbd>Alt</kbd> and you'll see the number. Use that in the Autohotkey Macro.
 
 ## Signing the Macro
 
-That article should explain everything: <https://www.groovypost.com/howto/create-self-signed-digital-certificate-microsoft-office-2016/>.
+With Outlook 2016, this doesn't seem to be necessary any more since self-written macros seem to be usable without error.
+Otherwise, following article should explain everything: <https://www.groovypost.com/howto/create-self-signed-digital-certificate-microsoft-office-2016/>.
+There is also an [MSN Article](https://docs.microsoft.com/en-us/previous-versions/office/developer/office-xp/aa163622(v=office.10)?redirectedfrom=MSDN) on macro code signing for Office XP.
 
-There is a [MSN Article](https://docs.microsoft.com/en-us/previous-versions/office/developer/office-xp/aa163622(v=office.10)?redirectedfrom=MSDN) on Macro code signing for Office XP.
+## Acknowledgements
+
+QuoteFix Macro is a VB-Macro for Outlook created by Oliver Kopp, Lars Monsees, and Daniel Martin.
+QuoteFix Macro is inspired by [Outlook-QuoteFix](http://web.archive.org/web/20120316151928/http://home.in.tum.de/%7Ejain/software/outlook-quotefix/) written by [Dominik Jain](https://github.com/opcode81/) and reimplemented as a Visual Basic macro.
+The ideas for integrating it in Outlook came from [Daniele Bochicchio](https://github.com/dbochicchio), especially from his [quoting macro](http://lab.aspitalia.com/35/Outlook-2007-2003-Reply-With-Quoting-Macro.aspx).

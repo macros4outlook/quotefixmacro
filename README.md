@@ -6,7 +6,7 @@ QuoteFixMacro can modify MS Outlook's message composition windows on-the-fly to 
 
 If you use Outlook as your email client and make use of plain-text messages, you will have noticed that Outlook doesn't exactly feature the most intelligent quoting algorithm; in fact, it's the silliest one imaginable.
 
-The following will probably look familiar... 
+The following will probably look familiar...
 
 ```text
 See what I mean?
@@ -53,7 +53,7 @@ See what I mean?
 >
 ```
 
-Now, what is wrong with this email? 
+Now, what is wrong with this email?
 
 * Horribly broken quotes - line breaks in several wrong places!
 * Outlook basically forced me to do a 'top-post', because empty lines were inserted at the top and the cursor was positioned there. And if I had used a signature, it would have been inserted at the top, too.
@@ -90,7 +90,7 @@ And the best thing about QuoteFixMacro is, **there is absolutely nothing you hav
 
 ### Download
 
-Download the latest version from the GitHub release page. The Basic Edition solely contains the QuoteFix Macro. The SoftWrap Edition includes QuoteFix Macro with SoftWrap Macro. SoftWrap Macro is useful if you don't use Outlook maximized.
+Download the latest version from the GitHub release page.
 
 ### Import Macros
 
@@ -144,11 +144,12 @@ Please double check that the template is used as "Forward/Reply" signature under
 | Pattern | Description |
 | -- | -- |
 | `%C` | Where to put the cursor. If no `%C` is given, the cursor is put at the first line of the quote |
-| `%D` | Date of the quoted mail in `yyyy-mm-dd` |
-| `%FN` | Sender's first name |
-| `%OH` | Original Outlook header |
-| `%SN` | Sender's name |
 | `%Q` | Where to put the quote |
+| `%OH` | Original Outlook header |
+| `%FN` | Sender's first name |
+| `%SN` | Sender's name |
+| `%SE` | Sender's email address |
+| `%D` | Date of the quoted mail in `yyyy-mm-dd` |
 
 ### Examples
 
@@ -194,22 +195,6 @@ Best,
 
 Amie
 ```
-
-## Configuration
-
-Configuration is done via constants in the QuoteFix code:
-
-1. Start the VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd>)
-2. Open the module "QuoteFixMacro"
-3. Scroll down to the block "Configuration constants"
-
-### Strip sender's signature
-
-By default, the sender's signature is removed from the reply. If you don't want this, set `STRIP_SIGNATURE` to `false`.
-
-### QuoteColorizer
-
-QuoteColorizer colorizes the indented parts in different colors to make it easier to distinguish who wrote which text. Set `USE_COLORIZER` to `true` to use this. The mail format is automatically set to Rich-Text.
 
 ### Custom Firstnames
 
@@ -284,6 +269,67 @@ Similar to the above. Outlook 2010, however, does not enable the use of `&` any 
 With Outlook 2016, this doesn't seem to be necessary any more since self-written macros seem to be usable without error.
 Otherwise, following article should explain everything: <https://www.groovypost.com/howto/create-self-signed-digital-certificate-microsoft-office-2016/>.
 There is also an [MSN Article](https://docs.microsoft.com/en-us/previous-versions/office/developer/office-xp/aa163622(v=office.10)?redirectedfrom=MSDN) on macro code signing for Office XP.
+
+## Advanced Usage
+
+Configuration is done via constants in the QuoteFix code (see below for a storage in the registry)
+
+1. Start the VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd>)
+2. Open the module "QuoteFixMacro"
+3. Scroll down to the block "Configuration constants"
+
+### Configure the template inside the code
+
+The variable `QUOTING_TEMPLATE` can be used to store the quoting template.
+Thus, the Outlook configuration can be left untouched.
+
+### Auto conversion to plain format
+
+By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted to text mails.
+
+### Condense Headers
+
+With `CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS`, one condence reply/forwarding headers added by outlook so that the email gets even shorter
+The format of the condensed header is configured at `CONDENSED_HEADER_FORMAT`
+
+One can also condense the first header only `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER`.
+
+### QuoteColorizer
+
+QuoteColorizer colorizes the indented parts in different colors to make it easier to distinguish who wrote which text. Set `USE_COLORIZER` to `true` to use this. The mail format is automatically set to Rich-Text.
+
+The receipient will receive the colors, too.
+In case, you don't want this, enable convert RTF-to-Text at sending.
+
+### Strip sender's signature
+
+By default, the sender's signature is removed from the reply. If you don't want this, set `STRIP_SIGNATURE` to `false`.
+
+## SoftWrap
+
+When enabled, this feature resizes the window in a way that the text editor wraps the text automatically after N charaters.
+Outlook wraps text automatically after sending it, but doesn't display the wrap when editing.
+Thus, this is useful to double-check that no new line breaks are introduced by Outlook when sending an email.
+
+One can set `USE_SOFTWRAP` to `True` to enable it.
+
+## Date format
+
+The date format used is [ISO-8601](https://xkcd.com/1179/), which is `YYYY-MM-DD`.
+One can change the format in the variable `DEFAULT_DATE_FORMAT`.
+
+### Persist settings across updates
+
+An update of QuoteFixMacro happens by replacing the content of the `.bas` file.
+Thus, any settings are overwritten during an update.
+QuoteFixMacro can read settings from the registry.
+The macro **NEVER** stores entries in the registry by itself.
+
+You can store the default configuration in the registry:
+
+1. by executing `StoreDefaultConfiguration()`
+2. by writing a routing executing commands similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")`
+3. by manually creating entries in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
 
 ## Acknowledgements
 

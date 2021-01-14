@@ -1,139 +1,28 @@
 Attribute VB_Name = "QuoteFixMacro"
-'$Id$
 
-'QuoteFix Macro TRUNK
+' SPDX-License-Identifier: BSD-3-Clause
 
-'QuoteFix Macro is part of the macros4outlook project
-'see http://sourceforge.net/projects/macros4outlook/ for more information
-
-'The page
-'http://sourceforge.net/apps/mediawiki/macros4outlook/index.php?title=QuoteFix_Macro#Configuration
-'provides information about configuration of QuoteFixMacro
-
-'For more information on Outlook see http://www.microsoft.com/outlook
-'Outlook is (C) by Microsoft
-
-
-'If you like this software, please write a post card to
+' Precondition:
 '
-'Oliver Kopp
-'Schwabstr. 70a
-'70193 Stuttgart
-'Germany
+' The received mail has to contain the "right" quotes. Wrong original quotes cannot always be fixed
 '
-'If you don't have money (or don't like the software that much, but
-'appreciate the development), please send an email to
-'macros4outlook-users@lists.sourceforge.net.
-'
-'For bug reports please go to our sourceforge bugtracker: http://sourceforge.net/projects/macros4outlook/support
-'
-'Thank you :-)
-
-
-'****************************************************************************
-'License:
-'
-'QuoteFix Macro
-'  copyright 2006-2009 Oliver Kopp and Daniel Martin. All rights reserved.
-'  copyright 2010-2012 Oliver Kopp and Lars Monsees. All rights reserved.
-'
-'
-'Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
-'
-'   1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
-'   2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
-'   3. The name of the author may not be used to endorse or promote products derived from this software without specific prior written permission.
-'
-'THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-'****************************************************************************
-
-'Changelog
-'
-'Version 1.0a - 2006-09-14
-' * first public release
-'
-'Version 1.1 - 2006-09-15
-' * Macro %OH introduced
-' * Outlook header contains "> " at the end
-' * If no macros are in the signature, the default behavior of outlook (insert header and quoted text) text is used. (1.0a removed the header)
-'
-'Version 1.2 - 2006-09-25
-' * QuoteFix now also fixes newly introduced first-level-quotes ("> text")
-' * Header matching now matches the English header
-'
-'Version 1.2a - 2006-09-26
-' * quick fix of bug introduced by reformating first-level-quotes
-'   (it was reformated too often)
-'
-'Version 1.2b - 2007-01-24
-' * included on-behalf-of handling written by Per Soderlind (per [at] soderlind [dot] no)
-'
-'Version 1.3 - 2011-04-22
-' * included %C patch 2778722 by Karsten Heimrich
-' * included %SE patch 2807638 by Peter Lindgren
-' * check for beginning of quote is now language independent
-' * added support to strip quotes of level N and greater
-' * more support of alternative name formatting
-'   * added support of reversed name format ("Lastname, Firstname" instead of "Firstname Lastname")
-'   * added support of "LASTNAME firstname" format
-'   * if no firstname is found, then the destination is used
-'     * "firstname.lastname@domain" is supported
-'   * firstName always starts with an uppercase letter
-'   * Added support for "Dr."
-' * added USE_COLORIZER and USE_SOFTWRAP conditional compiling flags.
-'     They enable QuoteColorizerMacro and SoftWrapMacro
-' * splitted code for parsing mailtext from FixMailText() into smaller functions
-' * added support of removing the sender´s signature
-' * bugfix: FinishBlock() would in some cases throw error 5
-' * bugfix: Prevent error 91 when mail is marked as possible phishing mail
-' * Original mail is marked as read
-' * Added CONVERT_TO_PLAIN flag to enable viewing mails as HTML first.
-' * renamed "fromName" to "senderName" in order to reflect real content of the variable
-' * fixed cursor position in the case of absence of "%C", but presence of "%Q"
-'
-'Version 1.4 - 2011-07-04
-'  * Added CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS, which condenses quoted outlook headers
-'    The format of the condensed header is configured at CONDENSED_HEADER_FORMAT
-'  * Added CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
-'  * Fixed compile time constants to work with Outlook 2007 and 2010
-'  * Added support for custom template configured in the macro (QUOTING_TEMPLATE) - this can be used instead of the signature configuration
-'  * Merged SoftWrap and QuoteColorizerMacro into QuoteFixMacro.bas
-'  * Applied patch 3296731 by Matej Mihelic - Replaced hardcoded call to "MAPI"
-'  * Added LoadConfiguration() so you can store personal settings in the registry. These won´t get lost when updating the macro
-'
-'Version 1.5 - 2012-01-11
-'  * bugfix: When a mail was signed or encrypted with PGP, the reformatting would yield incorrect results
-'  * bugfix: When a sender´s name could not be determined correctly, it would have thrown an error 5
-'  * Letters of first name are also lower cased
-'  * Only the first word of a potential first name is used as first name
-'  * support for fixed firstNames for configured email adresses
-'
-'$Revision$ - not released
-'  * If sender name is encloded in quotes, these quotes are stripped
-'  * Now recognizes LastnameFirstname as sender name format, too.
-'  * Applied fix by "helper-01" to enable macro usage at 64bit Outlook
-
-'Ideas were taken from
-'  * Daniele Bochicchio
-'    Button integration and sample code - http://lab.aspitalia.com/35/Outlook-2007-2003-Reply-With-Quoting-Macro.aspx
-'  * Dominik Jain
-'    Outlook Quotefix. An excellent program working up to Outlook 2003: http://home.in.tum.de/~jain/software/outlook-quotefix/
-
-'Precondition:
-' * The received mail has to contain the right quotes. Wrong original quotes can not always be fixed
 '   > > > w1
 '   > >
 '   > > w2
 '   > >
 '   > > > w3
+'
 '   won't be fixed to w1 w2 w3. How can it be known, that w2 belongs to w1 and w3?
+
+' For information on configuration head to QuoteFix Macro's homepage: https://macros4outlook.github.io/quotefixmacro/
 
 Option Explicit
 
 
 '----- DEFAULT CONFIGURATION ------------------------------------------------------------------------------------------
+
 'The configuration is now stored in the registry
-'Below, the DEFAULT values are provided
+'Below, the DEFAULT values are provided (if no registry setting is found)
 '
 'The macro NEVER stores entries in the registry by itself
 '
@@ -191,7 +80,7 @@ Private Const DEFAULT_DATE_FORMAT As String = "yyyy-mm-dd"
 'alternative date format
 'Private Const DEFAULT_DATE_FORMAT As String = "ddd, d MMM yyyy at HH:mm:ss"
 
-'Strip the sender´s signature?
+'Strip the sender's signature?
 Private Const DEFAULT_STRIP_SIGNATURE As Boolean = True
 
 'Automatically convert HTML/RTF-Mails to plain text?
@@ -224,7 +113,7 @@ Private Const DEFAULT_CONDENSED_HEADER_FORMAT As String = "%SN wrote on %D:"
 
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----UrsprÃ¼ngliche Nachricht-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE
 Private Const PGP_MARKER                As String = "-----BEGIN PGP"
@@ -674,7 +563,7 @@ Public Function ReFormatText(text As String) As String
                         If lengthName > 0 Then
                             sName = mid(curLine, posColon + 2, lengthName)
                         Else
-                            Debug.Print "Couldn´t get name. Is the header formatted correctly?"
+                            Debug.Print "Could not get name. Is the header formatted correctly?"
                         End If
                         
                         If posRightBracket = 0 Then
@@ -816,19 +705,19 @@ catch:
     End If
 
     Dim OriginalMail As MailItem
-    Set OriginalMail = SelectedObject  'cast!!!
+    Set OriginalMail = SelectedObject 'cast!
     
     
-    'mails that have not been sent can´t be replied to (draft mails)
+    'mails that have not been sent cannot be replied to (draft mails)
     If Not OriginalMail.Sent Then
         MsgBox "This mail seems to be a draft, so it cannot be replied to.", vbExclamation
         Exit Sub
     End If
     
-    'we don´t understand HTML mails!!!
+    'we do not understand HTML mails!
     If Not (OriginalMail.BodyFormat = olFormatPlain) Then
         If CONVERT_TO_PLAIN Then
-            'Unfortunately, it´s only possible to convert the original mail as there is
+            'Unfortunately, it is only possible to convert the original mail as there is
             'no easy way to create a clone. Therefore, you cannot go back to the original format!
             'If you e.g. would decide that you need to forward the mail in HTML format,
             'this will not be possible anymore.

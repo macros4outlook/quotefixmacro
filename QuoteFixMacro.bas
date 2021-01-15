@@ -90,10 +90,10 @@ Private Const DEFAULT_CONVERT_TO_PLAIN As Boolean = False
 Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = False
 
 'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
-Private Const DEFAULT_QUOTING_TEMPLATE As String = _
-"%SN wrote on %D:" & vbCr & _
-"%Q"
+Private Const DEFAULT_QUOTING_TEMPLATE As String = "(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)\n\n%SN wrote on %D:\n\n%Q\n\nCheers"
 
+'English quote template
+Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)\n\n%SN wrote on %D:\n\n%Q\n\nCheers"
 
 '--------------------------------------------------------
 '*** Configuration of condensing ***
@@ -143,6 +143,7 @@ Private STRIP_SIGNATURE As Boolean
 Private CONVERT_TO_PLAIN As Boolean
 Private USE_QUOTING_TEMPLATE As Boolean
 Private QUOTING_TEMPLATE As String
+Private QUOTING_TEMPLATE_EN As String
 Private CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS As Boolean
 Private CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER As Boolean
 Private CONDENSED_HEADER_FORMAT As String
@@ -215,6 +216,14 @@ Sub FixedReplyAll()
     Call FixMailText(m, TypeReplyAll)
 End Sub
 
+'"Fixed Reply All" functionality with English template
+Sub FixedReplyAllEnglish()
+    Dim m As Object
+    Set m = GetCurrentItem()
+
+    Call FixMailText(m, TypeReplyAll, True)
+End Sub
+
 '"Fixed Forward" functionality - has to be made available as shortcut in Outlook
 Sub FixedForward()
     Dim m As Object
@@ -282,6 +291,7 @@ Public Sub StoreDefaultConfiguration()
     Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", DEFAULT_CONVERT_TO_PLAIN)
     Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE)
     Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE)
+    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN)
     Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS)
     Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER)
     Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", DEFAULT_CONDENSED_HEADER_FORMAT)
@@ -306,6 +316,9 @@ Private Sub LoadConfiguration()
 
     QUOTING_TEMPLATE = GetSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE)
     QUOTING_TEMPLATE = Replace(QUOTING_TEMPLATE, "\n", vbCrLf)
+
+    QUOTING_TEMPLATE_EN = GetSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN)
+    QUOTING_TEMPLATE_EN = Replace(QUOTING_TEMPLATE_EN, "\n", vbCrLf)
 
     Dim count As Variant
     count = CDbl(GetSetting(APPNAME, REG_GROUP_FIRSTNAMES, "Count", 0))
@@ -659,13 +672,11 @@ Public Function ReFormatText(text As String) As String
     ReFormatText = result
 End Function
 
-
-Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType)
+' @param UseEnglishTemplate In case USE_QUOTING_TEMPLATE is True, should the default or the English template be used?
+Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False)
     Dim TempObj As Object
     
-    
     Call LoadConfiguration
-   
     
     'we only understand mail items, no PostItems, NoteItems, ...
     If Not (TypeName(SelectedObject) = "MailItem") Then
@@ -774,7 +785,11 @@ catch:
     If USE_QUOTING_TEMPLATE Then
         'Override MySignature in case the QUOTING_TEMPLATE should be used
         'lineCounter is still valid, because lineCounter is based on the current message whereas QUOTING_TEMPLATE is a general setting
-        MySignature = QUOTING_TEMPLATE
+        If UseEnglishTemplate Then
+            MySignature = QUOTING_TEMPLATE_EN
+        Else
+            MySignature = QUOTING_TEMPLATE
+        End If
     End If
 
     Dim senderName As String

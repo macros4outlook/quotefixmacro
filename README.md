@@ -285,6 +285,11 @@ Configuration is done via constants in the QuoteFix code (see below for a storag
 The variable `QUOTING_TEMPLATE` can be used to store the quoting template.
 Thus, the Outlook configuration can be left untouched.
 
+### English replys
+
+The variable `QUOTING_TEMPLATE_EN` can be used to store en English quoting template.
+In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called, that template is used.
+
 ### Auto conversion to plain format
 
 By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted to text mails.

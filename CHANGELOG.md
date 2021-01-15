@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 * Now recognizes `LastnameFirstname` as sender name format, too.
+* Internationalization: Add `FixedReplyAllEnglish()` with a separate template for replies in English.
 
 ### Fixed
 

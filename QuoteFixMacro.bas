@@ -993,11 +993,23 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         tmpName = Mid(tmpName, 5)
         title = "Dr. "
     End If
+
+    'Some companies have "(Text)" at the end of their name.
+    'We strip that
+    If (Right(tmpName, 1) = ")") Then
+        pos = InStrRev(tmpName, "(")
+        If pos > 0 Then
+            tmpName = Trim(Left(tmpName, pos - 1))
+        End If
+    End If
         
     pos = InStr(tmpName, ",")
     If pos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
         firstName = Trim(Mid(tmpName, pos + 1))
+        Dim lastName As String
+        lastName = Mid(tmpName, 1, pos - 1)
+        senderName = firstName + " " + lastName
     Else
         pos = InStr(tmpName, " ")
         If pos > 0 Then

@@ -15,11 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 * Now recognizes `LastnameFirstname` as sender name format, too.
 * Internationalization: Add `FixedReplyAllEnglish()` with a separate template for replies in English.
+* In case a sender name takes something in braces at the end, that text is removed (e.g., "Test Name (42)" is converted to "Test Name")
 
 ### Fixed
 
 * If sender name is encloded in quotes, these quotes are stripped
 * Applied fix by "helper-01" to enable macro usage at 64bit Outlook
+* Always use "Firstname Lastname" as sender name, even if some names are formatted "Lastname, Firstname"
 
 ## Version [1.5] - 2012-01-11
 

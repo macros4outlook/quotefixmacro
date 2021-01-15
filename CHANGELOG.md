@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 * Homepage and code moved from sourceforge to GitHub.
+* Linebreaks in `DEFAULT_QUOTING_TEMPLATE` changed from `vbCr` to `"\n"`
 
 ### Added
 

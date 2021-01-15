@@ -199,7 +199,7 @@ Private curPrefix As String
 Private lastLineWasParagraph As Boolean
 Private lastNesting As NestingType
 
-'these are the macros called by the custom buttons
+'"Fixed Reply" functionality - has to be made available as shortcut in Outlook
 Sub FixedReply()
     Dim m As Object
     Set m = GetCurrentItem()
@@ -207,7 +207,7 @@ Sub FixedReply()
     Call FixMailText(m, TypeReply)
 End Sub
 
-
+'"Fixed Reply All" functionality - has to be made available as shortcut in Outlook
 Sub FixedReplyAll()
     Dim m As Object
     Set m = GetCurrentItem()
@@ -215,7 +215,7 @@ Sub FixedReplyAll()
     Call FixMailText(m, TypeReplyAll)
 End Sub
 
-
+'"Fixed Forward" functionality - has to be made available as shortcut in Outlook
 Sub FixedForward()
     Dim m As Object
     Set m = GetCurrentItem()
@@ -223,11 +223,7 @@ Sub FixedForward()
     Call FixMailText(m, TypeForward)
 End Sub
 
-
-
-
-
-Function CalcNesting(line As String) As NestingType 'changed to default scope
+Function CalcNesting(line As String) As NestingType
     Dim lastQuoteSignPos As Integer
     Dim i As Integer
     Dim count As Integer
@@ -304,11 +300,13 @@ Private Sub LoadConfiguration()
     STRIP_SIGNATURE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", DEFAULT_STRIP_SIGNATURE))
     CONVERT_TO_PLAIN = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", DEFAULT_CONVERT_TO_PLAIN))
     USE_QUOTING_TEMPLATE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE))
-    QUOTING_TEMPLATE = GetSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE)
     CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS))
     CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER))
     CONDENSED_HEADER_FORMAT = GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", DEFAULT_CONDENSED_HEADER_FORMAT)
-    
+
+    QUOTING_TEMPLATE = GetSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE)
+    QUOTING_TEMPLATE = Replace(QUOTING_TEMPLATE, "\n", vbCrLf)
+
     Dim count As Variant
     count = CDbl(GetSetting(APPNAME, REG_GROUP_FIRSTNAMES, "Count", 0))
     ReDim FIRSTNAME_REPLACEMENT__EMAIL(count)
@@ -654,7 +652,7 @@ Public Function ReFormatText(text As String) As String
     FinishBlock curNesting
     
     'strip last (unnecessary) line feeds and spaces
-    Do While ((Len(result) > 0) And (InStr(vbCr & vbLf & " ", Right(result, 1)) <> 0))
+    Do While ((Len(result) > 0) And (InStr(vbCrLf & " ", Right(result, 1)) <> 0))
         result = Left(result, Len(result) - 1)
     Loop
     
@@ -714,7 +712,7 @@ catch:
         Exit Sub
     End If
     
-    'we do not understand HTML mails!
+    'basically, we do not understand HTML mails
     If Not (OriginalMail.BodyFormat = olFormatPlain) Then
         If CONVERT_TO_PLAIN Then
             'Unfortunately, it is only possible to convert the original mail as there is
@@ -767,12 +765,15 @@ catch:
     ' original message separator - might loop until the end of the whole message since
     ' this depends on the International Option settings (english), even worse it might
     ' find some separator in-between and mess up the whole reply, so check the nesting too.
+    '
+    ' We need to call getSignature in all cases as it sets "lineCounter" as side effect
     Dim MySignature As String
     MySignature = getSignature(BodyLines, lineCounter)
     ' lineCounter now indicates the line after the signature
    
     If USE_QUOTING_TEMPLATE Then
         'Override MySignature in case the QUOTING_TEMPLATE should be used
+        'lineCounter is still valid, because lineCounter is based on the current message whereas QUOTING_TEMPLATE is a general setting
         MySignature = QUOTING_TEMPLATE
     End If
 

@@ -119,6 +119,7 @@ You can also change the name and image of the newly created buttons using the cu
 2. Tools > Options > Mail Format
 
    * Message format: Plain Text
+   * Not this is not necessary, if `CONVERT_TO_PLAIN` is set to `True`.
 
 3. Tools > Options > Mail Format > Internet Format...
 
@@ -128,11 +129,12 @@ You can also change the name and image of the newly created buttons using the cu
 
    * Create a signature that is only used for reply and forward. You have to insert at least `%Q` to get the quoted original mail.
    * Assign this signature to every mail account you want to use.
+   * Alterantively, you can configure `QUOTING_TEMPLATE` (see below).
 
 5. Display all E-Mail as Text
 
-   * Otherwise, QuoteFix does not work. -- See Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature.
-   * For Outlook 2010 and later: File / Options / Security Center / Options for the Security Center / E-Mail Security / "Read as Plain Text" / `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text"
+   * QuoteFixMacro requries plain text to work. One can either read all emails as plain text from the beginning or set `CONVERT_TO_PLAIN` is set to `True`.
+     In case all texts should be read a s plain text,s ee Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature. For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)): File / Options / Security Center / Options for the Security Center / E-Mail Security / "Read as Plain Text" / `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text".
 
 ## Templates
 
@@ -155,7 +157,7 @@ Please double check that the template is used as "Forward/Reply" signature under
 
 #### Simple with some QuoteFixMacro advertisement
 
-```
+```text
 Hello %FN,
 
 (inline reply powered by QuoteFixMacro - see https://macros4outlook.github.io/quotefixmacro/)
@@ -216,7 +218,7 @@ At each entry, there are two keys: email stating the email to match and firstNam
 1. Create string value `firstName` with the firstname to be used
 1. Repeat steps 5 to 7 until `X` is reached. Replace `1` at `firstnames.1` by the appropriate number
 
-#### Direct Import Using .reg Files
+#### Direct Import Using `.reg` Files
 
 Alternatively, create a `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry.
 The distribution of QuoteFixMacro already contains an [`exampleFirstNameConfiguration.reg`](exampleFirstNameConfiguration.reg) with the content below.
@@ -330,6 +332,11 @@ You can store the default configuration in the registry:
 1. by executing `StoreDefaultConfiguration()`
 2. by writing a routing executing command similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")`
 3. by manually creating entries in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
+
+## FAQ
+
+Q: What if the whole mail text disappers?  
+A: The reply setting in Outlook is not configured as required. Double check that the original text should be prefixed with `> `.
 
 ## Acknowledgements
 

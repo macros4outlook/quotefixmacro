@@ -305,7 +305,7 @@ In case, you don't want this, enable convert RTF-to-Text at sending.
 
 By default, the sender's signature is removed from the reply. If you don't want this, set `STRIP_SIGNATURE` to `false`.
 
-## SoftWrap
+### SoftWrap
 
 When enabled, this feature resizes the window in a way that the text editor wraps the text automatically after N charaters.
 Outlook wraps text automatically after sending it, but doesn't display the wrap when editing.
@@ -313,7 +313,7 @@ Thus, this is useful to double-check that no new line breaks are introduced by O
 
 One can set `USE_SOFTWRAP` to `True` to enable it.
 
-## Date format
+### Date format
 
 The date format used is [ISO-8601](https://xkcd.com/1179/), which is `YYYY-MM-DD`.
 One can change the format in the variable `DEFAULT_DATE_FORMAT`.
@@ -328,7 +328,7 @@ The macro **NEVER** stores entries in the registry by itself.
 You can store the default configuration in the registry:
 
 1. by executing `StoreDefaultConfiguration()`
-2. by writing a routing executing commands similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")`
+2. by writing a routing executing command similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")`
 3. by manually creating entries in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
 
 ## Acknowledgements

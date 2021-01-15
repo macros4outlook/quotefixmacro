@@ -55,7 +55,7 @@ Private Const DEFAULT_NUM_RTF_COLORS As Integer = 4
 '--------------------------------------------------------
 'Enable SoftWrap
 'resize window so that the text editor wraps the text automatically
-'after N charaters. Outlook wraps text automatically after sending it,
+'after N characters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
 Private Const DEFAULT_USE_SOFTWRAP As Boolean = False
@@ -192,9 +192,9 @@ End Type
 
 'Global Variables to make code more readable (-> parameter passing gets easier)
 Private result As String
-Private unformatedBlock As String
+Private unformattedBlock As String
 Private curBlock As String
-Private curBlockNeedsToBeReFormated As Boolean
+Private curBlockNeedsToBeReFormatted As Boolean
 Private curPrefix As String
 Private lastLineWasParagraph As Boolean
 Private lastNesting As NestingType
@@ -349,19 +349,19 @@ Private Function CalcPrefix(ByRef nesting As NestingType) As String
 End Function
 
 'Description:
-'   Adds the current line to unfomatedBlock and to curBlock
+'   Adds the current line to unformattedBlock and to curBlock
 Private Sub AppendCurLine(ByRef curLine As String)
-    If unformatedBlock = "" Then
-        'unformatedBlock has to be used here, because it might be the case that the first
-        '  line is "". Therefore curBlock remains "", whereas unformatedBlock gets <> ""
+    If unformattedBlock = "" Then
+        'unformattedBlock has to be used here, because it might be the case that the first
+        '  line is "". Therefore curBlock remains "", whereas unformattedBlock gets <> ""
         
         If curLine = "" Then Exit Sub
         
         curBlock = curLine
-        unformatedBlock = curPrefix & curLine & vbCrLf
+        unformattedBlock = curPrefix & curLine & vbCrLf
     Else
         curBlock = curBlock & IIf(curBlock = "", "", " ") & curLine
-        unformatedBlock = unformatedBlock & curPrefix & curLine & vbCrLf
+        unformattedBlock = unformattedBlock & curPrefix & curLine & vbCrLf
     End If
 End Sub
 
@@ -381,12 +381,12 @@ End Sub
 '   Finishes the current Block
 '
 '   Also resets
-'       curBlockNeedsToBeReFormated
+'       curBlockNeedsToBeReFormatted
 '       curBlock
-'       unformatedBlock
+'       unformattedBlock
 Private Sub FinishBlock(ByRef nesting As NestingType)
-    If Not curBlockNeedsToBeReFormated Then
-        result = result & unformatedBlock
+    If Not curBlockNeedsToBeReFormatted Then
+        result = result & unformattedBlock
     Else
         'reformat curBlock and append it
         Dim prefix As String
@@ -426,9 +426,9 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
     End If
     
     'Resetting
-    curBlockNeedsToBeReFormated = False
+    curBlockNeedsToBeReFormatted = False
     curBlock = ""
-    unformatedBlock = ""
+    unformattedBlock = ""
     'lastLineWasParagraph = False
 End Sub
 
@@ -445,10 +445,10 @@ Public Function ReFormatText(text As String) As String
     'Reset (partially global) variables
     result = ""
     curBlock = ""
-    unformatedBlock = ""
+    unformattedBlock = ""
     curNesting.level = 0
     lastNesting.level = 0
-    curBlockNeedsToBeReFormated = False
+    curBlockNeedsToBeReFormatted = False
     
     rows = Split(text, vbCrLf)
     
@@ -477,7 +477,7 @@ Public Function ReFormatText(text As String) As String
                     If (CountOccurencesOfStringInString(curLine, " ") = 0) And (curNesting.total = nextNesting.total) _
                         And (Len(rows(i - 1)) > LINE_WRAP_AFTER - Len(curLine) - 10) Then '10 is only a rough heuristics... - should be improved
                         'Yes, it is a wrong Wrap (same recognition as below)
-                        curBlockNeedsToBeReFormated = True
+                        curBlockNeedsToBeReFormatted = True
                     End If
                 End If
             End If
@@ -497,7 +497,7 @@ Public Function ReFormatText(text As String) As String
                         'new Paragraph has started. No joining of quotes is necessary
                         HandleParagraph lastPrefix
                     Else
-                        curBlockNeedsToBeReFormated = True
+                        curBlockNeedsToBeReFormatted = True
                     
                         'nesting and prefix have to be adjusted
                         curNesting = lastNesting

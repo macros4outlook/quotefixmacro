@@ -243,7 +243,7 @@ Function CalcNesting(line As String) As NestingType
     i = 1
   
     Do While i <= Len(line)
-        curChar = mid(line, i, 1)
+        curChar = Mid(line, i, 1)
         If curChar = ">" Then
             count = count + 1
             lastQuoteSignPos = i
@@ -341,7 +341,7 @@ Private Function StripLine(line As String) As String
     
     Do While (Len(res) > 0) And (InStr("> ", Left(res, 1)) <> 0)
         'First character is a space or a quote
-        res = mid(res, 2)
+        res = Mid(res, 2)
     Loop
     
     'Remove the spaces at the end of res
@@ -413,7 +413,7 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
             'go through block from maxLength to beginning to find a space
             i = maxLength
             If i > 0 Then
-                Do While (mid(curBlock, i, 1) <> " ")
+                Do While (Mid(curBlock, i, 1) <> " ")
                     i = i - 1
                     If i = 0 Then Exit Do
                 Loop
@@ -422,10 +422,10 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
             If i = 0 Then
                 'No space found -> use the full line
                 curLine = Left(curBlock, maxLength)
-                curBlock = mid(curBlock, maxLength + 1)
+                curBlock = Mid(curBlock, maxLength + 1)
             Else
                 curLine = Left(curBlock, i - 1)
-                curBlock = mid(curBlock, i + 1)
+                curBlock = Mid(curBlock, i + 1)
             End If
     
             result = result & prefix & curLine & vbCrLf
@@ -572,18 +572,18 @@ Public Function ReFormatText(text As String) As String
                         Dim lengthName As Integer
                         lengthName = posLeftBracket - posColon - 3
                         If lengthName > 0 Then
-                            sName = mid(curLine, posColon + 2, lengthName)
+                            sName = Mid(curLine, posColon + 2, lengthName)
                         Else
                             Debug.Print "Could not get name. Is the header formatted correctly?"
                         End If
                         
                         If posRightBracket = 0 Then
-                            sEmail = mid(curLine, posLeftBracket + 8) '8 = Len("mailto: ")
+                            sEmail = Mid(curLine, posLeftBracket + 8) '8 = Len("mailto: ")
                         Else
-                            sEmail = mid(curLine, posLeftBracket + 8, posRightBracket - posLeftBracket - 8) '8 = Len("mailto: ")
+                            sEmail = Mid(curLine, posLeftBracket + 8, posRightBracket - posLeftBracket - 8) '8 = Len("mailto: ")
                         End If
                     Else
-                        sName = mid(curLine, posColon + 2)
+                        sName = Mid(curLine, posColon + 2)
                         sEmail = ""
                     End If
                     
@@ -610,7 +610,7 @@ Public Function ReFormatText(text As String) As String
                     'sDate = mid(sDate, posColon + 2)
                     Dim posFirstComma As Integer
                     posFirstComma = InStr(sDate, ",")
-                    sDate = mid(sDate, posFirstComma + 2)
+                    sDate = Mid(sDate, posFirstComma + 2)
                     Dim dDate As Date
                     If IsDate(sDate) Then
                         dDate = DateValue(sDate)
@@ -645,7 +645,7 @@ Public Function ReFormatText(text As String) As String
                     If (curNesting.level = 1) Then
                         prefix = ""
                     Else
-                        prefix = mid(curPrefix, 2)
+                        prefix = Mid(curPrefix, 2)
                     End If
                     
                     result = result & prefix & condensedHeader & vbCrLf
@@ -818,7 +818,6 @@ catch:
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, senderName)
-    
         
     Dim OutlookHeader As String
     If CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER Then
@@ -975,7 +974,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     
     'cleanup quotes: if name is encloded in quotes, just remove them
     If (Left(tmpName, 1) = """" And Right(tmpName, 1) = """") Then
-        tmpName = mid(tmpName, 2, Len(tmpName) - 2)
+        tmpName = Mid(tmpName, 2, Len(tmpName) - 2)
     End If
     
     'full senderName is the originalName without quotes
@@ -991,14 +990,14 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     Dim pos As Integer
     
     If (Left(tmpName, 3) = "Dr.") Then
-        tmpName = mid(tmpName, 5)
+        tmpName = Mid(tmpName, 5)
         title = "Dr. "
     End If
         
     pos = InStr(tmpName, ",")
     If pos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
-        firstName = Trim(mid(tmpName, pos + 1))
+        firstName = Trim(Mid(tmpName, pos + 1))
     Else
         pos = InStr(tmpName, " ")
         If pos > 0 Then
@@ -1007,7 +1006,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
             If firstName = UCase(firstName) Then
                 'in case the firstName is written in uppercase letters,
                 'we assume that the lastName is the real firstName
-                firstName = Trim(mid(tmpName, pos + 1))
+                firstName = Trim(Mid(tmpName, pos + 1))
             End If
         Else
             pos = InStr(tmpName, "@")
@@ -1030,7 +1029,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                     Dim LastUpperCaseCharPos As Integer
                     LastUpperCaseCharPos = 0
                     Do While (i < Len(tmpName) And (UpperCaseCharCount < 2))
-                        If (IsUpperCaseChar(mid(tmpName, i, 1))) Then
+                        If (IsUpperCaseChar(Mid(tmpName, i, 1))) Then
                             LastUpperCaseCharPos = i
                             UpperCaseCharCount = UpperCaseCharCount + 1
                         End If
@@ -1038,7 +1037,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                     Loop
                     If (UpperCaseCharCount = 1) Then
                         'LastnameFirstname format found
-                        tmpName = mid(tmpName, LastUpperCaseCharPos)
+                        tmpName = Mid(tmpName, LastUpperCaseCharPos)
                     End If
                 End If
             End If
@@ -1053,7 +1052,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     End If
     
     'fix casing of names
-    firstName = UCase(Left(firstName, 1)) + LCase(mid(firstName, 2))
+    firstName = UCase(Left(firstName, 1)) + LCase(Mid(firstName, 2))
 End Sub
 
 
@@ -1238,7 +1237,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
             PosHeaderEnd = InStr(rtf, sTestString)
         End If
         
-        rtf = mid(rtf, PosHeaderEnd + Len(sTestString))
+        rtf = Mid(rtf, PosHeaderEnd + Len(sTestString))
         
         rtf = "{\rtf1\ansi\ansicpg1252 \deff0{\fonttbl" & vbCrLf & _
                 "{\f0\fswiss\fcharset0 Courier New;}}" & vbCrLf & _

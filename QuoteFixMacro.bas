@@ -866,6 +866,8 @@ catch:
         MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
     End If
 
+    MySignature = cleanUpDoubleLines(MySignature)
+
     NewMail.Body = MySignature
 
     'Extensions, in case Colorize is activated
@@ -1162,6 +1164,40 @@ Public Function CountOccurencesOfStringInString(InString As String, What As Stri
     CountOccurencesOfStringInString = count
 End Function
 
+
+'Changes
+'
+' >
+' >
+'
+'To
+'
+' >
+'
+Private Function cleanUpDoubleLines(quotedText As String) As String
+    Dim quoteLines() As String
+    Dim curLine As String
+    Dim res As String
+    Dim i As Integer
+    Dim previousLineWasEmptyQuote As Boolean
+
+    previousLineWasEmptyQuote = False
+    quoteLines = Split(quotedText, vbCrLf)
+
+    For i = 0 To UBound(quoteLines)
+        If (quoteLines(i) = "> ") Then
+            If Not previousLineWasEmptyQuote Then
+                previousLineWasEmptyQuote = True
+                res = res + quoteLines(i) + vbCrLf
+            End If
+        Else
+            previousLineWasEmptyQuote = False
+            res = res + quoteLines(i) + vbCrLf
+        End If
+    Next i
+
+    cleanUpDoubleLines = res
+End Function
 
 
 Private Function StripQuotes(quotedText As String, stripLevel As Integer) As String

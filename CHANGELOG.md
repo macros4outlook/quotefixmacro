@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
 
+* Now merges consequitve `> ` lines into a single line
 
 ## Version [1.6] - 2021-01-15
 

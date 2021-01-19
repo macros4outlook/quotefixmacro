@@ -1,0 +1,9 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*.bas]
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true

@@ -181,12 +181,12 @@ End Enum
 Public Type NestingType
     'the level of the current quote plus
     level As Integer
-    
+
     'the amount of spaces until the next word
     'needed as outlook sometimes inserts more than one space to separate the quoteprefix and the actual quote
     'we use that information to fix the quote
     additionalSpacesCount As Integer
-    
+
     'total = level + additionalSpacesCount + 1
     total As Integer
 End Type
@@ -238,10 +238,10 @@ Function CalcNesting(line As String) As NestingType
     Dim count As Integer
     Dim curChar As String
     Dim res As NestingType
-  
+
     count = 0
     i = 1
-  
+
     Do While i <= Len(line)
         curChar = Mid(line, i, 1)
         If curChar = ">" Then
@@ -254,16 +254,16 @@ Function CalcNesting(line As String) As NestingType
         End If
         i = i + 1
     Loop
-    
+
     res.level = count
-  
+
     If i <= Len(line) Then
         'i contains the pos of the first character
-        
+
         'if there is no space i = lastQuoteSignPos + 1
         'One space is normal, the others are nesting
         '  It could be, that there is no space
-        
+
         res.additionalSpacesCount = i - lastQuoteSignPos - 2
         If res.additionalSpacesCount < 0 Then
             res.additionalSpacesCount = 0
@@ -271,9 +271,9 @@ Function CalcNesting(line As String) As NestingType
     Else
         res.additionalSpacesCount = 0
     End If
-    
+
     res.total = res.level + res.additionalSpacesCount + 1 '+1 = trailing space
-    
+
     CalcNesting = res
 End Function
 
@@ -338,24 +338,24 @@ End Sub
 Private Function StripLine(line As String) As String
     Dim res As String
     res = line
-    
+
     Do While (Len(res) > 0) And (InStr("> ", Left(res, 1)) <> 0)
         'First character is a space or a quote
         res = Mid(res, 2)
     Loop
-    
+
     'Remove the spaces at the end of res
     res = Trim(res)
-    
+
     StripLine = res
 End Function
 
 Private Function CalcPrefix(ByRef nesting As NestingType) As String
     Dim res As String
-    
+
     res = String(nesting.level, ">")
     res = res & String(nesting.additionalSpacesCount, " ")
-    
+
     CalcPrefix = res & " "
 End Function
 
@@ -365,9 +365,9 @@ Private Sub AppendCurLine(ByRef curLine As String)
     If unformattedBlock = "" Then
         'unformattedBlock has to be used here, because it might be the case that the first
         '  line is "". Therefore curBlock remains "", whereas unformattedBlock gets <> ""
-        
+
         If curLine = "" Then Exit Sub
-        
+
         curBlock = curLine
         unformattedBlock = curPrefix & curLine & vbCrLf
     Else
@@ -383,7 +383,7 @@ Private Sub HandleParagraph(ByRef prefix As String)
     Else
         'lastline was already a paragraph. No further action required
     End If
-    
+
     'Add a new line in all cases...
     result = result & prefix & vbCrLf
 End Sub
@@ -404,11 +404,11 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
         Dim curLine As String
         Dim maxLength As Integer
         Dim i As Integer
-    
+
         prefix = CalcPrefix(nesting)
-    
+
         maxLength = LINE_WRAP_AFTER - nesting.total
-    
+
         Do While Len(curBlock) > maxLength
             'go through block from maxLength to beginning to find a space
             i = maxLength
@@ -418,7 +418,7 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
                     If i = 0 Then Exit Do
                 Loop
             End If
-    
+
             If i = 0 Then
                 'No space found -> use the full line
                 curLine = Left(curBlock, maxLength)
@@ -427,15 +427,15 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
                 curLine = Left(curBlock, i - 1)
                 curBlock = Mid(curBlock, i + 1)
             End If
-    
+
             result = result & prefix & curLine & vbCrLf
         Loop
-    
+
         If Len(curBlock) > 0 Then
             result = result & prefix & curBlock & vbCrLf
         End If
     End If
-    
+
     'Resetting
     curBlockNeedsToBeReFormatted = False
     curBlock = ""
@@ -460,19 +460,19 @@ Public Function ReFormatText(text As String) As String
     curNesting.level = 0
     lastNesting.level = 0
     curBlockNeedsToBeReFormatted = False
-    
+
     rows = Split(text, vbCrLf)
-    
+
     For i = LBound(rows) To UBound(rows)
         curLine = StripLine(rows(i))
         lastNesting = curNesting
         curNesting = CalcNesting(rows(i))
-        
+
         If curNesting.total <> lastNesting.total Then
             lastPrefix = curPrefix
             curPrefix = CalcPrefix(curNesting)
         End If
-        
+
         If curNesting.total = lastNesting.total Then
             'Quote continues
             If curLine = "" Then
@@ -481,7 +481,7 @@ Public Function ReFormatText(text As String) As String
             Else
                 AppendCurLine curLine
                 lastLineWasParagraph = False
-            
+
                 If (curNesting.level = 1) And (i < UBound(rows)) Then
                     'check if the next line contains a wrong break
                     nextNesting = CalcNesting(rows(i + 1))
@@ -492,41 +492,41 @@ Public Function ReFormatText(text As String) As String
                     End If
                 End If
             End If
-        
+
         ElseIf curNesting.total < lastNesting.total Then 'curNesting.level = lastNesting.level - 1 doesn't work, because ">>", ">>>", ... are also killed by Office
             lastLineWasParagraph = False
-            
+
             'Quote is indented less. Maybe it's a wrong line wrap of outlook?
-            
+
             If (i < UBound(rows)) Then
                 nextNesting = CalcNesting(rows(i + 1))
                 If nextNesting.total = lastNesting.total Then
                     'Yeah. Wrong line wrap found
-                    
+
                     If curLine = "" Then
                         'The linebreak has to be interpreted as paragraph
                         'new Paragraph has started. No joining of quotes is necessary
                         HandleParagraph lastPrefix
                     Else
                         curBlockNeedsToBeReFormatted = True
-                    
+
                         'nesting and prefix have to be adjusted
                         curNesting = lastNesting
                         curPrefix = lastPrefix
-                    
+
                         AppendCurLine curLine
                     End If
                 Else
                     'No wrong line wrap found. Last block is finished
                     FinishBlock lastNesting
-                    
+
                     If curLine = "" Then
                         If curNesting.level <> lastNesting.level Then
                             lastLineWasParagraph = True
                             HandleParagraph curPrefix
                         End If
                     End If
-                    
+
                     'next block starts with curLine
                     AppendCurLine curLine
                 End If
@@ -534,30 +534,30 @@ Public Function ReFormatText(text As String) As String
                 'Quote is the last one - just use it
                 AppendCurLine curLine
             End If
-        
+
         Else
             'curNesting.total > lastNesting.total
-            
+
             lastLineWasParagraph = False
-            
+
             'it's nested one level deeper. Current block is finished
             FinishBlock lastNesting
-        
+
             If curLine = "" Then
                 If curNesting.level <> lastNesting.level Then
                     lastLineWasParagraph = True
                     HandleParagraph curPrefix
                 End If
             End If
-            
+
             If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS Then
                 If Left(curLine, Len(OUTLOOK_PLAIN_ORIGINALMESSAGE)) = OUTLOOK_PLAIN_ORIGINALMESSAGE _
                 And Not Left(curLine, Len(PGP_MARKER)) = PGP_MARKER _
                 Then
                     'We found a header
-                    
+
                     Dim posColon As Integer
-                    
+
                     'Name and Email
                     i = i + 1
                     Dim sName As String
@@ -576,7 +576,7 @@ Public Function ReFormatText(text As String) As String
                         Else
                             Debug.Print "Could not get name. Is the header formatted correctly?"
                         End If
-                        
+
                         If posRightBracket = 0 Then
                             sEmail = Mid(curLine, posLeftBracket + 8) '8 = Len("mailto: ")
                         Else
@@ -586,7 +586,7 @@ Public Function ReFormatText(text As String) As String
                         sName = Mid(curLine, posColon + 2)
                         sEmail = ""
                     End If
-                    
+
                     i = i + 1
                     curLine = StripLine(rows(i))
                     If InStr(curLine, ":") = 0 Then
@@ -601,7 +601,7 @@ Public Function ReFormatText(text As String) As String
                         i = i + 1
                         curLine = StripLine(rows(i))
                     End If
-                    
+
                     'Date
                     'We assume that there is always a weekday present before the date
                     Dim sDate As String
@@ -622,24 +622,24 @@ Public Function ReFormatText(text As String) As String
                     Else
                         'leave sDate as is -> date is output as found in email
                     End If
-                    
+
                     i = i + 3 'skip next three lines (To, [possibly CC], Subject, empty line)
                     'if CC exists, then i points to the empty line
                     'if CC does not exist, then i points to the first non-empty line
-                    
+
                     'Strip empty lines
                     Do
                         i = i + 1
                         curLine = StripLine(rows(i))
                     Loop Until (curLine <> "") Or (i = UBound(rows))
                     i = i - 1 'i now points to the last empty line
-                    
+
                     Dim condensedHeader As String
                     condensedHeader = CONDENSED_HEADER_FORMAT
                     condensedHeader = Replace(condensedHeader, PATTERN_SENDER_NAME, sName)
                     condensedHeader = Replace(condensedHeader, PATTERN_SENT_DATE, sDate)
                     condensedHeader = Replace(condensedHeader, PATTERN_SENDER_EMAIL, sEmail)
-                    
+
                     Dim prefix As String
                     'the prefix for the result has to be one level shorter as it is the quoted text from the sender
                     If (curNesting.level = 1) Then
@@ -647,7 +647,7 @@ Public Function ReFormatText(text As String) As String
                     Else
                         prefix = Mid(curPrefix, 2)
                     End If
-                    
+
                     result = result & prefix & condensedHeader & vbCrLf
                 Else
                     'fall back to default behavior
@@ -660,30 +660,30 @@ Public Function ReFormatText(text As String) As String
             End If
         End If
     Next i
-    
+
     'Finish current Block
     FinishBlock curNesting
-    
+
     'strip last (unnecessary) line feeds and spaces
     Do While ((Len(result) > 0) And (InStr(vbCrLf & " ", Right(result, 1)) <> 0))
         result = Left(result, Len(result) - 1)
     Loop
-    
+
     ReFormatText = result
 End Function
 
 ' @param UseEnglishTemplate In case USE_QUOTING_TEMPLATE is True, should the default or the English template be used?
 Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False)
     Dim TempObj As Object
-    
+
     Call LoadConfiguration
-    
+
     'we only understand mail items, no PostItems, NoteItems, ...
     If Not (TypeName(SelectedObject) = "MailItem") Then
         On Error GoTo catch:   'try, catch replacement
         Dim HadError As Boolean
         HadError = True
-                          
+
         Select Case MailMode
             Case TypeReply:
                 Set TempObj = SelectedObject.Reply
@@ -701,10 +701,10 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optiona
                 HadError = False
                 Exit Sub
         End Select
-        
+
 catch:
         On Error GoTo 0  'deactivate errorhandling
-        
+
         If (HadError = True) Then
             'reply / replyall / forward caused error
             ' -->  just display it
@@ -715,14 +715,14 @@ catch:
 
     Dim OriginalMail As MailItem
     Set OriginalMail = SelectedObject 'cast!
-    
-    
+
+
     'mails that have not been sent cannot be replied to (draft mails)
     If Not OriginalMail.Sent Then
         MsgBox "This mail seems to be a draft, so it cannot be replied to.", vbExclamation
         Exit Sub
     End If
-    
+
     'basically, we do not understand HTML mails
     If Not (OriginalMail.BodyFormat = olFormatPlain) Then
         If CONVERT_TO_PLAIN Then
@@ -733,7 +733,7 @@ catch:
             SelectedObject.BodyFormat = olFormatPlain
         Else
             Dim ReplyObj As MailItem
-            
+
             Select Case MailMode
                 Case TypeReply:
                     Set ReplyObj = OriginalMail.Reply
@@ -742,12 +742,12 @@ catch:
                 Case TypeForward:
                     Set ReplyObj = OriginalMail.Forward
             End Select
-            
+
             ReplyObj.Display
             Exit Sub
         End If
     End If
-    
+
     'create reply --> outlook style!
     Dim NewMail As MailItem
     Select Case MailMode
@@ -758,15 +758,15 @@ catch:
         Case TypeForward:
             Set NewMail = OriginalMail.Forward
     End Select
-    
+
     'if the mail is marked as a possible phishing mail, a warning will be shown and
     'the reply methods will return null (forward method is ok)
     If NewMail Is Nothing Then Exit Sub
-    
+
     'put the whole mail as composed by Outlook into an array
     Dim BodyLines() As String
     BodyLines = Split(NewMail.Body, vbCrLf)
-    
+
     'lineCounter is used to provide information about how many lines we already parsed.
     'This variable is always passed to the various parser functions by reference to get
     'back the new value.
@@ -781,7 +781,7 @@ catch:
     Dim MySignature As String
     MySignature = getSignature(BodyLines, lineCounter)
     ' lineCounter now indicates the line after the signature
-   
+
     If USE_QUOTING_TEMPLATE Then
         'Override MySignature in case the QUOTING_TEMPLATE should be used
         'lineCounter is still valid, because lineCounter is based on the current message whereas QUOTING_TEMPLATE is a general setting
@@ -795,13 +795,13 @@ catch:
     Dim senderName As String
     Dim firstName As String
     Call getNames(OriginalMail, senderName, firstName)
-    
+
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
         Dim senderEmail As String
         senderEmail = getSenderEmailAdress(OriginalMail)
         MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
     End If
-    
+
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Then
         'replace firstName by email stored in registry
         Dim rEmail As Variant
@@ -814,11 +814,11 @@ catch:
             End If
         Next curIndex
     End If
-    
+
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, senderName)
-        
+
     Dim OutlookHeader As String
     If CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER Then
         OutlookHeader = ""
@@ -828,11 +828,9 @@ catch:
         OutlookHeader = getOutlookHeader(BodyLines, lineCounter)
     End If
 
-
     Dim quotedText As String
     quotedText = getQuotedText(BodyLines, lineCounter)
-    
-    
+
     Dim NewText As String
     'create mail according to reply mode
     Select Case MailMode
@@ -843,14 +841,14 @@ catch:
         Case TypeForward:
             NewText = OutlookHeader & quotedText
     End Select
-    
+
     'Put text in signature (=Template for text)
     MySignature = Replace(MySignature, PATTERN_OUTLOOK_HEADER & vbCrLf, OutlookHeader)
-    
+
     'Stores number of downs to send
     Dim downCount As Long
     downCount = -1
-    
+
     If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
         If InStr(MySignature, PATTERN_CURSOR_POSITION) = 0 Then
             'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT is, then the cursor is moved to the quote
@@ -867,9 +865,9 @@ catch:
         'remove cursor_position pattern from mail text
         MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
     End If
-    
+
     NewMail.Body = MySignature
-    
+
     'Extensions, in case Colorize is activated
     If USE_COLORIZER Then
         Dim mailID As String
@@ -899,9 +897,7 @@ catch:
     OriginalMail.UnRead = False
 End Sub
 
-
 Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
-    
     ' drop the first two lines, they're empty
     For lineCounter = 2 To UBound(BodyLines)
         If (InStr(BodyLines(lineCounter), OUTLOOK_ORIGINALMESSAGE) <> 0) Then
@@ -911,25 +907,24 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
         End If
         getSignature = getSignature & BodyLines(lineCounter) & vbCrLf
     Next lineCounter
-
 End Function
 
 Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
     Dim senderEmail As String
-    
+
     If OriginalMail.SenderEmailType = "SMTP" Then
         senderEmail = OriginalMail.SenderEmailAddress
-    
+
     ElseIf OriginalMail.SenderEmailType = "EX" Then
         Dim gal As Outlook.AddressList
         Dim exchAddressEntries As Outlook.AddressEntries
         Dim exchAddressEntry As Outlook.AddressEntry
         Dim i As Integer, found As Boolean
-        
+
         'FIXME: This seems only to work in Outlook 2007
         Set gal = OriginalMail.Session.GetGlobalAddressList
         Set exchAddressEntries = gal.AddressEntries
-        
+
         'check if we can get the correct item by sendername
         Set exchAddressEntry = exchAddressEntries.Item(OriginalMail.senderName)
         If exchAddressEntry.name <> OriginalMail.senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
@@ -939,16 +934,16 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
             found = (LCase(exchAddressEntry.Address) = LCase(OriginalMail.SenderEmailAddress))
             If Not found Then Set exchAddressEntry = exchAddressEntries.GetNext
         Wend
-        
+
         If Not exchAddressEntry Is Nothing Then
             senderEmail = exchAddressEntry.GetExchangeUser.PrimarySmtpAddress
         Else
             senderEmail = ""
         End If
     End If
-    
+
     getSenderEmailAdress = senderEmail
-    
+
 End Function
 
 Private Function IsUpperCaseChar(ByVal c As String) As Boolean
@@ -968,27 +963,27 @@ End Function
 '  * Names are returned by reference
 Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String)
     'Find out firstName
-    
+
     Dim tmpName As String
     tmpName = originalName
-    
+
     'cleanup quotes: if name is encloded in quotes, just remove them
     If (Left(tmpName, 1) = """" And Right(tmpName, 1) = """") Then
         tmpName = Mid(tmpName, 2, Len(tmpName) - 2)
     End If
-    
+
     'full senderName is the originalName without quotes
     senderName = tmpName
-    
+
     'default firstName: fullname
     firstName = tmpName
-    
+
     Dim title As String
     title = ""
     'Has to be later used for extracting the last name
-    
+
     Dim pos As Integer
-    
+
     If (Left(tmpName, 3) = "Dr.") Then
         tmpName = Mid(tmpName, 5)
         title = "Dr. "
@@ -1002,7 +997,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
             tmpName = Trim(Left(tmpName, pos - 1))
         End If
     End If
-        
+
     pos = InStr(tmpName, ",")
     If pos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
@@ -1056,13 +1051,13 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
             firstName = tmpName
         End If
     End If
-    
+
     'Take only first word of firstName
     pos = InStr(firstName, " ")
     If (pos > 0) Then
          firstName = Left(firstName, pos - 1)
     End If
-    
+
     'fix casing of names
     firstName = UCase(Left(firstName, 1)) + LCase(Mid(firstName, 2))
 End Sub
@@ -1074,14 +1069,14 @@ End Sub
 'Notes:
 '  * Names are returned by reference
 Private Sub getNames(ByRef OriginalMail As MailItem, ByRef senderName As String, ByRef firstName As String)
-    
+
     'Wildcard replacements
     senderName = OriginalMail.SentOnBehalfOfName
-    
+
     If senderName = "" Then
         senderName = OriginalMail.senderName
     End If
-    
+
     Call getNamesOutOfString(senderName, senderName, firstName)
 End Sub
 
@@ -1089,14 +1084,14 @@ End Sub
 Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
 
     ' parse until we find the header finish "> " (Outlook_Headerfinish)
-    
+
     For lineCounter = lineCounter To UBound(BodyLines)
         If (BodyLines(lineCounter) = OUTLOOK_HEADERFINISH) Then
             Exit For
         End If
         getOutlookHeader = getOutlookHeader & BodyLines(lineCounter) & vbCrLf
     Next lineCounter
-    
+
     'skip OUTLOOK_HEADERFINISH
     lineCounter = lineCounter + 1
 
@@ -1104,48 +1099,45 @@ End Function
 
 
 Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
-
     ' parse the rest of the message
     For lineCounter = lineCounter To UBound(BodyLines)
         If STRIP_SIGNATURE And (BodyLines(lineCounter) = SIGNATURE_SEPARATOR) Then
             'beginning of signature reached
             Exit For
         End If
-        
+
         getQuotedText = getQuotedText & BodyLines(lineCounter) & vbCrLf
     Next lineCounter
-    
+
     getQuotedText = ReFormatText(getQuotedText)
 
     If INCLUDE_QUOTES_TO_LEVEL <> -1 Then
         getQuotedText = StripQuotes(getQuotedText, INCLUDE_QUOTES_TO_LEVEL)
     End If
-
 End Function
 
 
 Private Function CalcDownCount(pattern As String, textToSearch As String) As Long
     Dim PosOfPattern As Long
     Dim TextBeforePattern As String
-    
+
     PosOfPattern = InStr(textToSearch, pattern)
     TextBeforePattern = Left(textToSearch, PosOfPattern - 1)
     CalcDownCount = CountOccurencesOfStringInString(TextBeforePattern, vbCrLf)
 End Function
 
 
-
 Function GetCurrentItem() As Object  'changed to default scope
         Dim objApp As Application
         Set objApp = Session.Application
-        
+
         Select Case TypeName(objApp.ActiveWindow)
             Case "Explorer":  'on clicking reply in the main window
                 Set GetCurrentItem = objApp.ActiveExplorer.Selection.Item(1)
             Case "Inspector": 'on clicking reply when mail is shown in separate window
                 Set GetCurrentItem = objApp.ActiveInspector.CurrentItem
         End Select
-        
+
 End Function
 
 'Parameters:
@@ -1157,7 +1149,7 @@ Public Function CountOccurencesOfStringInString(InString As String, What As Stri
     Dim count As Long
     Dim lastPos As Long
     Dim curPos As Long
-    
+
     count = 0
     lastPos = 0
     curPos = InStr(InString, What)
@@ -1166,7 +1158,7 @@ Public Function CountOccurencesOfStringInString(InString As String, What As Stri
         count = count + 1
         curPos = InStr(lastPos, InString, What)
     Loop
-        
+
     CountOccurencesOfStringInString = count
 End Function
 
@@ -1178,16 +1170,16 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     Dim curLine As String
     Dim res As String
     Dim i As Integer
-    
+
     quoteLines = Split(quotedText, vbCrLf)
-    
+
     For i = 1 To UBound(quoteLines)
         level = InStr(quoteLines(i), " ") - 1
         If level <= stripLevel Then
             res = res + quoteLines(i) + vbCrLf
         End If
     Next i
-    
+
     StripQuotes = res
 End Function
 
@@ -1200,7 +1192,7 @@ Public Sub ResizeWindowForSoftWrap()
     'Application.ActiveInspector.CurrentItem.Body = SEVENTY_SIX_CHARS
     If (TypeName(Application.ActiveWindow) = "Inspector") And Not _
         (Application.ActiveInspector.WindowState = olMaximized) Then
-            
+
         Application.ActiveInspector.Width = (LINE_WRAP_AFTER + 2) * PIXEL_PER_CHARACTER
     End If
 End Sub
@@ -1210,28 +1202,28 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     Dim folder As MAPIFolder
     Dim rtf  As String, lines() As String, resRTF As String
     Dim i As Integer, n As Integer, ret As Integer
-  
-    
+
+
     'save the mailitem to get an entry id, then forget reference to that rtf gets commited.
     'display mailitem by id later on.
     If ((Not MyMailItem.BodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
         ColorizeMailItem = ""
         Exit Function
     End If
-       
+
     'richt text it
     MyMailItem.BodyFormat = olFormatRichText
     MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates ExtryID if not saved before)!
-        
+
     Set folder = Session.GetDefaultFolder(olFolderInbox)
-    
+
     rtf = Space(99999)  'init rtf to max length of message!
     ret = ReadRTF(Session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
     If (ret = 0) Then
         'ole call success!!!
         rtf = Trim(rtf)  'kill unnecessary spaces (from rtf var init with Space(rtf))
         Debug.Print rtf & vbCrLf & "*************************************************************" & vbCrLf
-        
+
         'we have our own rtf haeder, remove generated one
         Dim PosHeaderEnd As Integer
         Dim sTestString As String
@@ -1248,14 +1240,14 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
             sTestString = "\pard\f0\fs20\lang1031"
             PosHeaderEnd = InStr(rtf, sTestString)
         End If
-        
+
         rtf = Mid(rtf, PosHeaderEnd + Len(sTestString))
-        
+
         rtf = "{\rtf1\ansi\ansicpg1252 \deff0{\fonttbl" & vbCrLf & _
                 "{\f0\fswiss\fcharset0 Courier New;}}" & vbCrLf & _
                 "{\colortbl\red0\green0\blue0;\red106\green44\blue44;\red44\green106\blue44;\red44\green44\blue106;}" & vbCrLf & _
                 rtf
-                
+
         lines = Split(rtf, vbCrLf)
         Dim s As String
         For i = LBound(lines) To UBound(lines)
@@ -1276,15 +1268,14 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         ColorizeMailItem = ""
         Exit Function
     End If
-    
+
     'remove some rtf commands
     resRTF = Replace(resRTF, "\viewkind4\uc1", "")
     resRTF = Replace(resRTF, "\uc1", "")
     'VERY IMPORTANT, outlook will change the message back to PlainText otherwise!!!
     resRTF = Replace(resRTF, "\fromtext", "")
     Debug.Print resRTF
-    
-       
+
     'write RTF back to form
     ret = WriteRTF(Session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, resRTF)
     If (ret = 0) Then
@@ -1294,8 +1285,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         ColorizeMailItem = ""
         Exit Function
     End If
-    
-    
+
     'dereference all objects! otherwise, rtf isn't going to be updated!
     Set folder = Nothing
     'save return value

@@ -149,6 +149,7 @@ Please double check that the template is used as "Forward/Reply" signature under
 | `%Q` | Where to put the quote |
 | `%OH` | Original Outlook header |
 | `%FN` | Sender's first name |
+| `%LN` | Sender's last name |
 | `%SN` | Sender's name |
 | `%SE` | Sender's email address |
 | `%D` | Date of the quoted mail in `yyyy-mm-dd` |

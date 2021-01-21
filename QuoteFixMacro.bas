@@ -95,6 +95,9 @@ Private Const DEFAULT_QUOTING_TEMPLATE As String = "(Reply inline - powered by h
 'English quote template
 Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)\n\n%SN wrote on %D:\n\n%Q\n\nCheers"
 
+'Last names may contain formal suffixes.  If they are included here, they can be stripped.
+Private Const LASTNAME_SUFFIXES As String = _
+"II/III/IV/Jr/Jr./Sr/Sr./Esq."
 '--------------------------------------------------------
 '*** Configuration of condensing ***
 '--------------------------------------------------------
@@ -125,6 +128,7 @@ Private Const PATTERN_CURSOR_POSITION   As String = "%C"
 Private Const PATTERN_SENDER_NAME       As String = "%SN"
 Private Const PATTERN_SENDER_EMAIL      As String = "%SE"
 Private Const PATTERN_FIRST_NAME        As String = "%FN"
+Private Const PATTERN_LAST_NAME         As String = "%LN"
 Private Const PATTERN_SENT_DATE         As String = "%D"
 Private Const PATTERN_OUTLOOK_HEADER    As String = "%OH"
 
@@ -794,7 +798,8 @@ catch:
 
     Dim senderName As String
     Dim firstName As String
-    Call getNames(OriginalMail, senderName, firstName)
+    Dim lastName As String
+    Call getNames(OriginalMail, senderName, firstName, lastName)
 
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
         Dim senderEmail As String
@@ -816,6 +821,7 @@ catch:
     End If
 
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
+    MySignature = Replace(MySignature, PATTERN_LAST_NAME, lastName)
     MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, senderName)
 
@@ -953,17 +959,23 @@ Private Function IsUpperCaseChar(ByVal c As String) As Boolean
 End Function
 
 
-'Extracts the name of the sender from the sender's name provided in the E-Mail.
+'Attempts to extract the name of the sender from the sender's name provided in the E-Mail.
+'
+'Comment:
+'   This is very difficult to do definitively.  Consider how many different variations
+'   and arrangements a name like "Dr. John James Walker Smith III" could entail including
+'   questions of first vs. last names, initials, titles, suffixes, etc..
 '
 'In:
 '  originalName - name as presented by Outlook
 'Out:
 '  senderName - complete name of sender
 '  firstName - first name of sender
+'  lastName - last name of sender
 'Notes:
 '  * Public to enable testing
 '  * Names are returned by reference
-Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String)
+Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
     'Find out firstName
 
     Dim tmpName As String
@@ -984,7 +996,8 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     title = ""
     'Has to be later used for extracting the last name
 
-    Dim pos As Integer
+    Dim fpos As Integer
+    Dim lpos As Integer
 
     If (Left(tmpName, 3) = "Dr.") Then
         tmpName = Mid(tmpName, 5)
@@ -994,44 +1007,99 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     'Some companies have "(Text)" at the end of their name.
     'We strip that
     If (Right(tmpName, 1) = ")") Then
-        pos = InStrRev(tmpName, "(")
-        If pos > 0 Then
-            tmpName = Trim(Left(tmpName, pos - 1))
+        fpos = InStrRev(tmpName, "(")
+        If fpos > 0 Then
+            tmpName = Trim(Left(tmpName, fpos - 1))
         End If
     End If
 
-    pos = InStr(tmpName, ",")
-    If pos > 0 Then
+    fpos = InStr(tmpName, ",")
+    If fpos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
-        firstName = Trim(Mid(tmpName, pos + 1))
-        Dim lastName As String
-        lastName = Mid(tmpName, 1, pos - 1)
+        firstName = Trim(mid(tmpName, fpos + 1))
+        'Firstname field may include middle initial(s)
+        Do While (UCase(Right(firstName, 2)) Like " [A-Z]" Or UCase(Right(firstName, 2)) Like "[A-Z].")
+            firstName = Trim(Left(firstName, Len(firstName) - 2))
+        Loop
+        
+        lastName = Trim(Left(tmpName, fpos - 1))
+        'lastName field may have a formal suffix
+        lastName = StripSuffixes(lastName)
         senderName = firstName + " " + lastName
     Else
-        pos = InStr(tmpName, " ")
-        If pos > 0 Then
-            'first name separated by space
-            firstName = Trim(Left(tmpName, pos - 1))
-            If firstName = UCase(firstName) Then
-                'in case the firstName is written in uppercase letters,
-                'we assume that the lastName is the real firstName
-                firstName = Trim(Mid(tmpName, pos + 1))
+        'Determining first and last name is really hard unless
+        'there are only two names, or there is a middle initial(s)
+        fpos = InStr(Trim(tmpName), " ")
+        If fpos > 0 Then
+        'First strip any possible, (single,) formal suffix on the name
+            tmpName = StripSuffixes(tmpName)
+            lpos = InStrRev(Trim(tmpName), " ")
+            If fpos = lpos Then
+                'single first name and last name separated by space
+                firstName = Trim(Left(tmpName, fpos - 1))
+                If firstName = UCase(firstName) Then
+                    'in case the firstName is written in uppercase letters,
+                    'we assume that the sender's last name is the firstName (in the string)
+                    lastName = firstName
+                    firstName = Trim(mid(tmpName, lpos + 1))
+                Else
+                    lastName = Trim(mid(tmpName, lpos + 1))
+                End If
+            Else
+            'middle section could be a single/multiple name/initial (or both)
+                Dim midName As String
+                midName = Trim(mid(Left(tmpName, lpos), fpos))
+                Dim i, j As Integer
+                
+                'One or two initials are easy
+                Do While Len(midName) = 1 Or _
+                        Left(midName, 1) = "." Or _
+                        Left(midName, 2) Like "[A-Z] " Or _
+                        Left(midName, 2) Like "[A-Z]."
+                    midName = Trim(mid(midName, 2))
+                    i = i + 1
+                Loop
+                Do While Right(midName, 2) Like " [A-Z]" Or _
+                        Right(midName, 2) Like "[A-Z]."
+                    midName = Trim(Left(midName, Len(midName) - 2))
+                    j = j + 1
+                Loop
+
+                If Len(midName) = 0 Then
+                    'initials only
+                    firstName = Trim(Left(tmpName, fpos - 1))
+                    lastName = Trim(mid(tmpName, lpos + 1))
+                ElseIf i <> 0 And j = 0 Then
+                    'initials before double last name
+                    lastName = midName + Trim(mid(tmpName, lpos + 1))
+                    firstName = Trim(Left(tmpName, fpos - 1))
+                ElseIf i = 0 And j <> 0 Then
+                    'initials after double first name
+                    lastName = Trim(mid(tmpName, lpos + 1))
+                    firstName = Trim(Left(tmpName, fpos - 1)) + midName
+                Else
+                    'anything else can't be definitively ID'd as a first, middle or last name
+                    firstName = tmpName
+                    lastName = ""
+                End If
+                
             End If
+                
         Else
-            pos = InStr(tmpName, "@")
-            If pos > 0 Then
+            fpos = InStr(tmpName, "@")
+            If fpos > 0 Then
                 'first name is (currenty) an eMail-Adress. Just take the prefix
-                tmpName = Left(tmpName, pos - 1)
+                tmpName = Left(tmpName, fpos - 1)
             End If
-            pos = InStr(tmpName, ".")
-            If pos > 0 Then
+            fpos = InStr(tmpName, ".")
+            If fpos > 0 Then
                 'first name is separated by a dot
-                tmpName = Left(tmpName, pos - 1)
+                lastName = mid(tmpName, fpos + 1)
+                tmpName = Left(tmpName, fpos - 1)
             Else
                 'name is a single string, without "." or " "
                 'final guess: LastnameFirstname
                 If (IsUpperCaseChar(Left(tmpName, 1))) Then
-                    Dim i As Integer
                     i = 2
                     Dim UpperCaseCharCount As Integer
                     UpperCaseCharCount = 0
@@ -1054,13 +1122,8 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         End If
     End If
 
-    'Take only first word of firstName
-    pos = InStr(firstName, " ")
-    If (pos > 0) Then
-         firstName = Left(firstName, pos - 1)
-    End If
-
     'fix casing of names
+    lastName = UCase(Left(lastName, 1)) + LCase(mid(lastName, 2))
     firstName = UCase(Left(firstName, 1)) + LCase(Mid(firstName, 2))
 End Sub
 
@@ -1070,7 +1133,7 @@ End Sub
 '
 'Notes:
 '  * Names are returned by reference
-Private Sub getNames(ByRef OriginalMail As MailItem, ByRef senderName As String, ByRef firstName As String)
+Private Sub getNames(ByRef OriginalMail As MailItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
 
     'Wildcard replacements
     senderName = OriginalMail.SentOnBehalfOfName
@@ -1079,7 +1142,7 @@ Private Sub getNames(ByRef OriginalMail As MailItem, ByRef senderName As String,
         senderName = OriginalMail.senderName
     End If
 
-    Call getNamesOutOfString(senderName, senderName, firstName)
+    Call getNamesOutOfString(senderName, senderName, firstName, lastName)
 End Sub
 
 
@@ -1336,3 +1399,22 @@ Public Sub DisplayMailItemByID(id As String)
     it.Display
     Set it = Nothing
 End Sub
+
+Private Function StripSuffixes(ByRef tempName As String) As String
+    'Create array of possible suffixes
+    Dim NameSuffixesArr() As String
+    NameSuffixesArr = Split(LASTNAME_SUFFIXES, "/")
+    Dim i As Integer
+
+    'Strip the last suffix (is it ever the case that someone has multiple suffixes?)
+    For i = LBound(NameSuffixesArr) To UBound(NameSuffixesArr)
+        If (Right(tempName, Len(NameSuffixesArr(i)) + 1)) = " " & NameSuffixesArr(i) Then
+            StripSuffixes = Trim(Left(tempName, Len(tempName) - Len(NameSuffixesArr(i))))
+        End If
+    Next
+    StripSuffixes = tempName
+
+End Function
+
+
+

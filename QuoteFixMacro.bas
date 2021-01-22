@@ -61,6 +61,7 @@ Private Const DEFAULT_NUM_RTF_COLORS As Integer = 4
 Private Const DEFAULT_USE_SOFTWRAP As Boolean = False
 
 'put as much characters as set in Outlook at "Tools / Options / Email Format / Internet Format"
+'default: 76 characters
 Private Const DEFAULT_SEVENTY_SIX_CHARS As String = "123456789x123456789x123456789x123456789x123456789x123456789x123456789x123456"
 
 'This constant has to be adapted to fit your needs (incoprating the used font, display size, ...)

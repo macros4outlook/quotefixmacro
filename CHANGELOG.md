@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * `%LN` also supports more complex names (e.g., Dr. John Smith III)
 * Add support for replying to calender emails
 
+### Fixed
+
+* If sender writes FIRSTNAME LASTNAME, first name is correctly detected
+
 ## Version [1.6] - 2021-01-15
 
 ### Changed
@@ -22,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-* Now recognizes `LastnameFirstname` as sender name format, too.
+* Now recognizes `Lastname Firstname` as sender name format, too.
 * Internationalization: Add `FixedReplyAllEnglish()` with a separate template for replies in English.
 * In case a sender name takes something in braces at the end, that text is removed (e.g., "Test Name (42)" is converted to "Test Name")
 

@@ -1048,7 +1048,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         tmpName = Mid(tmpName, 2, Len(tmpName) - 2)
     End If
 
-    'full senderName is the originalName without quotes
+    'default full senderName: originalName without quotes
     senderName = tmpName
 
     'default firstName: fullname
@@ -1086,28 +1086,26 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         lastName = Trim(Left(tmpName, fpos - 1))
         'lastName field may have a formal suffix
         lastName = StripSuffixes(lastName)
-        senderName = firstName + " " + lastName
     Else
         'Determining first and last name is really hard unless
         'there are only two names, or there is a middle initial(s)
         fpos = InStr(Trim(tmpName), " ")
         If fpos > 0 Then
-        'First strip any possible, (single,) formal suffix on the name
+            'First strip any possible, (single,) formal suffix on the name
             tmpName = StripSuffixes(tmpName)
             lpos = InStrRev(Trim(tmpName), " ")
             If fpos = lpos Then
                 'single first name and last name separated by space
                 firstName = Trim(Left(tmpName, fpos - 1))
-                If firstName = UCase(firstName) Then
-                    'in case the firstName is written in uppercase letters,
+                lastName = Trim(Mid(tmpName, lpos + 1))
+                If firstName = UCase(firstName) And Not lastName = UCase(lastName) Then
+                    'in case the firstName is written in uppercase letters (and not everything in capital letters),
                     'we assume that the sender's last name is the firstName (in the string)
                     lastName = firstName
                     firstName = Trim(Mid(tmpName, lpos + 1))
-                Else
-                    lastName = Trim(Mid(tmpName, lpos + 1))
                 End If
             Else
-            'middle section could be a single/multiple name/initial (or both)
+                'middle section could be a single/multiple name/initial (or both)
                 Dim midName As String
                 midName = Trim(Mid(Left(tmpName, lpos), fpos))
                 Dim i, j As Integer
@@ -1138,8 +1136,13 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                     'initials after double first name
                     lastName = Trim(Mid(tmpName, lpos + 1))
                     firstName = Trim(Left(tmpName, fpos - 1)) + midName
+                ElseIf Left(midName, 1) = LCase(Left(midName, 1)) Then
+                    'Midname starts with a lower case letter
+                    'We assume "correct" casing. Thus, we hit a name such as Firstname von Lastname
+                    firstName = Trim(Left(tmpName, fpos - 1))
+                    lastName = Trim(Mid(tmpName, fpos + 1))
                 Else
-                    'anything else can't be definitively ID'd as a first, middle or last name
+                    'anything else can't be definitively identified as a first, middle or last name
                     firstName = tmpName
                     lastName = ""
                 End If
@@ -1184,8 +1187,13 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     End If
 
     'fix casing of names
-    lastName = UCase(Left(lastName, 1)) + LCase(Mid(lastName, 2))
-    firstName = UCase(Left(firstName, 1)) + LCase(Mid(firstName, 2))
+    If InStr(firstName, " ") = 0 Then
+        firstName = UCase(Left(firstName, 1)) + LCase(Mid(firstName, 2))
+    End If
+    If InStr(lastName, " ") = 0 Then
+        lastName = UCase(Left(lastName, 1)) + LCase(Mid(lastName, 2))
+    End If
+    senderName = Trim(firstName + " " + lastName)
 End Sub
 
 

@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Now merges consequitve `> ` lines into a single line
 * Support for extraction of sender's last name (stored in `%LN`)
 * `%LN` also supports more complex names (e.g., Dr. John Smith III)
+* Add support for replying to calender emails
 
 ## Version [1.6] - 2021-01-15
 

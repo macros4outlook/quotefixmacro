@@ -683,8 +683,9 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optiona
 
     Call LoadConfiguration
 
-    'we only understand mail items, no PostItems, NoteItems, ...
-    If Not (TypeName(SelectedObject) = "MailItem") Then
+    'we only understand mail items and meeting items , no PostItems, NoteItems, ...
+    If Not (TypeName(SelectedObject) = "MailItem") And _
+    Not (TypeName(SelectedObject) = "MeetingItem") Then
         On Error GoTo catch:   'try, catch replacement
         Dim HadError As Boolean
         HadError = True
@@ -718,34 +719,67 @@ catch:
         End If
     End If
 
-    Dim OriginalMail As MailItem
-    Set OriginalMail = SelectedObject 'cast!
+    Dim isMail As Boolean
+    isMail = (TypeName(SelectedObject) = "MailItem")
 
+    Dim OriginalMail As MailItem
+    Dim OriginalMeeting As MeetingItem
+    If isMail Then
+        Set OriginalMail = SelectedObject 'cast!
+    Else
+       Set OriginalMeeting = SelectedObject 'cast!
+    End If
+
+    Dim sent As Boolean
+    If isMail Then
+        sent = OriginalMail.sent
+    Else
+        sent = OriginalMeeting.sent
+    End If
 
     'mails that have not been sent cannot be replied to (draft mails)
-    If Not OriginalMail.Sent Then
+    If Not sent Then
         MsgBox "This mail seems to be a draft, so it cannot be replied to.", vbExclamation
         Exit Sub
     End If
 
+    Dim bodyFormat As olBodyFormat
+    If isMail Then
+        bodyFormat = OriginalMail.bodyFormat
+    Else
+        bodyFormat = OriginalMeeting.bodyFormat
+    End If
+
     'basically, we do not understand HTML mails
-    If Not (OriginalMail.BodyFormat = olFormatPlain) Then
+    If Not (bodyFormat = olFormatPlain) Then
         If CONVERT_TO_PLAIN Then
             'Unfortunately, it is only possible to convert the original mail as there is
             'no easy way to create a clone. Therefore, you cannot go back to the original format!
             'If you e.g. would decide that you need to forward the mail in HTML format,
             'this will not be possible anymore.
-            SelectedObject.BodyFormat = olFormatPlain
+            SelectedObject.bodyFormat = olFormatPlain
         Else
             Dim ReplyObj As MailItem
 
             Select Case MailMode
                 Case TypeReply:
-                    Set ReplyObj = OriginalMail.Reply
+                    If isMail Then
+                        Set ReplyObj = OriginalMail.Reply
+                    Else
+                        Set ReplyObj = OriginalMeeting.Reply
+                    End If
                 Case TypeReplyAll:
-                    Set ReplyObj = OriginalMail.ReplyAll
+                    If isMail Then
+                        Set ReplyObj = OriginalMail.ReplyAll
+                    Else
+                        Set ReplyObj = OriginalMeeting.ReplyAll
+                    End If
                 Case TypeForward:
-                    Set ReplyObj = OriginalMail.Forward
+                    If isMail Then
+                        Set ReplyObj = OriginalMail.Forward
+                    Else
+                        Set ReplyObj = OriginalMeeting.Forward
+                    End If
             End Select
 
             ReplyObj.Display
@@ -757,11 +791,23 @@ catch:
     Dim NewMail As MailItem
     Select Case MailMode
         Case TypeReply:
-            Set NewMail = OriginalMail.Reply
+            If isMail Then
+                Set NewMail = OriginalMail.Reply
+            Else
+                Set NewMail = OriginalMeeting.Reply
+            End If
         Case TypeReplyAll:
-            Set NewMail = OriginalMail.ReplyAll
+            If isMail Then
+                Set NewMail = OriginalMail.ReplyAll
+            Else
+                Set NewMail = OriginalMeeting.ReplyAll
+            End If
         Case TypeForward:
-            Set NewMail = OriginalMail.Forward
+            If isMail Then
+                Set NewMail = OriginalMail.Forward
+            Else
+                Set NewMail = OriginalMeeting.Forward
+            End If
     End Select
 
     'if the mail is marked as a possible phishing mail, a warning will be shown and
@@ -800,11 +846,19 @@ catch:
     Dim senderName As String
     Dim firstName As String
     Dim lastName As String
-    Call getNames(OriginalMail, senderName, firstName, lastName)
+    If isMail Then
+        Call getNamesFromMail(OriginalMail, senderName, firstName, lastName)
+    Else
+        Call getNamesFromMeeting(OriginalMeeting, senderName, firstName, lastName)
+    End If
 
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
         Dim senderEmail As String
-        senderEmail = getSenderEmailAdress(OriginalMail)
+        if isMail then
+            senderEmail = getSenderEmailAdress(OriginalMail.SenderEmailType, senderName, OriginalMail.SenderEmailAddress, OriginalMail.Session)
+        else
+            senderEmail = getSenderEmailAdress(OriginalMeeting.SenderEmailType, senderName, OriginalMeeting.SenderEmailAddress, OriginalMeeting.Session)
+        end if
         MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
     End If
 
@@ -823,7 +877,11 @@ catch:
 
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_LAST_NAME, lastName)
-    MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
+    if isMail then
+        MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
+    else
+        MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMeeting.SentOn, DATE_FORMAT))
+    end if
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, senderName)
 
     Dim OutlookHeader As String
@@ -903,7 +961,11 @@ catch:
     End If
 
     'mark original mail as read
-    OriginalMail.UnRead = False
+    if isMail then
+        OriginalMail.UnRead = False
+    else
+        OriginalMeeting.UnRead = false
+    end if
 End Sub
 
 Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
@@ -918,29 +980,29 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
     Next lineCounter
 End Function
 
-Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
+Private Function getSenderEmailAdress(senderEmailType as String, senderName as String, senderEmailAddress as String, session as NameSpace) As String
     Dim senderEmail As String
 
-    If OriginalMail.SenderEmailType = "SMTP" Then
-        senderEmail = OriginalMail.SenderEmailAddress
+    If senderEmailType = "SMTP" Then
+        senderEmail = senderEmailAddress
 
-    ElseIf OriginalMail.SenderEmailType = "EX" Then
+    ElseIf senderEmailType = "EX" Then
         Dim gal As Outlook.AddressList
         Dim exchAddressEntries As Outlook.AddressEntries
         Dim exchAddressEntry As Outlook.AddressEntry
         Dim i As Integer, found As Boolean
 
         'FIXME: This seems only to work in Outlook 2007
-        Set gal = OriginalMail.Session.GetGlobalAddressList
+        Set gal = session.GetGlobalAddressList
         Set exchAddressEntries = gal.AddressEntries
 
         'check if we can get the correct item by sendername
-        Set exchAddressEntry = exchAddressEntries.Item(OriginalMail.senderName)
-        If exchAddressEntry.name <> OriginalMail.senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
+        Set exchAddressEntry = exchAddressEntries.Item(senderName)
+        If exchAddressEntry.name <> senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
 
         found = False
         While (Not found) And (Not exchAddressEntry Is Nothing)
-            found = (LCase(exchAddressEntry.Address) = LCase(OriginalMail.SenderEmailAddress))
+            found = (LCase(exchAddressEntry.Address) = LCase(senderEmailAddress))
             If Not found Then Set exchAddressEntry = exchAddressEntries.GetNext
         Wend
 
@@ -952,7 +1014,6 @@ Private Function getSenderEmailAdress(ByRef OriginalMail As MailItem) As String
     End If
 
     getSenderEmailAdress = senderEmail
-
 End Function
 
 Private Function IsUpperCaseChar(ByVal c As String) As Boolean
@@ -1017,12 +1078,11 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     fpos = InStr(tmpName, ",")
     If fpos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
-        firstName = Trim(mid(tmpName, fpos + 1))
+        firstName = Trim(Mid(tmpName, fpos + 1))
         'Firstname field may include middle initial(s)
         Do While (UCase(Right(firstName, 2)) Like " [A-Z]" Or UCase(Right(firstName, 2)) Like "[A-Z].")
             firstName = Trim(Left(firstName, Len(firstName) - 2))
         Loop
-        
         lastName = Trim(Left(tmpName, fpos - 1))
         'lastName field may have a formal suffix
         lastName = StripSuffixes(lastName)
@@ -1042,22 +1102,22 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                     'in case the firstName is written in uppercase letters,
                     'we assume that the sender's last name is the firstName (in the string)
                     lastName = firstName
-                    firstName = Trim(mid(tmpName, lpos + 1))
+                    firstName = Trim(Mid(tmpName, lpos + 1))
                 Else
-                    lastName = Trim(mid(tmpName, lpos + 1))
+                    lastName = Trim(Mid(tmpName, lpos + 1))
                 End If
             Else
             'middle section could be a single/multiple name/initial (or both)
                 Dim midName As String
-                midName = Trim(mid(Left(tmpName, lpos), fpos))
+                midName = Trim(Mid(Left(tmpName, lpos), fpos))
                 Dim i, j As Integer
-                
+
                 'One or two initials are easy
                 Do While Len(midName) = 1 Or _
                         Left(midName, 1) = "." Or _
                         Left(midName, 2) Like "[A-Z] " Or _
                         Left(midName, 2) Like "[A-Z]."
-                    midName = Trim(mid(midName, 2))
+                    midName = Trim(Mid(midName, 2))
                     i = i + 1
                 Loop
                 Do While Right(midName, 2) Like " [A-Z]" Or _
@@ -1069,23 +1129,23 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                 If Len(midName) = 0 Then
                     'initials only
                     firstName = Trim(Left(tmpName, fpos - 1))
-                    lastName = Trim(mid(tmpName, lpos + 1))
+                    lastName = Trim(Mid(tmpName, lpos + 1))
                 ElseIf i <> 0 And j = 0 Then
                     'initials before double last name
-                    lastName = midName + Trim(mid(tmpName, lpos + 1))
+                    lastName = midName + Trim(Mid(tmpName, lpos + 1))
                     firstName = Trim(Left(tmpName, fpos - 1))
                 ElseIf i = 0 And j <> 0 Then
                     'initials after double first name
-                    lastName = Trim(mid(tmpName, lpos + 1))
+                    lastName = Trim(Mid(tmpName, lpos + 1))
                     firstName = Trim(Left(tmpName, fpos - 1)) + midName
                 Else
                     'anything else can't be definitively ID'd as a first, middle or last name
                     firstName = tmpName
                     lastName = ""
                 End If
-                
+
             End If
-                
+
         Else
             fpos = InStr(tmpName, "@")
             If fpos > 0 Then
@@ -1095,7 +1155,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
             fpos = InStr(tmpName, ".")
             If fpos > 0 Then
                 'first name is separated by a dot
-                lastName = mid(tmpName, fpos + 1)
+                lastName = Mid(tmpName, fpos + 1)
                 tmpName = Left(tmpName, fpos - 1)
             Else
                 'name is a single string, without "." or " "
@@ -1124,7 +1184,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     End If
 
     'fix casing of names
-    lastName = UCase(Left(lastName, 1)) + LCase(mid(lastName, 2))
+    lastName = UCase(Left(lastName, 1)) + LCase(Mid(lastName, 2))
     firstName = UCase(Left(firstName, 1)) + LCase(Mid(firstName, 2))
 End Sub
 
@@ -1134,13 +1194,26 @@ End Sub
 '
 'Notes:
 '  * Names are returned by reference
-Private Sub getNames(ByRef OriginalMail As MailItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
+Private Sub getNamesFromMail(ByRef item As MailItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
 
     'Wildcard replacements
-    senderName = OriginalMail.SentOnBehalfOfName
+    senderName = item.SentOnBehalfOfName
 
     If senderName = "" Then
-        senderName = OriginalMail.senderName
+        senderName = item.senderName
+    End If
+
+    Call getNamesOutOfString(senderName, senderName, firstName, lastName)
+End Sub
+
+'Code duplication of getNamesFromMail, because there is no common ancestor of MailItem and MeetingItem
+Private Sub getNamesFromMeeting(ByRef item As MeetingItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
+
+    'Wildcard replacements
+    senderName = item.SentOnBehalfOfName
+
+    If senderName = "" Then
+        senderName = item.senderName
     End If
 
     Call getNamesOutOfString(senderName, senderName, firstName, lastName)
@@ -1306,13 +1379,13 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
 
     'save the mailitem to get an entry id, then forget reference to that rtf gets commited.
     'display mailitem by id later on.
-    If ((Not MyMailItem.BodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
+    If ((Not MyMailItem.bodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
         ColorizeMailItem = ""
         Exit Function
     End If
 
     'richt text it
-    MyMailItem.BodyFormat = olFormatRichText
+    MyMailItem.bodyFormat = olFormatRichText
     MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates ExtryID if not saved before)!
 
     Set folder = Session.GetDefaultFolder(olFolderInbox)
@@ -1416,6 +1489,3 @@ Private Function StripSuffixes(ByRef tempName As String) As String
     StripSuffixes = tempName
 
 End Function
-
-
-

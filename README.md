@@ -344,6 +344,10 @@ You can store the default configuration in the registry:
 Q: What if the whole mail text disappers?  
 A: The reply setting in Outlook is not configured as required. Double check that the original text should be prefixed with `> `.
 
+## Developing
+
+We recommend using [Rubberduck](https://rubberduckvba.com/) as plugin to the Visual Basic Editor.
+
 ## Acknowledgements
 
 QuoteFix Macro is a VB-Macro for Outlook created by Oliver Kopp, Lars Monsees, and Daniel Martin.

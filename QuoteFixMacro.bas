@@ -854,11 +854,11 @@ catch:
 
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
         Dim senderEmail As String
-        if isMail then
-            senderEmail = getSenderEmailAdress(OriginalMail.SenderEmailType, senderName, OriginalMail.SenderEmailAddress, OriginalMail.Session)
-        else
-            senderEmail = getSenderEmailAdress(OriginalMeeting.SenderEmailType, senderName, OriginalMeeting.SenderEmailAddress, OriginalMeeting.Session)
-        end if
+        If isMail Then
+            senderEmail = getSenderEmailAdress(OriginalMail.senderEmailType, senderName, OriginalMail.senderEmailAddress, OriginalMail.session)
+        Else
+            senderEmail = getSenderEmailAdress(OriginalMeeting.senderEmailType, senderName, OriginalMeeting.senderEmailAddress, OriginalMeeting.session)
+        End If
         MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
     End If
 
@@ -877,11 +877,11 @@ catch:
 
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
     MySignature = Replace(MySignature, PATTERN_LAST_NAME, lastName)
-    if isMail then
+    If isMail Then
         MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMail.SentOn, DATE_FORMAT))
-    else
+    Else
         MySignature = Replace(MySignature, PATTERN_SENT_DATE, Format(OriginalMeeting.SentOn, DATE_FORMAT))
-    end if
+    End If
     MySignature = Replace(MySignature, PATTERN_SENDER_NAME, senderName)
 
     Dim OutlookHeader As String
@@ -961,11 +961,11 @@ catch:
     End If
 
     'mark original mail as read
-    if isMail then
+    If isMail Then
         OriginalMail.UnRead = False
-    else
-        OriginalMeeting.UnRead = false
-    end if
+    Else
+        OriginalMeeting.UnRead = False
+    End If
 End Sub
 
 Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
@@ -980,7 +980,7 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
     Next lineCounter
 End Function
 
-Private Function getSenderEmailAdress(senderEmailType as String, senderName as String, senderEmailAddress as String, session as NameSpace) As String
+Private Function getSenderEmailAdress(senderEmailType As String, senderName As String, senderEmailAddress As String, session As NameSpace) As String
     Dim senderEmail As String
 
     If senderEmailType = "SMTP" Then
@@ -997,7 +997,7 @@ Private Function getSenderEmailAdress(senderEmailType as String, senderName as S
         Set exchAddressEntries = gal.AddressEntries
 
         'check if we can get the correct item by sendername
-        Set exchAddressEntry = exchAddressEntries.Item(senderName)
+        Set exchAddressEntry = exchAddressEntries.item(senderName)
         If exchAddressEntry.name <> senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
 
         found = False
@@ -1268,11 +1268,11 @@ End Function
 
 Function GetCurrentItem() As Object  'changed to default scope
         Dim objApp As Application
-        Set objApp = Session.Application
+        Set objApp = session.Application
 
         Select Case TypeName(objApp.ActiveWindow)
             Case "Explorer":  'on clicking reply in the main window
-                Set GetCurrentItem = objApp.ActiveExplorer.Selection.Item(1)
+                Set GetCurrentItem = objApp.ActiveExplorer.Selection.item(1)
             Case "Inspector": 'on clicking reply when mail is shown in separate window
                 Set GetCurrentItem = objApp.ActiveInspector.CurrentItem
         End Select
@@ -1388,10 +1388,10 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     MyMailItem.bodyFormat = olFormatRichText
     MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates ExtryID if not saved before)!
 
-    Set folder = Session.GetDefaultFolder(olFolderInbox)
+    Set folder = session.GetDefaultFolder(olFolderInbox)
 
     rtf = Space(99999)  'init rtf to max length of message!
-    ret = ReadRTF(Session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
+    ret = ReadRTF(session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
     If (ret = 0) Then
         'ole call success!!!
         rtf = Trim(rtf)  'kill unnecessary spaces (from rtf var init with Space(rtf))
@@ -1450,7 +1450,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     Debug.Print resRTF
 
     'write RTF back to form
-    ret = WriteRTF(Session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, resRTF)
+    ret = WriteRTF(session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, resRTF)
     If (ret = 0) Then
         Debug.Print "rtf write okay"
     Else
@@ -1469,7 +1469,7 @@ End Function
 
 Public Sub DisplayMailItemByID(id As String)
     Dim it As MailItem
-    Set it = Session.GetItemFromID(id, Session.GetDefaultFolder(olFolderInbox).StoreID)
+    Set it = session.GetItemFromID(id, session.GetDefaultFolder(olFolderInbox).StoreID)
     it.Display
     Set it = Nothing
 End Sub

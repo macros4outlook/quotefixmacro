@@ -2,7 +2,7 @@
 
 QuoteFixMacro can modify MS Outlook's message composition windows on-the-fly to allow for **correct quoting** and to change the appearance of your plain-text replies and forwards in general: move your signature, use compressed indentation, customize your quote header, etc.
 
-### Quoting / Formatting
+## Quoting / Formatting
 
 If you use Outlook as your email client and make use of plain-text messages, you will have noticed that Outlook doesn't exactly feature the most intelligent quoting algorithm; in fact, it's the silliest one imaginable.
 

@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## Version [1.8] - 2021-02-06
 
 ### Added
 
@@ -149,7 +149,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 * first public release
 
-[Unreleased]: https://github.com/macros4outlook/quotefixmacro/compare/v1.7...HEAD
+[Unreleased]: https://github.com/macros4outlook/quotefixmacro/compare/v1.8...HEAD
+[1.8]: https://github.com/macros4outlook/quotefixmacro/compare/v1.7...v1.8
 [1.7]: https://github.com/macros4outlook/quotefixmacro/compare/v1.6...v1.7
 [1.6]: https://github.com/macros4outlook/quotefixmacro/compare/v1.5...v1.6
 [1.5]: https://github.com/macros4outlook/quotefixmacro/compare/v1.4...v1.5

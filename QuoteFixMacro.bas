@@ -303,7 +303,7 @@ Public Sub StoreDefaultConfiguration()
 End Sub
 
 'Loads the personal settings from the registry.
-Private Sub LoadConfiguration()
+Public Sub LoadConfiguration()
     USE_COLORIZER = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_COLORIZER", DEFAULT_USE_COLORIZER))
     NUM_RTF_COLORS = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", DEFAULT_NUM_RTF_COLORS))
     USE_SOFTWRAP = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", DEFAULT_USE_SOFTWRAP))
@@ -1017,7 +1017,30 @@ Private Function getSenderEmailAdress(senderEmailType As String, senderName As S
 End Function
 
 Private Function IsUpperCaseChar(ByVal c As String) As Boolean
-    IsUpperCaseChar = ((Asc(c) >= 65) And (Asc(c) <= 90))
+    IsUpperCaseChar = c Like "[A-Z]"
+End Function
+
+Public Function IsUpperCaseWord(ByVal word As String) As Boolean
+    IsUpperCaseWord = word Like "[A-Z][A-Z]*"
+End Function
+
+Private Function IsWordCased(ByVal word As String) As Boolean
+    IsWordCased = (word Like "[A-Z][a-z]*") Or (word Like "[A-Z][a-z]*-[A-Z][a-z]*")
+End Function
+
+Private Function FixCase(ByRef word As String) As String
+    If word = "" Then
+        FixCase = word
+        Exit Function
+    End If
+    Dim parts() As String
+    parts = Split(word, "-")
+    Dim result As String
+    Dim i As Long
+    For i = LBound(parts) To UBound(parts)
+       result = result + UCase(Left(parts(i), 1)) + LCase(Mid(parts(i), 2)) + "-"
+    Next i
+    FixCase = Left(result, Len(result) - 1)
 End Function
 
 
@@ -1060,6 +1083,8 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
 
     Dim fpos As Integer
     Dim lpos As Integer
+
+    tmpName = removeDepartment(tmpName)
 
     If (Left(tmpName, 3) = "Dr.") Then
         tmpName = Mid(tmpName, 5)
@@ -1146,9 +1171,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                     firstName = tmpName
                     lastName = ""
                 End If
-
             End If
-
         Else
             fpos = InStr(tmpName, "@")
             If fpos > 0 Then
@@ -1188,13 +1211,51 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
 
     'fix casing of names
     If InStr(firstName, " ") = 0 Then
-        firstName = UCase(Left(firstName, 1)) + LCase(Mid(firstName, 2))
+        firstName = FixCase(firstName)
     End If
     If InStr(lastName, " ") = 0 Then
-        lastName = UCase(Left(lastName, 1)) + LCase(Mid(lastName, 2))
+        lastName = FixCase(lastName)
     End If
     senderName = Trim(firstName + " " + lastName)
 End Sub
+
+Public Function removeDepartment(ByVal tmpName) As String
+    Dim parts() As String
+    parts = Split(tmpName, " ")
+
+    Dim length As Long
+
+    length = UBound(parts) - LBound(parts) + 1
+
+    If length <= 2 Or Not IsWordCased(parts(LBound(parts))) Then
+        removeDepartment = tmpName
+        Exit Function
+    End If
+
+    Dim indexLastWordcasedWord As Long
+    indexLastWordcasedWord = LBound(parts)
+    Do While (indexLastWordcasedWord <= UBound(parts))
+        If Not IsWordCased(parts(indexLastWordcasedWord)) Then
+            Exit Do
+        End If
+        indexLastWordcasedWord = indexLastWordcasedWord + 1
+    Loop
+    If indexLastWordcasedWord >= UBound(parts) Then
+        removeDepartment = tmpName
+        Exit Function
+    End If
+    If Not IsUpperCaseWord(parts(indexLastWordcasedWord + 1)) Then
+        removeDepartment = tmpName
+        Exit Function
+    End If
+
+    Dim result As String
+    Dim i As Long
+    For i = LBound(parts) To indexLastWordcasedWord - 1
+       result = result + parts(i) + " "
+    Next i
+    removeDepartment = Left(result, Len(result) - 1)
+End Function
 
 
 'Extracts the name of the sender from the sender's name provided in the E-Mail.
@@ -1229,7 +1290,6 @@ End Sub
 
 
 Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
-
     ' parse until we find the header finish "> " (Outlook_Headerfinish)
 
     For lineCounter = lineCounter To UBound(BodyLines)

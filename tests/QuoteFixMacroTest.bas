@@ -97,6 +97,24 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+'@TestMethod("IsUpperCaseWord")
+Private Sub IsUpperCaseWordTests()
+    On Error GoTo TestFail
+
+    Assert.AreEqual False, IsUpperCaseWord("van")
+    Assert.AreEqual False, IsUpperCaseWord("Lastname")
+    Assert.AreEqual False, IsUpperCaseWord("LastName")
+    Assert.AreEqual True, IsUpperCaseWord("LASTNAME")
+    Assert.AreEqual False, IsUpperCaseWord("")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+
+
 '@TestMethod("getNamesOutOfString")
 Private Sub FirstMiddleLast()
     On Error GoTo TestFail
@@ -210,6 +228,60 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub FirstnameWithDashCorrectlyCased()
+    On Error GoTo TestFail
+
+    originalName = "First-First Last"
+
+    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+
+    Assert.AreEqual "First-First Last", senderName
+    Assert.AreEqual "First-First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub FirstnameLastnameDepartment()
+    On Error GoTo TestFail
+
+    originalName = "First Last DEPT DEPT"
+
+    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+
+    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("removeDepartmentName")
+Private Sub FirstnameLastnameDepartmentFunction()
+    On Error GoTo TestFail
+
+    Dim result As String
+
+    result = removeDepartment("First Last DEPT DEPT")
+
+    Assert.AreEqual "First Last", result
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+
 
 'Required settings:
 '

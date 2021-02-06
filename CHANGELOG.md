@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+* In case departments are added at the end of a name, it is removed (e.g., `Firstname Lastname DEP DEP2` becomes `Firstname Lastname`)
+
+### Fixed
+
+* Names with dashes are correctly cased (before, they were converted to First-first)
+
 ## Version [1.7] - 2021-01-24
 
 ### Added

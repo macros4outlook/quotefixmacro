@@ -77,7 +77,7 @@ Private Const DEFAULT_INCLUDE_QUOTES_TO_LEVEL As Integer = -1
 'At which column should the text be wrapped?
 Private Const DEFAULT_LINE_WRAP_AFTER As Integer = 75
 
-Private Const DEFAULT_DATE_FORMAT As String = "yyyy-mm-dd"
+Private Const DEFAULT_DATE_FORMAT As String = "yyyy-mm-dd HH:MM"
 'alternative date format
 'Private Const DEFAULT_DATE_FORMAT As String = "ddd, d MMM yyyy at HH:mm:ss"
 

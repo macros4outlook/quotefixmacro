@@ -152,7 +152,7 @@ Please double check that the template is used as "Forward/Reply" signature under
 | `%LN` | Sender's last name |
 | `%SN` | Sender's name |
 | `%SE` | Sender's email address |
-| `%D` | Date of the quoted mail in `yyyy-mm-dd` |
+| `%D` | Date of the quoted mail in `yyyy-mm-dd HH:MM` |
 
 ### Examples
 

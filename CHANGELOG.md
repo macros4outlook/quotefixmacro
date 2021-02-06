@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * In case departments are added at the end of a name, it is removed (e.g., `Firstname Lastname DEP DEP2` becomes `Firstname Lastname`)
 * In case the sender format is `Lastname Firstname <firstname.lastname@example.org>`, it is assumed that the typing of the email (firstname before lastname) is correct.
 
+### Changed
+
+* Default pattern for `%D` (date) now includes time in the format `HH:MM`
+
 ### Fixed
 
 * Names with dashes are correctly cased (before, they were converted to First-first)

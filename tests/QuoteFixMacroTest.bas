@@ -265,6 +265,43 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+'@TestMethod("getNamesOutOfString")
+Private Sub UppercaseLastnameFirstnameReversedEmail()
+    On Error GoTo TestFail
+
+    originalName = "last first"
+
+    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "first.last@example.com")
+
+    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub LowerCaseNamesDEPReversedEmail()
+    On Error GoTo TestFail
+
+    originalName = "last first DEP DEP"
+
+    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "first.last@example.com")
+
+    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+
 '@TestMethod("removeDepartmentName")
 Private Sub FirstnameLastnameDepartmentFunction()
     On Error GoTo TestFail
@@ -281,6 +318,67 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+'@TestMethod("removeDepartmentName")
+Private Sub LowerCaseFirstnameLastnameDepartmentFunction()
+    On Error GoTo TestFail
+
+    Dim result As String
+
+    result = removeDepartment("first last DEPT DEPT")
+
+    Assert.AreEqual "first last", result
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+
+'@TestMethod("getNamesOutOfEmail")
+Private Sub getNamesOutOfEmailNormalCase()
+    On Error GoTo TestFail
+
+    Call getFirstNameLastNameOutOfEmail("firstname.lastname@example.com", firstName, lastName)
+
+    Assert.AreEqual "firstname", firstName
+    Assert.AreEqual "lastname", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfEmail")
+Private Sub getNamesOutOfEmailTwoDots()
+    On Error GoTo TestFail
+
+    Call getFirstNameLastNameOutOfEmail("firstname.lastname.something@example.com", firstName, lastName)
+
+    Assert.AreEqual "firstname.lastname.something", firstName
+    Assert.AreEqual "", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfEmail")
+Private Sub getNamesOutOfEmailNoDot()
+    On Error GoTo TestFail
+
+    Call getFirstNameLastNameOutOfEmail("thing@example.com", firstName, lastName)
+
+    Assert.AreEqual "thing", firstName
+    Assert.AreEqual "", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
 
 
 'Required settings:

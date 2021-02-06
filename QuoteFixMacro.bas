@@ -1057,10 +1057,11 @@ End Function
 '  senderName - complete name of sender
 '  firstName - first name of sender
 '  lastName - last name of sender
+'  senderEmailAddress - sender email address (optional because of tests)
 'Notes:
 '  * Public to enable testing
 '  * Names are returned by reference
-Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
+Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String, Optional ByRef senderEmailAddress As String = "")
     'Find out firstName
 
     Dim tmpName As String
@@ -1209,6 +1210,17 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         End If
     End If
 
+    Dim fnEmail As String
+    Dim lnEmail As String
+    Call getFirstNameLastNameOutOfEmail(senderEmailAddress, fnEmail, lnEmail)
+    If (LCase(firstName) = lnEmail) And (LCase(lastName) = fnEmail) Then
+        ' in case firstname and lastname are reversed in the email address, we assume that email format is firstname.lastname and reverse the names here
+        Dim tmp As String
+        tmp = firstName
+        firstName = lastName
+        lastName = tmp
+    End If
+
     'fix casing of names
     If InStr(firstName, " ") = 0 Then
         firstName = FixCase(firstName)
@@ -1219,39 +1231,59 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     senderName = Trim(firstName + " " + lastName)
 End Sub
 
+Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName As String, ByRef lastName As String)
+    If email = "" Then
+        firstName = ""
+        lastName = ""
+        Exit Sub
+    End If
+    Dim parts() As String
+    parts = Split(email, "@")
+    Dim addressee As String
+    addressee = parts(0)
+    parts = Split(addressee, ".")
+
+    Dim length As Long
+    length = UBound(parts) - LBound(parts) + 1
+
+    If (length <> 2) Then
+        firstName = addressee
+        lastName = ""
+        Exit Sub
+    End If
+    firstName = parts(LBound(parts))
+    lastName = parts(UBound(parts))
+End Sub
+
 Public Function removeDepartment(ByVal tmpName) As String
     Dim parts() As String
     parts = Split(tmpName, " ")
 
     Dim length As Long
-
     length = UBound(parts) - LBound(parts) + 1
 
-    If length <= 2 Or Not IsWordCased(parts(LBound(parts))) Then
+    If length <= 2 Then
         removeDepartment = tmpName
         Exit Function
     End If
 
-    Dim indexLastWordcasedWord As Long
-    indexLastWordcasedWord = LBound(parts)
-    Do While (indexLastWordcasedWord <= UBound(parts))
-        If Not IsWordCased(parts(indexLastWordcasedWord)) Then
+    Dim indexWordBeforeLastUppercasedWord As Long
+    indexWordBeforeLastUppercasedWord = UBound(parts)
+    Do While (indexWordBeforeLastUppercasedWord >= LBound(parts) + 2)
+        If Not IsUpperCaseWord(parts(indexWordBeforeLastUppercasedWord)) Then
             Exit Do
         End If
-        indexLastWordcasedWord = indexLastWordcasedWord + 1
+        indexWordBeforeLastUppercasedWord = indexWordBeforeLastUppercasedWord - 1
     Loop
-    If indexLastWordcasedWord >= UBound(parts) Then
-        removeDepartment = tmpName
-        Exit Function
-    End If
-    If Not IsUpperCaseWord(parts(indexLastWordcasedWord + 1)) Then
+
+    If indexWordBeforeLastUppercasedWord < LBound(parts) + 1 Then
         removeDepartment = tmpName
         Exit Function
     End If
 
     Dim result As String
     Dim i As Long
-    For i = LBound(parts) To indexLastWordcasedWord - 1
+    For i = LBound(parts) To indexWordBeforeLastUppercasedWord
        result = result + parts(i) + " "
     Next i
     removeDepartment = Left(result, Len(result) - 1)
@@ -1272,7 +1304,7 @@ Private Sub getNamesFromMail(ByRef item As MailItem, ByRef senderName As String,
         senderName = item.senderName
     End If
 
-    Call getNamesOutOfString(senderName, senderName, firstName, lastName)
+    Call getNamesOutOfString(senderName, senderName, firstName, lastName, item.senderEmailAddress)
 End Sub
 
 'Code duplication of getNamesFromMail, because there is no common ancestor of MailItem and MeetingItem
@@ -1285,7 +1317,7 @@ Private Sub getNamesFromMeeting(ByRef item As MeetingItem, ByRef senderName As S
         senderName = item.senderName
     End If
 
-    Call getNamesOutOfString(senderName, senderName, firstName, lastName)
+    Call getNamesOutOfString(senderName, senderName, firstName, lastName, item.senderEmailAddress)
 End Sub
 
 
@@ -1555,5 +1587,4 @@ Private Function StripSuffixes(ByRef tempName As String) As String
         End If
     Next
     StripSuffixes = tempName
-
 End Function

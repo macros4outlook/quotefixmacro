@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- In case the email target ends with a number, the reversal of names also works. I.e., in the case of `Lastname Firstname <firstname.lastname3@example.org>` "Firstname" is used as firstname.
+- Include "Dr." in the name if that is present
+
 ## Version [1.8] - 2021-02-06
 
 ### Added

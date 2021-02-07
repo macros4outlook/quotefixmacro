@@ -182,9 +182,9 @@ Private Sub DrFirstLast()
 
     Call getNamesOutOfString(originalName, senderName, firstName, lastName)
 
-    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "Dr. First Last", senderName
     Assert.AreEqual "First", firstName
-    Assert.AreEqual "Last", lastName
+    Assert.AreEqual "Dr. Last", lastName
 
 TestExit:
     Exit Sub
@@ -264,6 +264,61 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub FirstnameLastnameDrDepartmentEmailWithNumberReverse()
+    On Error GoTo TestFail
+
+    originalName = "Last First Dr. DEP DEP2"
+
+    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "First.Last3@example.com")
+
+    Assert.AreEqual "Dr. First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Dr. Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub FirstnameLastnameDepartmentEmailWithNumberReverse()
+    On Error GoTo TestFail
+
+    originalName = "Last First DEP DEP2"
+
+    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "First.Last3@example.com")
+
+    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub FirstnameLastnameDepartmentEmailReverse()
+    On Error GoTo TestFail
+
+    originalName = "Last First (xy/z)"
+
+    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "first.last@example.com")
+
+    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
 
 '@TestMethod("getNamesOutOfString")
 Private Sub UppercaseLastnameFirstnameReversedEmail()
@@ -380,6 +435,20 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+'@TestMethod("getNamesOutOfEmail")
+Private Sub getNamesOutOfEmailNumberAtEnd()
+    On Error GoTo TestFail
+
+    Call getFirstNameLastNameOutOfEmail("First.Last3@example.com", firstName, lastName)
+
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
 
 'Required settings:
 '

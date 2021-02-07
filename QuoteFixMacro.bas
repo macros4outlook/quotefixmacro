@@ -1091,6 +1091,10 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         tmpName = Mid(tmpName, 5)
         title = "Dr. "
     End If
+    If (Right(tmpName, 3) = "Dr.") Then
+        tmpName = Left(tmpName, Len(tmpName) - 4)
+        title = "Dr. "
+    End If
 
     'Some companies have "(Text)" at the end of their name.
     'We strip that
@@ -1213,7 +1217,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     Dim fnEmail As String
     Dim lnEmail As String
     Call getFirstNameLastNameOutOfEmail(senderEmailAddress, fnEmail, lnEmail)
-    If (LCase(firstName) = lnEmail) And (LCase(lastName) = fnEmail) Then
+    If (LCase(firstName) = LCase(lnEmail)) And (LCase(lastName) = LCase(fnEmail)) Then
         ' in case firstname and lastname are reversed in the email address, we assume that email format is firstname.lastname and reverse the names here
         Dim tmp As String
         tmp = firstName
@@ -1228,7 +1232,8 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     If InStr(lastName, " ") = 0 Then
         lastName = FixCase(lastName)
     End If
-    senderName = Trim(firstName + " " + lastName)
+    senderName = title + Trim(firstName + " " + lastName)
+    lastName = title + lastName
 End Sub
 
 Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName As String, ByRef lastName As String)
@@ -1252,8 +1257,20 @@ Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName
         Exit Sub
     End If
     firstName = parts(LBound(parts))
+    firstName = stripNumbers(firstName)
     lastName = parts(UBound(parts))
+    lastName = stripNumbers(lastName)
 End Sub
+
+Private Function stripNumbers(ByVal s As String) As String
+    Dim result As String
+    result = s
+    Do While (Right(result, 1) Like "#")
+        result = Left(result, Len(result) - 1)
+    Loop
+    stripNumbers = result
+End Function
+
 
 Public Function removeDepartment(ByVal tmpName) As String
     Dim parts() As String

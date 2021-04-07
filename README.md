@@ -4,7 +4,7 @@ QuoteFixMacro can modify MS Outlook's message composition windows on-the-fly to 
 
 This style of quoting is described in [Chapter 6. Email Quotes and Inclusion Conventions of The Jargon File](http://www.catb.org/jargon/html/email-style.html).
 
-## Quoting / Formatting
+## Quoting / formatting
 
 If you use Outlook as your email client and make use of plain-text messages, you will have noticed that Outlook doesn't exactly feature the most intelligent quoting algorithm; in fact, it's the silliest one imaginable.
 
@@ -94,7 +94,7 @@ And the best thing about QuoteFixMacro is, **there is absolutely nothing you hav
 
 Download the latest version from the GitHub release page.
 
-### Import Macros
+### Import macros
 
 1. Extract the downloaded zip-file
 2. In Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor"), import the downloaded file by right-clicking on "Modules" and selecting "Import...". You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
@@ -201,7 +201,7 @@ Best,
 Amie
 ```
 
-### Custom Firstnames
+### Custom first names
 
 Sometimes, one wants to call someone by a nick name. E.g., one wants to call "Jennifer Muster" just "Jenny". Sometimes, someone does not put his full first name in the Email. E.g., "Adelinde Muster" has "<a.muster@example.org>".
 
@@ -221,7 +221,7 @@ At each entry, there are two keys: email stating the email to match and firstNam
 1. Create string value `firstName` with the firstname to be used
 1. Repeat steps 5 to 7 until `X` is reached. Replace `1` at `firstnames.1` by the appropriate number
 
-#### Direct Import Using `.reg` Files
+#### Direct import using `.reg` files
 
 Alternatively, create a `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry.
 The distribution of QuoteFixMacro already contains an [`exampleFirstNameConfiguration.reg`](exampleFirstNameConfiguration.reg) with the content below.
@@ -245,7 +245,7 @@ Windows Registry Editor Version 5.00
 
 Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro. Neverthelesss, the mapping can be done by using [AutoHotkey](https://www.autohotkey.com/). It has to listen for <kbd>Ctrl</kbd>+<kbd>R</kbd> in Outlook sessions and send <kbd>Alt</kbd>+<kbd>R</kbd> to Outlook instead of <kbd>Ctrl</kbd>+<kbd>R</kbd>.
 
-### AutoHotkey Macro for a German Outlook 2007
+### AutoHotkey macro for a German Outlook 2007
 
 ```autohotkey
 ;A class matching is not possible in the outlook 2007 beta 2,
@@ -265,17 +265,17 @@ Send !r
 
 Remark: In the message window, the reply button cannot be inserted as in Outlook 2003. The shortcut bar has to be used instead. The button was assigned <kbd>Alt</kbd>+<kbd>6</kbd> after insertion.
 
-### AutoHotkey Macro for Outlook 2010 and later
+### AutoHotkey macro for Outlook 2010 and later
 
 Similar to the above. Outlook 2010, however, does not enable the use of `&` any more. You have to find out the number of the button in the shortcut bar. Just press <kbd>Alt</kbd> and you'll see the number. Use that in the Autohotkey Macro.
 
-## Signing the Macro
+## Signing the macro
 
 With Outlook 2016, this doesn't seem to be necessary any more since self-written macros seem to be usable without error.
 Otherwise, following article should explain everything: <https://www.groovypost.com/howto/create-self-signed-digital-certificate-microsoft-office-2016/>.
 There is also an [MSN Article](https://docs.microsoft.com/en-us/previous-versions/office/developer/office-xp/aa163622(v=office.10)?redirectedfrom=MSDN) on macro code signing for Office XP.
 
-## Advanced Usage
+## Advanced usage
 
 Configuration is done via constants in the QuoteFix code (see below for a storage in the registry)
 
@@ -355,3 +355,5 @@ We recommend using [Rubberduck](https://rubberduckvba.com/) as plugin to the Vis
 QuoteFix Macro is a VB-Macro for Outlook created by Oliver Kopp, Lars Monsees, and Daniel Martin.
 QuoteFix Macro is inspired by [Outlook-QuoteFix](http://web.archive.org/web/20120316151928/http://home.in.tum.de/%7Ejain/software/outlook-quotefix/) written by [Dominik Jain](https://github.com/opcode81/) and reimplemented as a Visual Basic macro.
 The ideas for integrating it in Outlook came from [Daniele Bochicchio](https://github.com/dbochicchio), especially from his [quoting macro](http://lab.aspitalia.com/35/Outlook-2007-2003-Reply-With-Quoting-Macro.aspx).
+
+<!-- markdownlint-disable-file MD033 -->

@@ -7,8 +7,8 @@ Attribute VB_Name = "QuoteFixWithPAR"
 ' For information on QuoteFixMacro heat to: https://macros4outlook.github.io/quotefixmacro/
 
 Option Explicit
-                                                                                          
-Private Const PAR_OPTIONS As String = "75q"                                             'DEFAULT=rTbgqR B=.,?_A_a Q=_s>|
+
+Private Const PAR_OPTIONS As String = "75q"                                   'DEFAULT=rTbgqR B=.,?_A_a Q=_s>|
 Private Const PAR_CMD As String = "C:\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgq B=.,?_A_a Q=_s>|"" ; par " & PAR_OPTIONS & "'"
 
 ' clipboard interaction in win32
@@ -34,18 +34,18 @@ Const APINULL = 0
 Function ExecPar(mailtext As String) As String
     Dim ret As String
     Dim line As String
-        
+
     Dim shell As Object
     Dim pipe As Object
     Set shell = CreateObject("WScript.Shell")
-    
+
     Debug.Print PAR_CMD
     Set pipe = shell.Exec(PAR_CMD)
     Debug.Print "END PAR"
-    
+
     pipe.StdIn.Write (mailtext)
     pipe.StdIn.Close
-    
+
     Debug.Print "READING..."
     While (pipe.StdOut.AtEndOfStream = False)
         line = pipe.StdOut.ReadLine()
@@ -57,10 +57,10 @@ Function ExecPar(mailtext As String) As String
     Wend
     'ret = pipe.StdOut.ReadAll()
     Debug.Print ret
-    
+
     Set pipe = Nothing
     Set shell = Nothing
-    
+
     ExecPar = ret
 End Function
 
@@ -71,21 +71,21 @@ Public Sub ReformatSelectedText()
 
     'copy selection to clipboard
     SendKeys "^c", True 'ctrl-c, wait until done
-    
+
     'get text from clipboard
     ret = Clipboard2Text
     If (IsNull(ret)) Then Exit Sub 'error or no text in clipboard
     text = CStr(ret)
     Debug.Print "FROM CLIPBOARD: " & vbCrLf & text
-    
+
     'reformat
     text = ExecPar(text)
     Debug.Print "AFTER PAR: " & vbCrLf & text
-    
+
     'write back to clipboard
     Text2Clipboard (text)
-    
-    
+
+
     'finally, replace selected text
     SendKeys "^v", True 'ctrl-v, wait until done
 End Sub

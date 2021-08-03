@@ -97,8 +97,10 @@ Download the latest version from the GitHub release page.
 ### Import macros
 
 1. Extract the downloaded zip-file
-2. In Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor"), import the downloaded file by right-clicking on "Modules" and selecting "Import...". You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
+2. In Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor"), import `QuoteFixMacro.bas` by right-clicking on "Modules" and selecting "Import...". 
 3. If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check. A better solution is to sign the macro. See "Signing a Macro" below.
+
+Pro tip: In case you want to try out the current "random signature generation", import `RandomSignture.bas`. The `QuoteFixWithPAR.bas` is not ready for testing yet. - You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
 
 ### Assign macros to buttons
 

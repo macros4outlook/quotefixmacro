@@ -18,13 +18,13 @@ See what I mean?
 > Sent: Sunday, August 11, 2002 10:15 PM
 > To: Dominik Jain
 > Subject: RE: test
-> 
-> 
-> This is a sample text, and as you will see, Microsoft Outlook 
+>
+>
+> This is a sample text, and as you will see, Microsoft Outlook
 > will wrap this
 > line. And since I'd already written a fix for Outlook Express, I thought,
 > "What the hell... I might as well help you guys, too!"
-> 
+>
 > > -----Original Message-----
 > > From: Dominik Jain [mailto:djain@web.de]
 > > Sent: Sunday, August 11, 2002 10:15 PM
@@ -34,7 +34,7 @@ See what I mean?
 > >
 > > This is a sample text, and as you will see, Microsoft Outlook
 > > will wrap this
-> > line. And since I'd already written a fix for Outlook Express, 
+> > line. And since I'd already written a fix for Outlook Express,
 > I thought,
 > > "What the hell... I might as well help you guys, too!"
 > >
@@ -72,16 +72,16 @@ Dominik Jain wrote:
 >>> wrap this line. And since I'd already written a fix for Outlook
 >>> Express, I thought, "What the hell... I might as well help you guys,
 >>> too!"
->> 
+>>
 >> This is a sample text, and as you will see, Microsoft Outlook will
 >> wrap this line. And since I'd already written a fix for Outlook
 >> Express, I thought, "What the hell... I might as well help you guys,
 >> too!"
-> 
+>
 > This is a sample text, and as you will see, Microsoft Outlook will
 > wrap this line. And since I'd already written a fix for Outlook
 > Express, I thought, "What the hell... I might as well help you guys,
-> too!" 
+> too!"
 
 See what I mean?
 ```
@@ -97,10 +97,10 @@ Download the latest version from the GitHub release page.
 ### Import macros
 
 1. Extract the downloaded zip-file
-2. In Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor"), import `QuoteFixMacro.bas` by right-clicking on "Modules" and selecting "Import...". 
+2. In Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor"), import `QuoteFixMacro.bas` by right-clicking on "Modules" and selecting "Import...".
 3. If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check. A better solution is to sign the macro. See "Signing a Macro" below.
 
-Pro tip: In case you want to try out the current "random signature generation", import `RandomSignture.bas`. The `QuoteFixWithPAR.bas` is not ready for testing yet. - You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
+Pro tip: In case you want to try out the current "random signature generation", import `RandomSignature.bas`. The `QuoteFixWithPAR.bas` is not ready for testing yet. - You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
 
 ### Assign macros to buttons
 
@@ -110,7 +110,7 @@ After that, you need to replace the original "Reply" and "ReplyAll" buttons with
 2. Go to the "Commands" tab and navigate to the "Macro" category
 3. Drag the "FixedReply" and "FixedReplyAll" entries and drop it onto the toolbar
 
-You can also change the name and image of the newly created buttons using the customization dialog. If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a shortcut for reply. Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro. Neverthelesss, the mapping can be done by using AutoHotkey (see below).
+You can also change the name and image of the newly created buttons using the customization dialog. If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a shortcut for reply. Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro. Nevertheless, the mapping can be done by using AutoHotkey (see below).
 
 ### Set up eMail
 
@@ -133,11 +133,11 @@ You can also change the name and image of the newly created buttons using the cu
 
    * Create a signature that is only used for reply and forward. You have to insert at least `%Q` to get the quoted original mail.
    * Assign this signature to every mail account you want to use.
-   * Alterantively, you can configure `QUOTING_TEMPLATE` (see below).
+   * Alternatively, you can configure `QUOTING_TEMPLATE` (see below).
 
 5. Display all E-Mail as Text
 
-   * QuoteFixMacro requries plain text to work. One can either read all emails as plain text from the beginning or set `CONVERT_TO_PLAIN` is set to `True`.
+   * QuoteFixMacro requires plain text to work. One can either read all emails as plain text from the beginning or set `CONVERT_TO_PLAIN` is set to `True`.
      In case all texts should be read a s plain text,s ee Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature. For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)): File / Options / Security Center / Options for the Security Center / E-Mail Security / "Read as Plain Text" / `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text".
 
 ## Templates
@@ -245,13 +245,13 @@ Windows Registry Editor Version 5.00
 
 ## AutoHotkey
 
-Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro. Neverthelesss, the mapping can be done by using [AutoHotkey](https://www.autohotkey.com/). It has to listen for <kbd>Ctrl</kbd>+<kbd>R</kbd> in Outlook sessions and send <kbd>Alt</kbd>+<kbd>R</kbd> to Outlook instead of <kbd>Ctrl</kbd>+<kbd>R</kbd>.
+Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro. Nevertheless, the mapping can be done by using [AutoHotkey](https://www.autohotkey.com/). It has to listen for <kbd>Ctrl</kbd>+<kbd>R</kbd> in Outlook sessions and send <kbd>Alt</kbd>+<kbd>R</kbd> to Outlook instead of <kbd>Ctrl</kbd>+<kbd>R</kbd>.
 
 ### AutoHotkey macro for a German Outlook 2007
 
 ```autohotkey
 ;A class matching is not possible in the outlook 2007 beta 2,
-;thefore title matching is used
+;therefore title matching is used
 SetTitleMatchMode, 2
 
 ;For the message window
@@ -290,7 +290,7 @@ Configuration is done via constants in the QuoteFix code (see below for a storag
 The variable `QUOTING_TEMPLATE` can be used to store the quoting template.
 Thus, the Outlook configuration can be left untouched.
 
-### English replys
+### English replies
 
 The variable `QUOTING_TEMPLATE_EN` can be used to store en English quoting template.
 In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called, that template is used.
@@ -301,7 +301,7 @@ By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted 
 
 ### Condense Headers
 
-With `CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS`, one condence reply/forwarding headers added by outlook so that the email gets even shorter
+With `CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS`, one condenses reply/forwarding headers added by outlook so that the email gets even shorter
 The format of the condensed header is configured at `CONDENSED_HEADER_FORMAT`
 
 One can also condense the first header only `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER`.
@@ -310,7 +310,7 @@ One can also condense the first header only `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTL
 
 QuoteColorizer colorizes the indented parts in different colors to make it easier to distinguish who wrote which text. Set `USE_COLORIZER` to `true` to use this. The mail format is automatically set to Rich-Text.
 
-The receipient will receive the colors, too.
+The recipient will receive the colors, too.
 In case, you don't want this, enable convert RTF-to-Text at sending.
 
 ### Strip sender's signature
@@ -319,7 +319,7 @@ By default, the sender's signature is removed from the reply. If you don't want 
 
 ### SoftWrap
 
-When enabled, this feature resizes the window in a way that the text editor wraps the text automatically after N charaters.
+When enabled, this feature resizes the window in a way that the text editor wraps the text automatically after N characters.
 Outlook wraps text automatically after sending it, but doesn't display the wrap when editing.
 Thus, this is useful to double-check that no new line breaks are introduced by Outlook when sending an email.
 
@@ -345,7 +345,7 @@ You can store the default configuration in the registry:
 
 ## FAQ
 
-Q: What if the whole mail text disappers?  
+Q: What if the whole mail text disappears?
 A: The reply setting in Outlook is not configured as required. Double check that the original text should be prefixed with `> `.
 
 ## Developing

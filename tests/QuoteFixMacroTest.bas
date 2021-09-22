@@ -1,4 +1,4 @@
-Attribute VB_Name = "QuoteFixMacro"
+Attribute VB_Name = "QuoteFixMacroTest"
 
 Option Explicit
 Option Private Module

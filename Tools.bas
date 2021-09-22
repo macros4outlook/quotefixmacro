@@ -31,7 +31,7 @@ Attribute VB_Name = "Tools"
 '$Revision$ - not released
 
 Option Explicit
-   
+
 Global InterceptorCollection As New Collection
 
 
@@ -127,12 +127,12 @@ Public Sub TestPar()
           "> Isn't there a FAQ for this?" & vbCrLf & _
           ">" & vbCrLf & _
           ">" & vbCrLf & _
-          "That wasn 't very helpful, Joe. Jane," & vbCrLf & _
+          "That wasn't very helpful, Joe. Jane," & vbCrLf & _
           "just make a link from uncompress to compress."
 
     cmd = "C:\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgqR B=.,?_A_a Q=_s>|"" ; par 60q'"
     'cmd = "C:\cygwin\bin\bash.exe --login -c 'par 60q'"
-  
+    
     Debug.Print cmd
     Set pipe = shell.Exec(cmd)
     Debug.Print "END PAR"
@@ -151,4 +151,3 @@ Public Sub TestPar()
     Set pipe = Nothing
     Set shell = Nothing
 End Sub
-

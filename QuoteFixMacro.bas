@@ -44,7 +44,7 @@ Private Const DEFAULT_USE_COLORIZER As Boolean = False
 'If you enable it, you need MAPIRTF.DLL in C:\Windows\System32
 'Does NOT work at Windows 7/64bit Outlook 2010/32bit
 '
-'Please enable convert RTF-to-Text at sending. Otherwise, the recipients will always receive HTML E-Mails
+'Please enable convert RTF-to-Text at sending. Otherwise, the recipients will always receive HTML emails
 
 'How many different colors should be used for colorizing the quotes?
 Private Const DEFAULT_NUM_RTF_COLORS As Integer = 4
@@ -64,7 +64,7 @@ Private Const DEFAULT_USE_SOFTWRAP As Boolean = False
 'default: 76 characters
 Private Const DEFAULT_SEVENTY_SIX_CHARS As String = "123456789x123456789x123456789x123456789x123456789x123456789x123456789x123456"
 
-'This constant has to be adapted to fit your needs (incoprating the used font, display size, ...)
+'This constant has to be adapted to fit your needs (incorporating the used font, display size, ...)
 Private Const DEFAULT_PIXEL_PER_CHARACTER As Double = 8.61842105263158
 
 
@@ -490,7 +490,7 @@ Public Function ReFormatText(text As String) As String
                 If (curNesting.level = 1) And (i < UBound(rows)) Then
                     'check if the next line contains a wrong break
                     nextNesting = CalcNesting(rows(i + 1))
-                    If (CountOccurencesOfStringInString(curLine, " ") = 0) And (curNesting.total = nextNesting.total) _
+                    If (CountOccurrencesOfStringInString(curLine, " ") = 0) And (curNesting.total = nextNesting.total) _
                         And (Len(rows(i - 1)) > LINE_WRAP_AFTER - Len(curLine) - 10) Then '10 is only a rough heuristics... - should be improved
                         'Yes, it is a wrong Wrap (same recognition as below)
                         curBlockNeedsToBeReFormatted = True
@@ -509,7 +509,7 @@ Public Function ReFormatText(text As String) As String
                     'Yeah. Wrong line wrap found
 
                     If curLine = "" Then
-                        'The linebreak has to be interpreted as paragraph
+                        'The line break has to be interpreted as paragraph
                         'new Paragraph has started. No joining of quotes is necessary
                         HandleParagraph lastPrefix
                     Else
@@ -571,7 +571,7 @@ Public Function ReFormatText(text As String) As String
                     posColon = InStr(curLine, ":")
                     Dim posLeftBracket As String
                     Dim posRightBracket As Integer
-                    posLeftBracket = InStr(curLine, "[") '[ is the indication of the beginning of the E-Mail-Adress
+                    posLeftBracket = InStr(curLine, "[") '[ is the indication of the beginning of the email address
                     posRightBracket = InStr(curLine, "]")
                     If (posLeftBracket) > 0 Then
                         Dim lengthName As Integer
@@ -595,12 +595,12 @@ Public Function ReFormatText(text As String) As String
                     i = i + 1
                     curLine = StripLine(rows(i))
                     If InStr(curLine, ":") = 0 Then
-                        'There is a wrap in the email-Adress
+                        'There is a wrap in the email address
                         posRightBracket = InStr(curLine, "]")
                         If posRightBracket > 0 Then
                             sEmail = sEmail + Left(curLine, posRightBracket - 1)
                         Else
-                            'something wrent wrong, do nothing
+                            'something went wrong, do nothing
                         End If
                         'go to next line
                         i = i + 1
@@ -709,10 +709,10 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optiona
         End Select
 
 catch:
-        On Error GoTo 0  'deactivate errorhandling
+        On Error GoTo 0  'deactivate error handling
 
         If (HadError = True) Then
-            'reply / replyall / forward caused error
+            'reply / reply all / forward caused error
             ' -->  just display it
             SelectedObject.Display
             Exit Sub
@@ -727,7 +727,7 @@ catch:
     If isMail Then
         Set OriginalMail = SelectedObject 'cast!
     Else
-       Set OriginalMeeting = SelectedObject 'cast!
+        Set OriginalMeeting = SelectedObject 'cast!
     End If
 
     Dim sent As Boolean
@@ -855,9 +855,9 @@ catch:
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
         Dim senderEmail As String
         If isMail Then
-            senderEmail = getSenderEmailAdress(OriginalMail.senderEmailType, senderName, OriginalMail.senderEmailAddress, OriginalMail.session)
+            senderEmail = getSenderEmailAddress(OriginalMail.senderEmailType, senderName, OriginalMail.senderEmailAddress, OriginalMail.session)
         Else
-            senderEmail = getSenderEmailAdress(OriginalMeeting.senderEmailType, senderName, OriginalMeeting.senderEmailAddress, OriginalMeeting.session)
+            senderEmail = getSenderEmailAddress(OriginalMeeting.senderEmailType, senderName, OriginalMeeting.senderEmailAddress, OriginalMeeting.session)
         End If
         MySignature = Replace(MySignature, PATTERN_SENDER_EMAIL, senderEmail)
     End If
@@ -939,7 +939,7 @@ catch:
     If USE_COLORIZER Then
         Dim mailID As String
         mailID = ColorizeMailItem(NewMail)
-        If (Trim("" & mailID) <> "") Then  'no error occured or quotefix macro not there...
+        If (Trim("" & mailID) <> "") Then  'no error occurred or quotefix macro not there...
             Call DisplayMailItemByID(mailID)
         Else
             'Display window
@@ -957,7 +957,7 @@ catch:
     Next i
 
     If USE_SOFTWRAP Then
-           Call ResizeWindowForSoftWrap
+        Call ResizeWindowForSoftWrap
     End If
 
     'mark original mail as read
@@ -980,7 +980,7 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
     Next lineCounter
 End Function
 
-Private Function getSenderEmailAdress(senderEmailType As String, senderName As String, senderEmailAddress As String, session As NameSpace) As String
+Private Function getSenderEmailAddress(senderEmailType As String, senderName As String, senderEmailAddress As String, session As NameSpace) As String
     Dim senderEmail As String
 
     If senderEmailType = "SMTP" Then
@@ -1013,7 +1013,7 @@ Private Function getSenderEmailAdress(senderEmailType As String, senderName As S
         End If
     End If
 
-    getSenderEmailAdress = senderEmail
+    getSenderEmailAddress = senderEmail
 End Function
 
 Private Function IsUpperCaseChar(ByVal c As String) As Boolean
@@ -1038,13 +1038,13 @@ Private Function FixCase(ByRef word As String) As String
     Dim result As String
     Dim i As Long
     For i = LBound(parts) To UBound(parts)
-       result = result + UCase(Left(parts(i), 1)) + LCase(Mid(parts(i), 2)) + "-"
+        result = result + UCase(Left(parts(i), 1)) + LCase(Mid(parts(i), 2)) + "-"
     Next i
     FixCase = Left(result, Len(result) - 1)
 End Function
 
 
-'Attempts to extract the name of the sender from the sender's name provided in the E-Mail.
+'Attempts to extract the name of the sender from the sender's name provided in the email.
 '
 'Comment:
 '   This is very difficult to do definitively.  Consider how many different variations
@@ -1067,7 +1067,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     Dim tmpName As String
     tmpName = originalName
 
-    'cleanup quotes: if name is encloded in quotes, just remove them
+    'cleanup quotes: if name is enclosed in quotes, just remove them
     If (Left(tmpName, 1) = """" And Right(tmpName, 1) = """") Then
         tmpName = Mid(tmpName, 2, Len(tmpName) - 2)
     End If
@@ -1082,8 +1082,8 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     title = ""
     'Has to be later used for extracting the last name
 
-    Dim fpos As Integer
-    Dim lpos As Integer
+    Dim fPos As Integer
+    Dim lPos As Integer
 
     tmpName = removeDepartment(tmpName)
 
@@ -1099,45 +1099,45 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     'Some companies have "(Text)" at the end of their name.
     'We strip that
     If (Right(tmpName, 1) = ")") Then
-        fpos = InStrRev(tmpName, "(")
-        If fpos > 0 Then
-            tmpName = Trim(Left(tmpName, fpos - 1))
+        fPos = InStrRev(tmpName, "(")
+        If fPos > 0 Then
+            tmpName = Trim(Left(tmpName, fPos - 1))
         End If
     End If
 
-    fpos = InStr(tmpName, ",")
-    If fpos > 0 Then
+    fPos = InStr(tmpName, ",")
+    If fPos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
-        firstName = Trim(Mid(tmpName, fpos + 1))
+        firstName = Trim(Mid(tmpName, fPos + 1))
         'Firstname field may include middle initial(s)
         Do While (UCase(Right(firstName, 2)) Like " [A-Z]" Or UCase(Right(firstName, 2)) Like "[A-Z].")
             firstName = Trim(Left(firstName, Len(firstName) - 2))
         Loop
-        lastName = Trim(Left(tmpName, fpos - 1))
+        lastName = Trim(Left(tmpName, fPos - 1))
         'lastName field may have a formal suffix
         lastName = StripSuffixes(lastName)
     Else
         'Determining first and last name is really hard unless
         'there are only two names, or there is a middle initial(s)
-        fpos = InStr(Trim(tmpName), " ")
-        If fpos > 0 Then
+        fPos = InStr(Trim(tmpName), " ")
+        If fPos > 0 Then
             'First strip any possible, (single,) formal suffix on the name
             tmpName = StripSuffixes(tmpName)
-            lpos = InStrRev(Trim(tmpName), " ")
-            If fpos = lpos Then
+            lPos = InStrRev(Trim(tmpName), " ")
+            If fPos = lPos Then
                 'single first name and last name separated by space
-                firstName = Trim(Left(tmpName, fpos - 1))
-                lastName = Trim(Mid(tmpName, lpos + 1))
+                firstName = Trim(Left(tmpName, fPos - 1))
+                lastName = Trim(Mid(tmpName, lPos + 1))
                 If firstName = UCase(firstName) And Not lastName = UCase(lastName) Then
                     'in case the firstName is written in uppercase letters (and not everything in capital letters),
                     'we assume that the sender's last name is the firstName (in the string)
                     lastName = firstName
-                    firstName = Trim(Mid(tmpName, lpos + 1))
+                    firstName = Trim(Mid(tmpName, lPos + 1))
                 End If
             Else
                 'middle section could be a single/multiple name/initial (or both)
                 Dim midName As String
-                midName = Trim(Mid(Left(tmpName, lpos), fpos))
+                midName = Trim(Mid(Left(tmpName, lPos), fPos))
                 Dim i, j As Integer
 
                 'One or two initials are easy
@@ -1156,21 +1156,21 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
 
                 If Len(midName) = 0 Then
                     'initials only
-                    firstName = Trim(Left(tmpName, fpos - 1))
-                    lastName = Trim(Mid(tmpName, lpos + 1))
+                    firstName = Trim(Left(tmpName, fPos - 1))
+                    lastName = Trim(Mid(tmpName, lPos + 1))
                 ElseIf i <> 0 And j = 0 Then
                     'initials before double last name
-                    lastName = midName + Trim(Mid(tmpName, lpos + 1))
-                    firstName = Trim(Left(tmpName, fpos - 1))
+                    lastName = midName + Trim(Mid(tmpName, lPos + 1))
+                    firstName = Trim(Left(tmpName, fPos - 1))
                 ElseIf i = 0 And j <> 0 Then
                     'initials after double first name
-                    lastName = Trim(Mid(tmpName, lpos + 1))
-                    firstName = Trim(Left(tmpName, fpos - 1)) + midName
+                    lastName = Trim(Mid(tmpName, lPos + 1))
+                    firstName = Trim(Left(tmpName, fPos - 1)) + midName
                 ElseIf Left(midName, 1) = LCase(Left(midName, 1)) Then
                     'Midname starts with a lower case letter
                     'We assume "correct" casing. Thus, we hit a name such as Firstname von Lastname
-                    firstName = Trim(Left(tmpName, fpos - 1))
-                    lastName = Trim(Mid(tmpName, fpos + 1))
+                    firstName = Trim(Left(tmpName, fPos - 1))
+                    lastName = Trim(Mid(tmpName, fPos + 1))
                 Else
                     'anything else can't be definitively identified as a first, middle or last name
                     firstName = tmpName
@@ -1178,16 +1178,16 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                 End If
             End If
         Else
-            fpos = InStr(tmpName, "@")
-            If fpos > 0 Then
-                'first name is (currenty) an eMail-Adress. Just take the prefix
-                tmpName = Left(tmpName, fpos - 1)
+            fPos = InStr(tmpName, "@")
+            If fPos > 0 Then
+                'first name is (currently) an email address. Just take the prefix
+                tmpName = Left(tmpName, fPos - 1)
             End If
-            fpos = InStr(tmpName, ".")
-            If fpos > 0 Then
+            fPos = InStr(tmpName, ".")
+            If fPos > 0 Then
                 'first name is separated by a dot
-                lastName = Mid(tmpName, fpos + 1)
-                tmpName = Left(tmpName, fpos - 1)
+                lastName = Mid(tmpName, fPos + 1)
+                tmpName = Left(tmpName, fPos - 1)
             Else
                 'name is a single string, without "." or " "
                 'final guess: LastnameFirstname
@@ -1301,13 +1301,13 @@ Public Function removeDepartment(ByVal tmpName) As String
     Dim result As String
     Dim i As Long
     For i = LBound(parts) To indexWordBeforeLastUppercasedWord
-       result = result + parts(i) + " "
+        result = result + parts(i) + " "
     Next i
     removeDepartment = Left(result, Len(result) - 1)
 End Function
 
 
-'Extracts the name of the sender from the sender's name provided in the E-Mail.
+'Extracts the name of the sender from the sender's name provided in the email.
 'TODO: Future work is to extract the first name out of the stored Outlook contacts (if that contact exists)
 '
 'Notes:
@@ -1379,7 +1379,7 @@ Private Function CalcDownCount(pattern As String, textToSearch As String) As Lon
 
     PosOfPattern = InStr(textToSearch, pattern)
     TextBeforePattern = Left(textToSearch, PosOfPattern - 1)
-    CalcDownCount = CountOccurencesOfStringInString(TextBeforePattern, vbCrLf)
+    CalcDownCount = CountOccurrencesOfStringInString(TextBeforePattern, vbCrLf)
 End Function
 
 
@@ -1401,7 +1401,7 @@ End Function
 '  What:     What to count
 'Note:
 '  * Order of parameters taken from "InStr"
-Public Function CountOccurencesOfStringInString(InString As String, What As String) As Long
+Public Function CountOccurrencesOfStringInString(InString As String, What As String) As Long
     Dim count As Long
     Dim lastPos As Long
     Dim curPos As Long
@@ -1415,7 +1415,7 @@ Public Function CountOccurencesOfStringInString(InString As String, What As Stri
         curPos = InStr(lastPos, InString, What)
     Loop
 
-    CountOccurencesOfStringInString = count
+    CountOccurrencesOfStringInString = count
 End Function
 
 
@@ -1475,7 +1475,7 @@ End Function
 
 
 'resize window so that the text editor wraps the text automatically
-'after N charaters. Outlook wraps text automatically after sending it,
+'after N characters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
 Public Sub ResizeWindowForSoftWrap()
@@ -1494,16 +1494,16 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     Dim i As Integer, n As Integer, ret As Integer
 
 
-    'save the mailitem to get an entry id, then forget reference to that rtf gets commited.
+    'save the mailitem to get an entry id, then forget reference to that rtf gets committed.
     'display mailitem by id later on.
     If ((Not MyMailItem.bodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
         ColorizeMailItem = ""
         Exit Function
     End If
 
-    'richt text it
+    'rich text it
     MyMailItem.bodyFormat = olFormatRichText
-    MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates ExtryID if not saved before)!
+    MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates EntryID if not saved before)!
 
     Set folder = session.GetDefaultFolder(olFolderInbox)
 
@@ -1514,7 +1514,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         rtf = Trim(rtf)  'kill unnecessary spaces (from rtf var init with Space(rtf))
         Debug.Print rtf & vbCrLf & "*************************************************************" & vbCrLf
 
-        'we have our own rtf haeder, remove generated one
+        'we have our own rtf header, remove generated one
         Dim PosHeaderEnd As Integer
         Dim sTestString As String
         PosHeaderEnd = InStr(rtf, "\uc1\pard\plain\deftab360")

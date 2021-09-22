@@ -6,7 +6,7 @@ Sub NewMailMessage()
     Dim Msg As Outlook.MailItem
     
     Set Msg = Application.CreateItem(olMailItem)
-            
+    
     Call MakeSig(Msg)
     Msg.Display
     Set Msg = Nothing
@@ -47,7 +47,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
     ' Fortune-Cookie Syntax:
     ' Lines are "recorded" from the start of the file.  Delimiters indicate
     '   the end of a quote (or fixed informational line):
-    '   $ on a line alone idicates the end of the fixed, informational lines.
+    '   $ on a line alone indicates the end of the fixed, informational lines.
     '      Only the last one encountered will be used.
     '   % on a line alone indicates the end of an individual quote.  Any text after the
     '      last "%" (and last "$") will not be included in any signature.
@@ -66,7 +66,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
     If Dir(strFilePath) <> "" Then
         ' Open the file for reading
         Open strFilePath For Input As #1
-    
+        
         ' Parse each line in the file
         Line Input #1, strLine
         
@@ -87,25 +87,21 @@ Private Sub MakeSig(ByVal Msg As MailItem)
             End If
             Line Input #1, strLine
         Loop
-    
+        
         Close #1
     Else
         MsgBox ("Quotes file wasn't found!")
     End If
     
     If numQuotes <> 0 Then
-        ' Initalize the RNG seed based on system clock
+        ' Initialize the RNG seed based on system clock
         Randomize
-    
+        
         ' Get the random line number
         intRandom = Int(numQuotes * Rnd())
-    
+        
         ' Insert the random quote
         Msg.Body = Msg.Body & strFixedSigPart & arrQuotes(intRandom)
     End If
 
 End Sub
-
-
-
-

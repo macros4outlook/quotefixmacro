@@ -2,7 +2,7 @@ Attribute VB_Name = "QuoteFixWithPAR"
 
 ' SPDX-License-Identifier: BSD-3-Clause
 
-' Trys to fix quotes using the "par" tool
+' Tries to fix quotes using the "par" tool
 
 ' For information on QuoteFixMacro heat to: https://macros4outlook.github.io/quotefixmacro/
 

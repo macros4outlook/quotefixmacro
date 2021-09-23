@@ -367,16 +367,16 @@ End Function
 'Description:
 '   Adds the current line to unformattedBlock and to curBlock
 Private Sub AppendCurLine(ByRef curLine As String)
-    If unformattedBlock = "" Then
+    If Len(unformattedBlock) = 0 Then
         'unformattedBlock has to be used here, because it might be the case that the first
         '  line is "". Therefore curBlock remains "", whereas unformattedBlock gets <> ""
 
-        If curLine = "" Then Exit Sub
+        If Len(curLine) = 0 Then Exit Sub
 
         curBlock = curLine
         unformattedBlock = curPrefix & curLine & vbCrLf
     Else
-        curBlock = curBlock & IIf(curBlock = "", "", " ") & curLine
+        curBlock = curBlock & IIf(Len(curBlock) = 0, "", " ") & curLine
         unformattedBlock = unformattedBlock & curPrefix & curLine & vbCrLf
     End If
 End Sub
@@ -480,7 +480,7 @@ Public Function ReFormatText(text As String) As String
 
         If curNesting.total = lastNesting.total Then
             'Quote continues
-            If curLine = "" Then
+            If Len(curLine) = 0 Then
                 'new paragraph has started
                 HandleParagraph curPrefix
             Else
@@ -508,7 +508,7 @@ Public Function ReFormatText(text As String) As String
                 If nextNesting.total = lastNesting.total Then
                     'Yeah. Wrong line wrap found
 
-                    If curLine = "" Then
+                    If Len(curLine) = 0 Then
                         'The line break has to be interpreted as paragraph
                         'new Paragraph has started. No joining of quotes is necessary
                         HandleParagraph lastPrefix
@@ -525,7 +525,7 @@ Public Function ReFormatText(text As String) As String
                     'No wrong line wrap found. Last block is finished
                     FinishBlock lastNesting
 
-                    If curLine = "" Then
+                    If Len(curLine) = 0 Then
                         If curNesting.level <> lastNesting.level Then
                             lastLineWasParagraph = True
                             HandleParagraph curPrefix
@@ -548,7 +548,7 @@ Public Function ReFormatText(text As String) As String
             'it's nested one level deeper. Current block is finished
             FinishBlock lastNesting
 
-            If curLine = "" Then
+            If Len(curLine) = 0 Then
                 If curNesting.level <> lastNesting.level Then
                     lastLineWasParagraph = True
                     HandleParagraph curPrefix
@@ -636,7 +636,7 @@ Public Function ReFormatText(text As String) As String
                     Do
                         i = i + 1
                         curLine = StripLine(rows(i))
-                    Loop Until (curLine <> "") Or (i = UBound(rows))
+                    Loop Until (Len(curLine) > 0) Or (i = UBound(rows))
                     i = i - 1 'i now points to the last empty line
 
                     Dim condensedHeader As String
@@ -939,7 +939,7 @@ catch:
     If USE_COLORIZER Then
         Dim mailID As String
         mailID = ColorizeMailItem(NewMail)
-        If (Trim("" & mailID) <> "") Then  'no error occurred or quotefix macro not there...
+        If (Len(Trim("" & mailID)) > 0) Then  'no error occurred or quotefix macro not there...
             Call DisplayMailItemByID(mailID)
         Else
             'Display window
@@ -1029,7 +1029,7 @@ Private Function IsWordCased(ByVal word As String) As Boolean
 End Function
 
 Private Function FixCase(ByRef word As String) As String
-    If word = "" Then
+    If Len(word) = 0 Then
         FixCase = word
         Exit Function
     End If
@@ -1237,7 +1237,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
 End Sub
 
 Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName As String, ByRef lastName As String)
-    If email = "" Then
+    If Len(email) = 0 Then
         firstName = ""
         lastName = ""
         Exit Sub
@@ -1317,7 +1317,7 @@ Private Sub getNamesFromMail(ByRef item As MailItem, ByRef senderName As String,
     'Wildcard replacements
     senderName = item.SentOnBehalfOfName
 
-    If senderName = "" Then
+    If Len(senderName) = 0 Then
         senderName = item.senderName
     End If
 
@@ -1330,7 +1330,7 @@ Private Sub getNamesFromMeeting(ByRef item As MeetingItem, ByRef senderName As S
     'Wildcard replacements
     senderName = item.SentOnBehalfOfName
 
-    If senderName = "" Then
+    If Len(senderName) = 0 Then
         senderName = item.senderName
     End If
 

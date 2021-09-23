@@ -63,7 +63,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
     numQuotes = 0
     strQuote = ""
     
-    If Dir(strFilePath) <> "" Then
+    If Len(Dir(strFilePath)) > 0 Then
         ' Open the file for reading
         Open strFilePath For Input As #1
         

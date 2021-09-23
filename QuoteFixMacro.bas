@@ -598,7 +598,7 @@ Public Function ReFormatText(text As String) As String
                         'There is a wrap in the email address
                         posRightBracket = InStr(curLine, "]")
                         If posRightBracket > 0 Then
-                            sEmail = sEmail + Left(curLine, posRightBracket - 1)
+                            sEmail = sEmail & Left(curLine, posRightBracket - 1)
                         Else
                             'something went wrong, do nothing
                         End If
@@ -1038,7 +1038,7 @@ Private Function FixCase(ByRef word As String) As String
     Dim result As String
     Dim i As Long
     For i = LBound(parts) To UBound(parts)
-        result = result + UCase(Left(parts(i), 1)) + LCase(Mid(parts(i), 2)) + "-"
+        result = result & UCase(Left(parts(i), 1)) & LCase(Mid(parts(i), 2)) & "-"
     Next
     FixCase = Left(result, Len(result) - 1)
 End Function
@@ -1160,12 +1160,12 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                     lastName = Trim(Mid(tmpName, lPos + 1))
                 ElseIf i <> 0 And j = 0 Then
                     'initials before double last name
-                    lastName = midName + Trim(Mid(tmpName, lPos + 1))
+                    lastName = midName & Trim(Mid(tmpName, lPos + 1))
                     firstName = Trim(Left(tmpName, fPos - 1))
                 ElseIf i = 0 And j <> 0 Then
                     'initials after double first name
                     lastName = Trim(Mid(tmpName, lPos + 1))
-                    firstName = Trim(Left(tmpName, fPos - 1)) + midName
+                    firstName = Trim(Left(tmpName, fPos - 1)) & midName
                 ElseIf Left(midName, 1) = LCase(Left(midName, 1)) Then
                     'Midname starts with a lower case letter
                     'We assume "correct" casing. Thus, we hit a name such as Firstname von Lastname
@@ -1232,8 +1232,8 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     If InStr(lastName, " ") = 0 Then
         lastName = FixCase(lastName)
     End If
-    senderName = title + Trim(firstName + " " + lastName)
-    lastName = title + lastName
+    senderName = title & Trim(firstName & " " & lastName)
+    lastName = title & lastName
 End Sub
 
 Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName As String, ByRef lastName As String)
@@ -1301,7 +1301,7 @@ Public Function removeDepartment(ByVal tmpName) As String
     Dim result As String
     Dim i As Long
     For i = LBound(parts) To indexWordBeforeLastUppercasedWord
-        result = result + parts(i) + " "
+        result = result & parts(i) & " "
     Next
     removeDepartment = Left(result, Len(result) - 1)
 End Function
@@ -1442,11 +1442,11 @@ Private Function cleanUpDoubleLines(quotedText As String) As String
         If (quoteLines(i) = "> ") Then
             If Not previousLineWasEmptyQuote Then
                 previousLineWasEmptyQuote = True
-                res = res + quoteLines(i) + vbCrLf
+                res = res & quoteLines(i) & vbCrLf
             End If
         Else
             previousLineWasEmptyQuote = False
-            res = res + quoteLines(i) + vbCrLf
+            res = res & quoteLines(i) & vbCrLf
         End If
     Next
 
@@ -1466,7 +1466,7 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     For i = 1 To UBound(quoteLines)
         level = InStr(quoteLines(i), " ") - 1
         If level <= stripLevel Then
-            res = res + quoteLines(i) + vbCrLf
+            res = res & quoteLines(i) & vbCrLf
         End If
     Next
 

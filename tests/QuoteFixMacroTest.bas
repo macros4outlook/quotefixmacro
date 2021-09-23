@@ -460,25 +460,25 @@ End Sub
 Private Sub reformatTest1()
     On Error GoTo TestFail
 
-    outlookOutput = vbNullString + _
-        "> >>" + vbNewLine + _
-        "> >> I have a Win 2k3 SBS and I want to replicate the users into my" + vbNewLine + _
-        "> OpenLDAP" + vbNewLine + _
-        "> >> 2.4.11." + vbNewLine + _
-        "> >" + vbNewLine + _
-        "> > This is not possible. You could however implement your own sync" + vbNewLine + _
-        "> process" + vbNewLine + _
-        "> > in your favourite scripting/programming language." + vbNewLine + _
-        "> " + vbNewLine + _
+    outlookOutput = vbNullString & _
+        "> >>" & vbNewLine & _
+        "> >> I have a Win 2k3 SBS and I want to replicate the users into my" & vbNewLine & _
+        "> OpenLDAP" & vbNewLine & _
+        "> >> 2.4.11." & vbNewLine & _
+        "> >" & vbNewLine & _
+        "> > This is not possible. You could however implement your own sync" & vbNewLine & _
+        "> process" & vbNewLine & _
+        "> > in your favourite scripting/programming language." & vbNewLine & _
+        "> " & vbNewLine & _
         "> Actually we have done some preliminary work..."
-    expectedResult = vbNullString + _
-        ">>> " + vbNewLine + _
-        ">>> I have a Win 2k3 SBS and I want to replicate the users into my" + vbNewLine + _
-        ">>> OpenLDAP 2.4.11." + vbNewLine + _
-        ">> " + vbNewLine + _
-        ">> This is not possible. You could however implement your own sync process" + vbNewLine + _
-        ">> in your favourite scripting/programming language." + vbNewLine + _
-        "> " + vbNewLine + _
+    expectedResult = vbNullString & _
+        ">>> " & vbNewLine & _
+        ">>> I have a Win 2k3 SBS and I want to replicate the users into my" & vbNewLine & _
+        ">>> OpenLDAP 2.4.11." & vbNewLine & _
+        ">> " & vbNewLine & _
+        ">> This is not possible. You could however implement your own sync process" & vbNewLine & _
+        ">> in your favourite scripting/programming language." & vbNewLine & _
+        "> " & vbNewLine & _
         "> Actually we have done some preliminary work..."
 
     Dim processedText As String
@@ -496,19 +496,19 @@ End Sub
 Private Sub reformatNoReformat()
     On Error GoTo TestFail
 
-    outlookOutput = vbNullString + _
-        "> Moin," + vbNewLine + _
-        "> " + vbNewLine + _
-        "> Kurzanleitung """"Deckel öffnen"""":" + vbNewLine + _
-        "> 1. Unten rechts die Kunststoff-Abdeckung mit einem Schraubendreher" + vbNewLine + _
-        "> nach rechts schieben." + vbNewLine + _
-        "> 2. Das Blech nach links schieben." + vbNewLine + _
-        "> 3. Kreuzschlitzschraube lösen." + vbNewLine + _
-        "> " + vbNewLine + _
-        "> " + vbNewLine + _
-        "> Mit freundlichen Grüßen" + vbNewLine + _
-        "> " + vbNewLine + _
-        "> company" + vbNewLine + _
+    outlookOutput = vbNullString & _
+        "> Moin," & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Kurzanleitung """"Deckel öffnen"""":" & vbNewLine & _
+        "> 1. Unten rechts die Kunststoff-Abdeckung mit einem Schraubendreher" & vbNewLine & _
+        "> nach rechts schieben." & vbNewLine & _
+        "> 2. Das Blech nach links schieben." & vbNewLine & _
+        "> 3. Kreuzschlitzschraube lösen." & vbNewLine & _
+        "> " & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Mit freundlichen Grüßen" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> company" & vbNewLine & _
         "> Jon Doe"
 
     Dim processedText As String
@@ -526,19 +526,19 @@ End Sub
 Private Sub reformatGreetingsKept()
     On Error GoTo TestFail
 
-    outlookOutput = vbNullString + _
-        "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" + vbNewLine + _
-        "> habe" + vbNewLine + _
-        "> so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" + vbNewLine + _
-        "> habe." + vbNewLine + _
-        "> xxx xxxxx? Haste eine Lösung für mein Virenprogramm, kann ich was" + vbNewLine + _
-        "> runterladen?" + vbNewLine + _
+    outlookOutput = vbNullString & _
+        "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" & vbNewLine & _
+        "> habe" & vbNewLine & _
+        "> so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" & vbNewLine & _
+        "> habe." & vbNewLine & _
+        "> xxx xxxxx? Haste eine Lösung für mein Virenprogramm, kann ich was" & vbNewLine & _
+        "> runterladen?" & vbNewLine & _
         "> Lieben Gruß Jane"
-    expectedResult = vbNullString + _
-        "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" + vbNewLine + _
-        "> habe so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" + vbNewLine + _
-        "> habe. xxx xxxxx? Haste eine Lösung für mein Virenprogramm, kann" + vbNewLine + _
-        "> ich was runterladen?" + vbNewLine + _
+    expectedResult = vbNullString & _
+        "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" & vbNewLine & _
+        "> habe so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" & vbNewLine & _
+        "> habe. xxx xxxxx? Haste eine Lösung für mein Virenprogramm, kann" & vbNewLine & _
+        "> ich was runterladen?" & vbNewLine & _
         "> Lieben Gruß Jane"
 
     Dim processedText As String

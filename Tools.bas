@@ -143,7 +143,7 @@ Public Sub TestPar()
     
     Debug.Print "READING..."
     'While (pipe.StdOut.AtEndOfStream = False)
-    '    ret = ret + pipe.StdOut.ReadLine() + vbCrLf
+    '    ret = ret & pipe.StdOut.ReadLine() & vbCrLf
     'Wend
     ret = pipe.StdOut.ReadAll()
     Debug.Print ret

@@ -238,19 +238,19 @@ Sub FixedForward()
 End Sub
 
 Function CalcNesting(line As String) As NestingType
-    Dim lastQuoteSignPos As Integer
-    Dim i As Integer
-    Dim count As Integer
-    Dim curChar As String
-    Dim res As NestingType
 
+    Dim count As Integer
     count = 0
+
+    Dim i As Integer
     i = 1
 
     Do While i <= Len(line)
+        Dim curChar As String
         curChar = Mid(line, i, 1)
         If curChar = ">" Then
             count = count + 1
+            Dim lastQuoteSignPos As Integer
             lastQuoteSignPos = i
         ElseIf curChar <> " " Then
             'Char is neither ">" nor " " - Quote intro ended
@@ -260,6 +260,7 @@ Function CalcNesting(line As String) As NestingType
         i = i + 1
     Loop
 
+    Dim res As NestingType
     res.level = count
 
     If i <= Len(line) Then
@@ -329,6 +330,7 @@ Public Sub LoadConfiguration()
     count = CDbl(GetSetting(APPNAME, REG_GROUP_FIRSTNAMES, "Count", 0))
     ReDim FIRSTNAME_REPLACEMENT__EMAIL(count)
     ReDim FIRSTNAME_REPLACEMENT__FIRSTNAME(count)
+
     Dim i As Integer
     For i = 1 To count
         Dim group As String
@@ -406,16 +408,14 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
     Else
         'reformat curBlock and append it
         Dim prefix As String
-        Dim curLine As String
-        Dim maxLength As Integer
-        Dim i As Integer
-
         prefix = CalcPrefix(nesting)
 
+        Dim maxLength As Integer
         maxLength = LINE_WRAP_AFTER - nesting.total
 
         Do While Len(curBlock) > maxLength
             'go through block from maxLength to beginning to find a space
+            Dim i As Integer
             i = maxLength
             If i > 0 Then
                 Do While (Mid(curBlock, i, 1) <> " ")
@@ -426,6 +426,7 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
 
             If i = 0 Then
                 'No space found -> use the full line
+                Dim curLine As String
                 curLine = Left(curBlock, maxLength)
                 curBlock = Mid(curBlock, maxLength + 1)
             Else
@@ -451,29 +452,27 @@ End Sub
 'Reformat text to correct broken wrap inserted by Outlook.
 'Needs to be public so the test cases can run this function.
 Public Function ReFormatText(text As String) As String
-    Dim curLine As String
-    Dim rows() As String
-    Dim lastPrefix As String
-    Dim i As Long
-    Dim curNesting As NestingType
-    Dim nextNesting As NestingType
-
     'Reset (partially global) variables
     result = vbNullString
     curBlock = vbNullString
     unformattedBlock = vbNullString
+    Dim curNesting As NestingType
     curNesting.level = 0
     lastNesting.level = 0
     curBlockNeedsToBeReFormatted = False
 
+    Dim rows() As String
     rows = Split(text, vbCrLf)
 
+    Dim i As Long
     For i = LBound(rows) To UBound(rows)
+        Dim curLine As String
         curLine = StripLine(rows(i))
         lastNesting = curNesting
         curNesting = CalcNesting(rows(i))
 
         If curNesting.total <> lastNesting.total Then
+            Dim lastPrefix As String
             lastPrefix = curPrefix
             curPrefix = CalcPrefix(curNesting)
         End If
@@ -489,6 +488,7 @@ Public Function ReFormatText(text As String) As String
 
                 If (curNesting.level = 1) And (i < UBound(rows)) Then
                     'check if the next line contains a wrong break
+                    Dim nextNesting As NestingType
                     nextNesting = CalcNesting(rows(i + 1))
                     If (CountOccurrencesOfStringInString(curLine, " ") = 0) And (curNesting.total = nextNesting.total) _
                         And (Len(rows(i - 1)) > LINE_WRAP_AFTER - Len(curLine) - 10) Then '10 is only a rough heuristics... - should be improved
@@ -561,28 +561,32 @@ Public Function ReFormatText(text As String) As String
                 Then
                     'We found a header
 
-                    Dim posColon As Integer
-
                     'Name and Email
                     i = i + 1
-                    Dim sName As String
-                    Dim sEmail As String
                     curLine = StripLine(rows(i))
+
+                    Dim posColon As Integer
                     posColon = InStr(curLine, ":")
+
                     Dim posLeftBracket As String
-                    Dim posRightBracket As Integer
                     posLeftBracket = InStr(curLine, "[") '[ is the indication of the beginning of the email address
+
+                    Dim posRightBracket As Integer
                     posRightBracket = InStr(curLine, "]")
+
                     If (posLeftBracket) > 0 Then
                         Dim lengthName As Integer
                         lengthName = posLeftBracket - posColon - 3
+
                         If lengthName > 0 Then
+                            Dim sName As String
                             sName = Mid(curLine, posColon + 2, lengthName)
                         Else
                             Debug.Print "Could not get name. Is the header formatted correctly?"
                         End If
 
                         If posRightBracket = 0 Then
+                            Dim sEmail As String
                             sEmail = Mid(curLine, posLeftBracket + 8) '8 = Len("mailto: ")
                         Else
                             sEmail = Mid(curLine, posLeftBracket + 8, posRightBracket - posLeftBracket - 8) '8 = Len("mailto: ")
@@ -679,8 +683,6 @@ End Function
 
 ' @param UseEnglishTemplate In case USE_QUOTING_TEMPLATE is True, should the default or the English template be used?
 Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False)
-    Dim TempObj As Object
-
     Call LoadConfiguration
 
     'we only understand mail items and meeting items , no PostItems, NoteItems, ...
@@ -692,6 +694,7 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optiona
 
         Select Case MailMode
             Case TypeReply
+                Dim TempObj As Object
                 Set TempObj = SelectedObject.Reply
                 TempObj.Display
                 HadError = False
@@ -722,11 +725,11 @@ catch:
     Dim isMail As Boolean
     isMail = (TypeName(SelectedObject) = "MailItem")
 
-    Dim OriginalMail As MailItem
-    Dim OriginalMeeting As MeetingItem
     If isMail Then
+        Dim OriginalMail As MailItem
         Set OriginalMail = SelectedObject 'cast!
     Else
+        Dim OriginalMeeting As MeetingItem
         Set OriginalMeeting = SelectedObject 'cast!
     End If
 
@@ -760,7 +763,6 @@ catch:
             SelectedObject.bodyFormat = olFormatPlain
         Else
             Dim ReplyObj As MailItem
-
             Select Case MailMode
                 Case TypeReply
                     If isMail Then
@@ -864,9 +866,9 @@ catch:
 
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Then
         'replace firstName by email stored in registry
-        Dim rEmail As Variant
         Dim curIndex As Integer
         For curIndex = 1 To UBound(FIRSTNAME_REPLACEMENT__EMAIL)
+            Dim rEmail As Variant
             rEmail = FIRSTNAME_REPLACEMENT__EMAIL(curIndex)
             If (StrComp(LCase(senderEmail), LCase(rEmail)) = 0) Then
                 firstName = FIRSTNAME_REPLACEMENT__FIRSTNAME(curIndex)
@@ -987,20 +989,18 @@ Private Function getSenderEmailAddress(senderEmailType As String, senderName As 
         senderEmail = senderEmailAddress
 
     ElseIf senderEmailType = "EX" Then
-        Dim gal As Outlook.AddressList
-        Dim exchAddressEntries As Outlook.AddressEntries
-        Dim exchAddressEntry As Outlook.AddressEntry
-        Dim i As Integer
-        Dim found As Boolean
-
         'FIXME: This seems only to work in Outlook 2007
+        Dim gal As Outlook.AddressList
         Set gal = session.GetGlobalAddressList
+        Dim exchAddressEntries As Outlook.AddressEntries
         Set exchAddressEntries = gal.AddressEntries
 
         'check if we can get the correct item by sendername
+        Dim exchAddressEntry As Outlook.AddressEntry
         Set exchAddressEntry = exchAddressEntries.item(senderName)
         If exchAddressEntry.name <> senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
 
+        Dim found As Boolean
         found = False
         While (Not found) And (Not exchAddressEntry Is Nothing)
             found = (LCase(exchAddressEntry.Address) = LCase(senderEmailAddress))
@@ -1034,13 +1034,16 @@ Private Function FixCase(ByRef word As String) As String
         FixCase = word
         Exit Function
     End If
+
     Dim parts() As String
     parts = Split(word, "-")
-    Dim result As String
+
     Dim i As Long
     For i = LBound(parts) To UBound(parts)
+        Dim result As String
         result = result & UCase(Left(parts(i), 1)) & LCase(Mid(parts(i), 2)) & "-"
     Next
+
     FixCase = Left(result, Len(result) - 1)
 End Function
 
@@ -1083,9 +1086,6 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     title = vbNullString
     'Has to be later used for extracting the last name
 
-    Dim fPos As Integer
-    Dim lPos As Integer
-
     tmpName = removeDepartment(tmpName)
 
     If (Left(tmpName, 3) = "Dr.") Then
@@ -1100,6 +1100,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     'Some companies have "(Text)" at the end of their name.
     'We strip that
     If (Right(tmpName, 1) = ")") Then
+        Dim fPos As Integer
         fPos = InStrRev(tmpName, "(")
         If fPos > 0 Then
             tmpName = Trim(Left(tmpName, fPos - 1))
@@ -1124,6 +1125,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         If fPos > 0 Then
             'First strip any possible, (single,) formal suffix on the name
             tmpName = StripSuffixes(tmpName)
+            Dim lPos As Integer
             lPos = InStrRev(Trim(tmpName), " ")
             If fPos = lPos Then
                 'single first name and last name separated by space
@@ -1139,8 +1141,6 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                 'middle section could be a single/multiple name/initial (or both)
                 Dim midName As String
                 midName = Trim(Mid(Left(tmpName, lPos), fPos))
-                Dim i As Integer
-                Dim j As Integer
 
                 'One or two initials are easy
                 Do While Len(midName) = 1 Or _
@@ -1148,11 +1148,13 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                         Left(midName, 2) Like "[A-Z] " Or _
                         Left(midName, 2) Like "[A-Z]."
                     midName = Trim(Mid(midName, 2))
+                    Dim i As Integer
                     i = i + 1
                 Loop
                 Do While Right(midName, 2) Like " [A-Z]" Or _
                         Right(midName, 2) Like "[A-Z]."
                     midName = Trim(Left(midName, Len(midName) - 2))
+                    Dim j As Integer
                     j = j + 1
                 Loop
 
@@ -1300,9 +1302,9 @@ Public Function removeDepartment(ByVal tmpName) As String
         Exit Function
     End If
 
-    Dim result As String
     Dim i As Long
     For i = LBound(parts) To indexWordBeforeLastUppercasedWord
+        Dim result As String
         result = result & parts(i) & " "
     Next
     removeDepartment = Left(result, Len(result) - 1)
@@ -1377,10 +1379,11 @@ End Function
 
 Private Function CalcDownCount(pattern As String, textToSearch As String) As Long
     Dim PosOfPattern As Long
-    Dim TextBeforePattern As String
-
     PosOfPattern = InStr(textToSearch, pattern)
+
+    Dim TextBeforePattern As String
     TextBeforePattern = Left(textToSearch, PosOfPattern - 1)
+
     CalcDownCount = CountOccurrencesOfStringInString(TextBeforePattern, vbCrLf)
 End Function
 
@@ -1405,12 +1408,14 @@ End Function
 '  * Order of parameters taken from "InStr"
 Public Function CountOccurrencesOfStringInString(InString As String, What As String) As Long
     Dim count As Long
-    Dim lastPos As Long
-    Dim curPos As Long
-
     count = 0
+
+    Dim lastPos As Long
     lastPos = 0
+
+    Dim curPos As Long
     curPos = InStr(InString, What)
+
     Do While curPos <> 0
         lastPos = curPos + 1
         count = count + 1
@@ -1431,19 +1436,18 @@ End Function
 ' >
 '
 Private Function cleanUpDoubleLines(quotedText As String) As String
-    Dim quoteLines() As String
-    Dim curLine As String
-    Dim res As String
-    Dim i As Integer
     Dim previousLineWasEmptyQuote As Boolean
-
     previousLineWasEmptyQuote = False
+
+    Dim quoteLines() As String
     quoteLines = Split(quotedText, vbCrLf)
 
+    Dim i As Integer
     For i = 0 To UBound(quoteLines)
         If (quoteLines(i) = "> ") Then
             If Not previousLineWasEmptyQuote Then
                 previousLineWasEmptyQuote = True
+                Dim res As String
                 res = res & quoteLines(i) & vbCrLf
             End If
         Else
@@ -1458,16 +1462,14 @@ End Function
 
 Private Function StripQuotes(quotedText As String, stripLevel As Integer) As String
     Dim quoteLines() As String
-    Dim level As Integer
-    Dim curLine As String
-    Dim res As String
-    Dim i As Integer
-
     quoteLines = Split(quotedText, vbCrLf)
 
+    Dim i As Integer
     For i = 1 To UBound(quoteLines)
+        Dim level As Integer
         level = InStr(quoteLines(i), " ") - 1
         If level <= stripLevel Then
+            Dim res As String
             res = res & quoteLines(i) & vbCrLf
         End If
     Next
@@ -1491,15 +1493,6 @@ End Sub
 
 
 Public Function ColorizeMailItem(MyMailItem As MailItem) As String
-    Dim folder As MAPIFolder
-    Dim rtf  As String
-    Dim lines() As String
-    Dim resRTF As String
-    Dim i As Integer
-    Dim n As Integer
-    Dim ret As Integer
-
-
     'save the mailitem to get an entry id, then forget reference to that rtf gets committed.
     'display mailitem by id later on.
     If ((Not MyMailItem.bodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
@@ -1511,9 +1504,13 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     MyMailItem.bodyFormat = olFormatRichText
     MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates EntryID if not saved before)!
 
+    Dim folder As MAPIFolder
     Set folder = session.GetDefaultFolder(olFolderInbox)
 
+    Dim rtf  As String
     rtf = Space(99999)  'init rtf to max length of message!
+
+    Dim ret As Integer
     ret = ReadRTF(session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
     If (ret = 0) Then
         'ole call success!!!
@@ -1544,14 +1541,20 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
                 "{\colortbl\red0\green0\blue0;\red106\green44\blue44;\red44\green106\blue44;\red44\green44\blue106;}" & vbCrLf & _
                 rtf
 
+        Dim lines() As String
         lines = Split(rtf, vbCrLf)
-        Dim s As String
+        
+        Dim i As Integer
         For i = LBound(lines) To UBound(lines)
+            Dim n As Integer
             n = QuoteFixMacro.CalcNesting(lines(i)).level
+
+            Dim resRTF As String
             If (n = 0) Then
                 resRTF = resRTF & lines(i) & vbCrLf
             Else
                 If (Right(lines(i), 4) = "\par") Then
+                    Dim s As String
                     s = Left(lines(i), Len(lines(i)) - Len("\par"))
                     resRTF = resRTF & "\cf" & n Mod NUM_RTF_COLORS & " " & s & "\cf0  " & "\par" & vbCrLf
                 Else
@@ -1601,9 +1604,9 @@ Private Function StripSuffixes(ByRef tempName As String) As String
     'Create array of possible suffixes
     Dim NameSuffixesArr() As String
     NameSuffixesArr = Split(LASTNAME_SUFFIXES, "/")
-    Dim i As Integer
 
     'Strip the last suffix (is it ever the case that someone has multiple suffixes?)
+    Dim i As Integer
     For i = LBound(NameSuffixesArr) To UBound(NameSuffixesArr)
         If (Right(tempName, Len(NameSuffixesArr(i)) + 1)) = " " & NameSuffixesArr(i) Then
             StripSuffixes = Trim(Left(tempName, Len(tempName) - Len(NameSuffixesArr(i))))

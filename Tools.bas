@@ -43,8 +43,8 @@ End Sub
 
 Public Sub ReadCurrentMailItemRTF()
     Dim rtf As String
-    Dim ret As Integer
     rtf = Space(99999)
+    Dim ret As Integer
     ret = ReadRTF("MAPI", GetCurrentItem.EntryID, Session.GetDefaultFolder(olFolderInbox).StoreID, rtf)
     rtf = Trim(rtf)
     
@@ -90,15 +90,11 @@ End Sub
 
 
 Public Sub TestPar()
-    Dim s As String
-    Dim s2 As String
-    Dim ret As String
-    Dim cmd As String
     
     Dim shell As Object
-    Dim pipe As Object
     Set shell = CreateObject("WScript.Shell")
     
+    Dim s As String
 '    s = "test daniel 23e " & vbCrLf & _
 '        "> asd asd sad " & vbCrLf & _
 '        "> sad asdad as " & vbCrLf & _
@@ -118,6 +114,7 @@ Public Sub TestPar()
         
     'From the manual of par
     'Result is fine
+    Dim s2 As String
     s2 = "Joe Public writes:" & vbCrLf & _
           "> Jane Doe writes:" & vbCrLf & _
           "> >" & vbCrLf & _
@@ -132,10 +129,12 @@ Public Sub TestPar()
           "That wasn't very helpful, Joe. Jane," & vbCrLf & _
           "just make a link from uncompress to compress."
 
+    Dim cmd As String
     cmd = "C:\cygwin\bin\bash.exe --login -c 'export PARINIT=""rTbgqR B=.,?_A_a Q=_s>|"" ; par 60q'"
     'cmd = "C:\cygwin\bin\bash.exe --login -c 'par 60q'"
     
     Debug.Print cmd
+    Dim pipe As Object
     Set pipe = shell.Exec(cmd)
     Debug.Print "END PAR"
     
@@ -144,6 +143,7 @@ Public Sub TestPar()
     
     
     Debug.Print "READING..."
+    Dim ret As String
     'While (pipe.StdOut.AtEndOfStream = False)
     '    ret = ret & pipe.StdOut.ReadLine() & vbCrLf
     'Wend

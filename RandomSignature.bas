@@ -4,7 +4,6 @@ Option Explicit
 Sub NewMailMessage()
     ' Creates a new mail message and tacks a random signature onto the end.
     Dim Msg As Outlook.MailItem
-    
     Set Msg = Application.CreateItem(olMailItem)
     
     Call MakeSig(Msg)
@@ -15,16 +14,15 @@ End Sub
 Sub SwapSig()
     ' Replaces the existing signature with a new randomly chosen one.
     ' Assumes the active window is a compose window.
-    Dim Msg As Outlook.MailItem
-    Dim strSigStart As String
-    
     If TypeName(Application.ActiveWindow) = "Inspector" Then
+        Dim Msg As Outlook.MailItem
         Set Msg = Application.ActiveWindow.CurrentItem
     End If
     
     ' Find the last (if existing) signature delimiter and
     '   remove it and everything below it.
     ' See:  http://en.wikipedia.org/wiki/Signature_block
+    Dim strSigStart As String
     strSigStart = InStrRev(Msg.Body, ("--" & vbCrLf))
     If strSigStart <> 0 Then
         Msg.Body = Left(Msg.Body, strSigStart - 3)
@@ -51,16 +49,11 @@ Private Sub MakeSig(ByVal Msg As MailItem)
     '      Only the last one encountered will be used.
     '   % on a line alone indicates the end of an individual quote.  Any text after the
     '      last "%" (and last "$") will not be included in any signature.
-    Dim numQuotes As Integer
-    Dim strLine As String
-    Dim strQuote As String
-    Dim strFixedSigPart As String
-    Dim arrQuotes() As String
-    Dim intRandom As Integer
     Dim strFilePath As String
-    
     strFilePath = Environ$("AppData") & "\Microsoft\Outlook\EmailSigs.txt"
+    Dim numQuotes As Integer
     numQuotes = 0
+    Dim strQuote As String
     strQuote = vbNullString
     
     If Len(Dir(strFilePath)) > 0 Then
@@ -68,15 +61,18 @@ Private Sub MakeSig(ByVal Msg As MailItem)
         Open strFilePath For Input As #1
         
         ' Parse each line in the file
+        Dim strLine As String
         Line Input #1, strLine
         
         Do Until EOF(1)
             If Trim(strLine) = "$" Then
                 ' Complete the fixed, informational string.
+                Dim strFixedSigPart As String
                 strFixedSigPart = vbCrLf & vbCrLf & "--" & strQuote
                 strQuote = vbNullString
             ElseIf Trim(strLine) = "%" Then
                 ' Complete a quote and increment the count
+                Dim arrQuotes() As String
                 ReDim Preserve arrQuotes(0 To numQuotes + 1) As String
                 arrQuotes(numQuotes) = strQuote
                 numQuotes = numQuotes + 1
@@ -98,6 +94,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
         Randomize
         
         ' Get the random line number
+        Dim intRandom As Integer
         intRandom = Int(numQuotes * Rnd())
         
         ' Insert the random quote

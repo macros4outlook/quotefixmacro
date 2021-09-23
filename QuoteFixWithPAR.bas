@@ -32,14 +32,11 @@ Const APINULL = 0
 
 
 Function ExecPar(mailtext As String) As String
-    Dim ret As String
-    Dim line As String
-
     Dim shell As Object
-    Dim pipe As Object
     Set shell = CreateObject("WScript.Shell")
 
     Debug.Print PAR_CMD
+    Dim pipe As Object
     Set pipe = shell.Exec(PAR_CMD)
     Debug.Print "END PAR"
 
@@ -48,8 +45,10 @@ Function ExecPar(mailtext As String) As String
 
     Debug.Print "READING..."
     While (pipe.StdOut.AtEndOfStream = False)
+        Dim line As String
         line = pipe.StdOut.ReadLine()
         If (Left(line, 1) = ">") Then
+            Dim ret As String
             ret = ret & ">" & line & vbCrLf
         Else
             ret = ret & "> " & line & vbCrLf
@@ -66,15 +65,14 @@ End Function
 
 
 Public Sub ReformatSelectedText()
-    Dim text As String
-    Dim ret As Variant
-
     'copy selection to clipboard
     SendKeys "^c", True 'ctrl-c, wait until done
 
     'get text from clipboard
+    Dim ret As Variant
     ret = Clipboard2Text
     If (IsNull(ret)) Then Exit Sub 'error or no text in clipboard
+    Dim text As String
     text = CStr(ret)
     Debug.Print "FROM CLIPBOARD: " & vbCrLf & text
 
@@ -92,21 +90,19 @@ End Sub
 
 
 Function Text2Clipboard(szText As String)
-    Dim wLen As Integer
-    Dim hMemory As Long
-    Dim lpMemory As Long
-    Dim retval As Variant
-    Dim wFreeMemory As Boolean
-
     ' Get the length, including one extra for a CHR$(0) at the end.
+    Dim wLen As Integer
     wLen = Len(szText) + 1
     szText = szText & Chr$(0)
+    Dim hMemory As Long
     hMemory = abGlobalAlloc(GHND, wLen + 1)
     If hMemory = APINULL Then
         MsgBox "Unable to allocate memory."
         Exit Function
     End If
+    Dim wFreeMemory As Boolean
     wFreeMemory = True
+    Dim lpMemory As Long
     lpMemory = abGlobalLock(hMemory)
     If lpMemory = APINULL Then
         MsgBox "Unable to lock memory."
@@ -114,6 +110,7 @@ Function Text2Clipboard(szText As String)
     End If
 
     ' Copy our string into the locked memory.
+    Dim retval As Variant
     retval = abLstrcpy(lpMemory, szText)
     ' Don't send clipboard locked memory.
     retval = abGlobalUnlock(hMemory)
@@ -148,19 +145,6 @@ End Function
 
 
 Function Clipboard2Text()
-    Dim wLen As Integer
-    Dim hMemory As Long
-    Dim hMyMemory As Long
-
-    Dim lpMemory As Long
-    Dim lpMyMemory As Long
-
-    Dim retval As Variant
-    Dim wFreeMemory As Boolean
-    Dim wClipAvail As Integer
-    Dim szText As String
-    Dim wSize As Long
-
     If abIsClipboardFormatAvailable(CF_TEXT) = APINULL Then
         Clipboard2Text = Null
         Exit Function
@@ -171,16 +155,21 @@ Function Clipboard2Text()
         GoTo CB2T_Free
     End If
 
+    Dim hMemory As Long
     hMemory = abGetClipboardData(CF_TEXT)
     If hMemory = APINULL Then
         MsgBox "Unable to retrieve text from the Clipboard."
         Exit Function
     End If
+    Dim wSize As Long
     wSize = abGlobalSize(hMemory)
+    Dim szText As String
     szText = Space(wSize)
 
+    Dim wFreeMemory As Boolean
     wFreeMemory = True
 
+    Dim lpMemory As Long
     lpMemory = abGlobalLock(hMemory)
     If lpMemory = APINULL Then
         MsgBox "Unable to lock clipboard memory."
@@ -188,6 +177,7 @@ Function Clipboard2Text()
     End If
 
     ' Copy our string into the locked memory.
+    Dim retval As Variant
     retval = abLstrcpy(szText, lpMemory)
     ' Get rid of trailing stuff.
     szText = Trim(szText)

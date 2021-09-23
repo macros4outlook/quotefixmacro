@@ -42,7 +42,8 @@ Public Sub MarkMailAsUnread(MyMail As MailItem)
 End Sub
 
 Public Sub ReadCurrentMailItemRTF()
-    Dim rtf As String, ret As Integer
+    Dim rtf As String
+    Dim ret As Integer
     rtf = Space(99999)
     ret = ReadRTF("MAPI", GetCurrentItem.EntryID, Session.GetDefaultFolder(olFolderInbox).StoreID, rtf)
     rtf = Trim(rtf)
@@ -89,7 +90,8 @@ End Sub
 
 
 Public Sub TestPar()
-    Dim s, s2 As String
+    Dim s As String
+    Dim s2 As String
     Dim ret As String
     Dim cmd As String
     

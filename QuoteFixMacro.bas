@@ -990,7 +990,8 @@ Private Function getSenderEmailAddress(senderEmailType As String, senderName As 
         Dim gal As Outlook.AddressList
         Dim exchAddressEntries As Outlook.AddressEntries
         Dim exchAddressEntry As Outlook.AddressEntry
-        Dim i As Integer, found As Boolean
+        Dim i As Integer
+        Dim found As Boolean
 
         'FIXME: This seems only to work in Outlook 2007
         Set gal = session.GetGlobalAddressList
@@ -1138,7 +1139,8 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                 'middle section could be a single/multiple name/initial (or both)
                 Dim midName As String
                 midName = Trim(Mid(Left(tmpName, lPos), fPos))
-                Dim i, j As Integer
+                Dim i As Integer
+                Dim j As Integer
 
                 'One or two initials are easy
                 Do While Len(midName) = 1 Or _
@@ -1490,8 +1492,12 @@ End Sub
 
 Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     Dim folder As MAPIFolder
-    Dim rtf  As String, lines() As String, resRTF As String
-    Dim i As Integer, n As Integer, ret As Integer
+    Dim rtf  As String
+    Dim lines() As String
+    Dim resRTF As String
+    Dim i As Integer
+    Dim n As Integer
+    Dim ret As Integer
 
 
     'save the mailitem to get an entry id, then forget reference to that rtf gets committed.

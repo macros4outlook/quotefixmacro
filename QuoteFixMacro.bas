@@ -686,22 +686,22 @@ Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optiona
     'we only understand mail items and meeting items , no PostItems, NoteItems, ...
     If Not (TypeName(SelectedObject) = "MailItem") And _
     Not (TypeName(SelectedObject) = "MeetingItem") Then
-        On Error GoTo catch:   'try, catch replacement
+        On Error GoTo catch   'try, catch replacement
         Dim HadError As Boolean
         HadError = True
 
         Select Case MailMode
-            Case TypeReply:
+            Case TypeReply
                 Set TempObj = SelectedObject.Reply
                 TempObj.Display
                 HadError = False
                 Exit Sub
-            Case TypeReplyAll:
+            Case TypeReplyAll
                 Set TempObj = SelectedObject.ReplyAll
                 TempObj.Display
                 HadError = False
                 Exit Sub
-            Case TypeForward:
+            Case TypeForward
                 Set TempObj = SelectedObject.Forward
                 TempObj.Display
                 HadError = False
@@ -762,19 +762,19 @@ catch:
             Dim ReplyObj As MailItem
 
             Select Case MailMode
-                Case TypeReply:
+                Case TypeReply
                     If isMail Then
                         Set ReplyObj = OriginalMail.Reply
                     Else
                         Set ReplyObj = OriginalMeeting.Reply
                     End If
-                Case TypeReplyAll:
+                Case TypeReplyAll
                     If isMail Then
                         Set ReplyObj = OriginalMail.ReplyAll
                     Else
                         Set ReplyObj = OriginalMeeting.ReplyAll
                     End If
-                Case TypeForward:
+                Case TypeForward
                     If isMail Then
                         Set ReplyObj = OriginalMail.Forward
                     Else
@@ -790,19 +790,19 @@ catch:
     'create reply --> outlook style!
     Dim NewMail As MailItem
     Select Case MailMode
-        Case TypeReply:
+        Case TypeReply
             If isMail Then
                 Set NewMail = OriginalMail.Reply
             Else
                 Set NewMail = OriginalMeeting.Reply
             End If
-        Case TypeReplyAll:
+        Case TypeReplyAll
             If isMail Then
                 Set NewMail = OriginalMail.ReplyAll
             Else
                 Set NewMail = OriginalMeeting.ReplyAll
             End If
-        Case TypeForward:
+        Case TypeForward
             If isMail Then
                 Set NewMail = OriginalMail.Forward
             Else
@@ -899,11 +899,11 @@ catch:
     Dim NewText As String
     'create mail according to reply mode
     Select Case MailMode
-        Case TypeReply:
+        Case TypeReply
             NewText = quotedText
-        Case TypeReplyAll:
+        Case TypeReplyAll
             NewText = quotedText
-        Case TypeForward:
+        Case TypeForward
             NewText = OutlookHeader & quotedText
     End Select
 
@@ -1388,9 +1388,9 @@ Function GetCurrentItem() As Object  'changed to default scope
         Set objApp = session.Application
 
         Select Case TypeName(objApp.ActiveWindow)
-            Case "Explorer":  'on clicking reply in the main window
+            Case "Explorer"  'on clicking reply in the main window
                 Set GetCurrentItem = objApp.ActiveExplorer.Selection.item(1)
-            Case "Inspector": 'on clicking reply when mail is shown in separate window
+            Case "Inspector" 'on clicking reply when mail is shown in separate window
                 Set GetCurrentItem = objApp.ActiveInspector.CurrentItem
         End Select
 

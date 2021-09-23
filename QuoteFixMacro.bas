@@ -335,7 +335,7 @@ Public Sub LoadConfiguration()
         group = REG_GROUP_FIRSTNAMES & "\" & i
         FIRSTNAME_REPLACEMENT__EMAIL(i) = GetSetting(APPNAME, group, "email", vbNullString)
         FIRSTNAME_REPLACEMENT__FIRSTNAME(i) = GetSetting(APPNAME, group, "firstName", vbNullString)
-    Next i
+    Next
 End Sub
 
 'Description:
@@ -664,7 +664,7 @@ Public Function ReFormatText(text As String) As String
                 AppendCurLine curLine
             End If
         End If
-    Next i
+    Next
 
     'Finish current Block
     FinishBlock curNesting
@@ -872,7 +872,7 @@ catch:
                 firstName = FIRSTNAME_REPLACEMENT__FIRSTNAME(curIndex)
                 Exit For
             End If
-        Next curIndex
+        Next
     End If
 
     MySignature = Replace(MySignature, PATTERN_FIRST_NAME, firstName)
@@ -954,7 +954,7 @@ catch:
     Dim i As Integer
     For i = 1 To downCount
         SendKeys "{DOWN}"
-    Next i
+    Next
 
     If USE_SOFTWRAP Then
         Call ResizeWindowForSoftWrap
@@ -977,7 +977,7 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
             End If
         End If
         getSignature = getSignature & BodyLines(lineCounter) & vbCrLf
-    Next lineCounter
+    Next
 End Function
 
 Private Function getSenderEmailAddress(senderEmailType As String, senderName As String, senderEmailAddress As String, session As NameSpace) As String
@@ -1039,7 +1039,7 @@ Private Function FixCase(ByRef word As String) As String
     Dim i As Long
     For i = LBound(parts) To UBound(parts)
         result = result + UCase(Left(parts(i), 1)) + LCase(Mid(parts(i), 2)) + "-"
-    Next i
+    Next
     FixCase = Left(result, Len(result) - 1)
 End Function
 
@@ -1302,7 +1302,7 @@ Public Function removeDepartment(ByVal tmpName) As String
     Dim i As Long
     For i = LBound(parts) To indexWordBeforeLastUppercasedWord
         result = result + parts(i) + " "
-    Next i
+    Next
     removeDepartment = Left(result, Len(result) - 1)
 End Function
 
@@ -1346,7 +1346,7 @@ Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter
             Exit For
         End If
         getOutlookHeader = getOutlookHeader & BodyLines(lineCounter) & vbCrLf
-    Next lineCounter
+    Next
 
     'skip OUTLOOK_HEADERFINISH
     lineCounter = lineCounter + 1
@@ -1363,7 +1363,7 @@ Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As
         End If
 
         getQuotedText = getQuotedText & BodyLines(lineCounter) & vbCrLf
-    Next lineCounter
+    Next
 
     getQuotedText = ReFormatText(getQuotedText)
 
@@ -1448,7 +1448,7 @@ Private Function cleanUpDoubleLines(quotedText As String) As String
             previousLineWasEmptyQuote = False
             res = res + quoteLines(i) + vbCrLf
         End If
-    Next i
+    Next
 
     cleanUpDoubleLines = res
 End Function
@@ -1468,7 +1468,7 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
         If level <= stripLevel Then
             res = res + quoteLines(i) + vbCrLf
         End If
-    Next i
+    Next
 
     StripQuotes = res
 End Function
@@ -1552,7 +1552,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
                     resRTF = resRTF & "\cf" & n Mod NUM_RTF_COLORS & " " & lines(i) & "\cf0  " & vbCrLf
                 End If
             End If
-        Next i
+        Next
     Else
         Debug.Print "error while reading rtf! " & ret
         ColorizeMailItem = vbNullString

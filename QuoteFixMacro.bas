@@ -376,7 +376,7 @@ Private Sub AppendCurLine(ByRef curLine As String)
         curBlock = curLine
         unformattedBlock = curPrefix & curLine & vbCrLf
     Else
-        curBlock = curBlock & IIf(Len(curBlock) = 0, "", " ") & curLine
+        curBlock = curBlock & IIf(Len(curBlock) = 0, vbNullString, " ") & curLine
         unformattedBlock = unformattedBlock & curPrefix & curLine & vbCrLf
     End If
 End Sub
@@ -443,8 +443,8 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
 
     'Resetting
     curBlockNeedsToBeReFormatted = False
-    curBlock = ""
-    unformattedBlock = ""
+    curBlock = vbNullString
+    unformattedBlock = vbNullString
     'lastLineWasParagraph = False
 End Sub
 
@@ -459,9 +459,9 @@ Public Function ReFormatText(text As String) As String
     Dim nextNesting As NestingType
 
     'Reset (partially global) variables
-    result = ""
-    curBlock = ""
-    unformattedBlock = ""
+    result = vbNullString
+    curBlock = vbNullString
+    unformattedBlock = vbNullString
     curNesting.level = 0
     lastNesting.level = 0
     curBlockNeedsToBeReFormatted = False
@@ -589,7 +589,7 @@ Public Function ReFormatText(text As String) As String
                         End If
                     Else
                         sName = Mid(curLine, posColon + 2)
-                        sEmail = ""
+                        sEmail = vbNullString
                     End If
 
                     i = i + 1
@@ -648,7 +648,7 @@ Public Function ReFormatText(text As String) As String
                     Dim prefix As String
                     'the prefix for the result has to be one level shorter as it is the quoted text from the sender
                     If (curNesting.level = 1) Then
-                        prefix = ""
+                        prefix = vbNullString
                     Else
                         prefix = Mid(curPrefix, 2)
                     End If
@@ -886,7 +886,7 @@ catch:
 
     Dim OutlookHeader As String
     If CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER Then
-        OutlookHeader = ""
+        OutlookHeader = vbNullString
         'The real condensing is made below, where CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS is checked
         'Disabling getOutlookHeader leads to an unmodified lineCounter, which in turn gets the header included in "quotedText"
     Else
@@ -928,7 +928,7 @@ catch:
     If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
         downCount = CalcDownCount(PATTERN_CURSOR_POSITION, MySignature)
         'remove cursor_position pattern from mail text
-        MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, "")
+        MySignature = Replace(MySignature, PATTERN_CURSOR_POSITION, vbNullString)
     End If
 
     MySignature = cleanUpDoubleLines(MySignature)
@@ -939,7 +939,7 @@ catch:
     If USE_COLORIZER Then
         Dim mailID As String
         mailID = ColorizeMailItem(NewMail)
-        If (Len(Trim("" & mailID)) > 0) Then  'no error occurred or quotefix macro not there...
+        If (Len(Trim(vbNullString & mailID)) > 0) Then  'no error occurred or quotefix macro not there...
             Call DisplayMailItemByID(mailID)
         Else
             'Display window
@@ -1009,7 +1009,7 @@ Private Function getSenderEmailAddress(senderEmailType As String, senderName As 
         If Not exchAddressEntry Is Nothing Then
             senderEmail = exchAddressEntry.GetExchangeUser.PrimarySmtpAddress
         Else
-            senderEmail = ""
+            senderEmail = vbNullString
         End If
     End If
 
@@ -1061,7 +1061,7 @@ End Function
 'Notes:
 '  * Public to enable testing
 '  * Names are returned by reference
-Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String, Optional ByRef senderEmailAddress As String = "")
+Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String, Optional ByRef senderEmailAddress As String = vbNullString)
     'Find out firstName
 
     Dim tmpName As String
@@ -1079,7 +1079,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     firstName = tmpName
 
     Dim title As String
-    title = ""
+    title = vbNullString
     'Has to be later used for extracting the last name
 
     Dim fPos As Integer
@@ -1174,7 +1174,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                 Else
                     'anything else can't be definitively identified as a first, middle or last name
                     firstName = tmpName
-                    lastName = ""
+                    lastName = vbNullString
                 End If
             End If
         Else
@@ -1238,8 +1238,8 @@ End Sub
 
 Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName As String, ByRef lastName As String)
     If Len(email) = 0 Then
-        firstName = ""
-        lastName = ""
+        firstName = vbNullString
+        lastName = vbNullString
         Exit Sub
     End If
     Dim parts() As String
@@ -1253,7 +1253,7 @@ Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName
 
     If (length <> 2) Then
         firstName = addressee
-        lastName = ""
+        lastName = vbNullString
         Exit Sub
     End If
     firstName = parts(LBound(parts))
@@ -1497,7 +1497,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     'save the mailitem to get an entry id, then forget reference to that rtf gets committed.
     'display mailitem by id later on.
     If ((Not MyMailItem.bodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
-        ColorizeMailItem = ""
+        ColorizeMailItem = vbNullString
         Exit Function
     End If
 
@@ -1555,15 +1555,15 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         Next i
     Else
         Debug.Print "error while reading rtf! " & ret
-        ColorizeMailItem = ""
+        ColorizeMailItem = vbNullString
         Exit Function
     End If
 
     'remove some rtf commands
-    resRTF = Replace(resRTF, "\viewkind4\uc1", "")
-    resRTF = Replace(resRTF, "\uc1", "")
+    resRTF = Replace(resRTF, "\viewkind4\uc1", vbNullString)
+    resRTF = Replace(resRTF, "\uc1", vbNullString)
     'VERY IMPORTANT, outlook will change the message back to PlainText otherwise!!!
-    resRTF = Replace(resRTF, "\fromtext", "")
+    resRTF = Replace(resRTF, "\fromtext", vbNullString)
     Debug.Print resRTF
 
     'write RTF back to form
@@ -1572,7 +1572,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         Debug.Print "rtf write okay"
     Else
         Debug.Print "rtf write FAILURE"
-        ColorizeMailItem = ""
+        ColorizeMailItem = vbNullString
         Exit Function
     End If
 

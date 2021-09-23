@@ -61,7 +61,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
     
     strFilePath = Environ$("AppData") & "\Microsoft\Outlook\EmailSigs.txt"
     numQuotes = 0
-    strQuote = ""
+    strQuote = vbNullString
     
     If Len(Dir(strFilePath)) > 0 Then
         ' Open the file for reading
@@ -74,13 +74,13 @@ Private Sub MakeSig(ByVal Msg As MailItem)
             If Trim(strLine) = "$" Then
                 ' Complete the fixed, informational string.
                 strFixedSigPart = vbCrLf & vbCrLf & "--" & strQuote
-                strQuote = ""
+                strQuote = vbNullString
             ElseIf Trim(strLine) = "%" Then
                 ' Complete a quote and increment the count
                 ReDim Preserve arrQuotes(0 To numQuotes + 1) As String
                 arrQuotes(numQuotes) = strQuote
                 numQuotes = numQuotes + 1
-                strQuote = ""
+                strQuote = vbNullString
             Else
                 ' Add another line to the current quote.
                 strQuote = strQuote & vbCrLf & strLine

@@ -105,7 +105,7 @@ Private Sub IsUpperCaseWordTests()
     Assert.AreEqual False, IsUpperCaseWord("Lastname")
     Assert.AreEqual False, IsUpperCaseWord("LastName")
     Assert.AreEqual True, IsUpperCaseWord("LASTNAME")
-    Assert.AreEqual False, IsUpperCaseWord("")
+    Assert.AreEqual False, IsUpperCaseWord(vbNullString)
 
 TestExit:
     Exit Sub
@@ -126,7 +126,7 @@ Private Sub FirstMiddleLast()
     'The function cannot know where "Middle" belong to.
     'Safe fallback: put it as first name
     Assert.AreEqual "First Middle Last", firstName
-    Assert.AreEqual "", lastName
+    Assert.AreEqual vbNullString, lastName
     Assert.AreEqual "First Middle Last", senderName
 
 TestExit:
@@ -146,7 +146,7 @@ Private Sub firstAtExampleCom()
 
     Assert.AreEqual "First", senderName
     Assert.AreEqual "First", firstName
-    Assert.AreEqual "", lastName
+    Assert.AreEqual vbNullString, lastName
 
 TestExit:
     Exit Sub
@@ -412,7 +412,7 @@ Private Sub getNamesOutOfEmailTwoDots()
     Call getFirstNameLastNameOutOfEmail("firstname.lastname.something@example.com", firstName, lastName)
 
     Assert.AreEqual "firstname.lastname.something", firstName
-    Assert.AreEqual "", lastName
+    Assert.AreEqual vbNullString, lastName
 
 TestExit:
     Exit Sub
@@ -427,7 +427,7 @@ Private Sub getNamesOutOfEmailNoDot()
     Call getFirstNameLastNameOutOfEmail("thing@example.com", firstName, lastName)
 
     Assert.AreEqual "thing", firstName
-    Assert.AreEqual "", lastName
+    Assert.AreEqual vbNullString, lastName
 
 TestExit:
     Exit Sub
@@ -460,7 +460,7 @@ End Sub
 Private Sub reformatTest1()
     On Error GoTo TestFail
 
-    outlookOutput = "" + _
+    outlookOutput = vbNullString + _
         "> >>" + vbNewLine + _
         "> >> I have a Win 2k3 SBS and I want to replicate the users into my" + vbNewLine + _
         "> OpenLDAP" + vbNewLine + _
@@ -471,7 +471,7 @@ Private Sub reformatTest1()
         "> > in your favourite scripting/programming language." + vbNewLine + _
         "> " + vbNewLine + _
         "> Actually we have done some preliminary work..."
-    expectedResult = "" + _
+    expectedResult = vbNullString + _
         ">>> " + vbNewLine + _
         ">>> I have a Win 2k3 SBS and I want to replicate the users into my" + vbNewLine + _
         ">>> OpenLDAP 2.4.11." + vbNewLine + _
@@ -496,7 +496,7 @@ End Sub
 Private Sub reformatNoReformat()
     On Error GoTo TestFail
 
-    outlookOutput = "" + _
+    outlookOutput = vbNullString + _
         "> Moin," + vbNewLine + _
         "> " + vbNewLine + _
         "> Kurzanleitung """"Deckel öffnen"""":" + vbNewLine + _
@@ -526,7 +526,7 @@ End Sub
 Private Sub reformatGreetingsKept()
     On Error GoTo TestFail
 
-    outlookOutput = "" + _
+    outlookOutput = vbNullString + _
         "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" + vbNewLine + _
         "> habe" + vbNewLine + _
         "> so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" + vbNewLine + _
@@ -534,7 +534,7 @@ Private Sub reformatGreetingsKept()
         "> xxx xxxxx? Haste eine Lösung für mein Virenprogramm, kann ich was" + vbNewLine + _
         "> runterladen?" + vbNewLine + _
         "> Lieben Gruß Jane"
-    expectedResult = "" + _
+    expectedResult = vbNullString + _
         "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" + vbNewLine + _
         "> habe so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" + vbNewLine + _
         "> habe. xxx xxxxx? Haste eine Lösung für mein Virenprogramm, kann" + vbNewLine + _

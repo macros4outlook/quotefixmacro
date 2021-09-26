@@ -25,7 +25,7 @@ Sub SwapSig()
     Dim strSigStart As String
     strSigStart = InStrRev(Msg.Body, ("--" & vbCrLf))
     If strSigStart <> 0 Then
-        Msg.Body = Left(Msg.Body, strSigStart - 3)
+        Msg.Body = Left$(Msg.Body, strSigStart - 3)
     End If
     
     ' Put a new signature on the message.
@@ -56,7 +56,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
     Dim strQuote As String
     strQuote = vbNullString
     
-    If Len(Dir(strFilePath)) > 0 Then
+    If Len(Dir$(strFilePath)) > 0 Then
         ' Open the file for reading
         Open strFilePath For Input As #1
         
@@ -65,12 +65,12 @@ Private Sub MakeSig(ByVal Msg As MailItem)
         Line Input #1, strLine
         
         Do Until EOF(1)
-            If Trim(strLine) = "$" Then
+            If Trim$(strLine) = "$" Then
                 ' Complete the fixed, informational string.
                 Dim strFixedSigPart As String
                 strFixedSigPart = vbCrLf & vbCrLf & "--" & strQuote
                 strQuote = vbNullString
-            ElseIf Trim(strLine) = "%" Then
+            ElseIf Trim$(strLine) = "%" Then
                 ' Complete a quote and increment the count
                 Dim arrQuotes() As String
                 ReDim Preserve arrQuotes(0 To numQuotes + 1) As String

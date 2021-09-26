@@ -47,7 +47,7 @@ Function ExecPar(mailtext As String) As String
     While (pipe.StdOut.AtEndOfStream = False)
         Dim line As String
         line = pipe.StdOut.ReadLine()
-        If (Left(line, 1) = ">") Then
+        If (Left$(line, 1) = ">") Then
             Dim ret As String
             ret = ret & ">" & line & vbCrLf
         Else
@@ -164,7 +164,7 @@ Function Clipboard2Text()
     Dim wSize As Long
     wSize = abGlobalSize(hMemory)
     Dim szText As String
-    szText = Space(wSize)
+    szText = Space$(wSize)
 
     Dim wFreeMemory As Boolean
     wFreeMemory = True
@@ -180,9 +180,9 @@ Function Clipboard2Text()
     Dim retval As Variant
     retval = abLstrcpy(szText, lpMemory)
     ' Get rid of trailing stuff.
-    szText = Trim(szText)
+    szText = Trim$(szText)
     ' Get rid of trailing 0.
-    Clipboard2Text = Left(szText, Len(szText) - 1)
+    Clipboard2Text = Left$(szText, Len(szText) - 1)
     wFreeMemory = False
 
 CB2T_Close:

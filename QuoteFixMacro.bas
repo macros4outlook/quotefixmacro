@@ -29,7 +29,7 @@ Option Explicit
 'You can store the default configuration in the registry by executing
 '  StoreDefaultConfiguration()
 'or by writing a routing executing commands similar to the following:
-'   Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")
+'   SaveSetting APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true"
 'Finally, or by manually creating entries in this registry hive:
 '    HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro
 Private Const APPNAME As String = "QuoteFixMacro"
@@ -210,7 +210,7 @@ Sub FixedReply()
     Dim m As Object
     Set m = GetCurrentItem()
 
-    Call FixMailText(m, TypeReply)
+    FixMailText m, TypeReply
 End Sub
 
 '"Fixed Reply All" functionality - has to be made available as shortcut in Outlook
@@ -218,7 +218,7 @@ Sub FixedReplyAll()
     Dim m As Object
     Set m = GetCurrentItem()
 
-    Call FixMailText(m, TypeReplyAll)
+    FixMailText m, TypeReplyAll
 End Sub
 
 '"Fixed Reply All" functionality with English template
@@ -226,7 +226,7 @@ Sub FixedReplyAllEnglish()
     Dim m As Object
     Set m = GetCurrentItem()
 
-    Call FixMailText(m, TypeReplyAll, True)
+    FixMailText m, TypeReplyAll, True
 End Sub
 
 '"Fixed Forward" functionality - has to be made available as shortcut in Outlook
@@ -234,7 +234,7 @@ Sub FixedForward()
     Dim m As Object
     Set m = GetCurrentItem()
 
-    Call FixMailText(m, TypeForward)
+    FixMailText m, TypeForward
 End Sub
 
 Function CalcNesting(line As String) As NestingType
@@ -285,22 +285,22 @@ End Function
 
 'Stores the default values in the system registry
 Public Sub StoreDefaultConfiguration()
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "USE_COLORIZER", DEFAULT_USE_COLORIZER)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", DEFAULT_NUM_RTF_COLORS)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", DEFAULT_USE_SOFTWRAP)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "SEVENTY_SIX_CHARS", DEFAULT_SEVENTY_SIX_CHARS)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "PIXEL_PER_CHARACTER", DEFAULT_PIXEL_PER_CHARACTER)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "INCLUDE_QUOTES_TO_LEVEL", DEFAULT_INCLUDE_QUOTES_TO_LEVEL)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "LINE_WRAP_AFTER", DEFAULT_LINE_WRAP_AFTER)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "DATE_FORMAT", DEFAULT_DATE_FORMAT)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", DEFAULT_STRIP_SIGNATURE)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", DEFAULT_CONVERT_TO_PLAIN)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER)
-    Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", DEFAULT_CONDENSED_HEADER_FORMAT)
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_COLORIZER", DEFAULT_USE_COLORIZER
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", DEFAULT_NUM_RTF_COLORS
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", DEFAULT_USE_SOFTWRAP
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "SEVENTY_SIX_CHARS", DEFAULT_SEVENTY_SIX_CHARS
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "PIXEL_PER_CHARACTER", DEFAULT_PIXEL_PER_CHARACTER
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "INCLUDE_QUOTES_TO_LEVEL", DEFAULT_INCLUDE_QUOTES_TO_LEVEL
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "LINE_WRAP_AFTER", DEFAULT_LINE_WRAP_AFTER
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "DATE_FORMAT", DEFAULT_DATE_FORMAT
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", DEFAULT_STRIP_SIGNATURE
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", DEFAULT_CONVERT_TO_PLAIN
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", DEFAULT_CONDENSED_HEADER_FORMAT
 End Sub
 
 'Loads the personal settings from the registry.
@@ -683,7 +683,7 @@ End Function
 
 ' @param UseEnglishTemplate In case USE_QUOTING_TEMPLATE is True, should the default or the English template be used?
 Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False)
-    Call LoadConfiguration
+    LoadConfiguration
 
     'we only understand mail items and meeting items , no PostItems, NoteItems, ...
     If Not (TypeName(SelectedObject) = "MailItem") And _
@@ -849,9 +849,9 @@ catch:
     Dim firstName As String
     Dim lastName As String
     If isMail Then
-        Call getNamesFromMail(OriginalMail, senderName, firstName, lastName)
+        getNamesFromMail OriginalMail, senderName, firstName, lastName
     Else
-        Call getNamesFromMeeting(OriginalMeeting, senderName, firstName, lastName)
+        getNamesFromMeeting OriginalMeeting, senderName, firstName, lastName
     End If
 
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr$(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
@@ -942,7 +942,7 @@ catch:
         Dim mailID As String
         mailID = ColorizeMailItem(NewMail)
         If (Len(Trim$(vbNullString & mailID)) > 0) Then  'no error occurred or quotefix macro not there...
-            Call DisplayMailItemByID(mailID)
+            DisplayMailItemByID mailID
         Else
             'Display window
             NewMail.Display
@@ -959,7 +959,7 @@ catch:
     Next
 
     If USE_SOFTWRAP Then
-        Call ResizeWindowForSoftWrap
+        ResizeWindowForSoftWrap
     End If
 
     'mark original mail as read
@@ -1220,7 +1220,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
 
     Dim fnEmail As String
     Dim lnEmail As String
-    Call getFirstNameLastNameOutOfEmail(senderEmailAddress, fnEmail, lnEmail)
+    getFirstNameLastNameOutOfEmail senderEmailAddress, fnEmail, lnEmail
     If (LCase$(firstName) = LCase$(lnEmail)) And (LCase$(lastName) = LCase$(fnEmail)) Then
         ' in case firstname and lastname are reversed in the email address, we assume that email format is firstname.lastname and reverse the names here
         Dim tmp As String
@@ -1325,7 +1325,7 @@ Private Sub getNamesFromMail(ByRef item As MailItem, ByRef senderName As String,
         senderName = item.senderName
     End If
 
-    Call getNamesOutOfString(senderName, senderName, firstName, lastName, item.senderEmailAddress)
+    getNamesOutOfString senderName, senderName, firstName, lastName, item.senderEmailAddress
 End Sub
 
 'Code duplication of getNamesFromMail, because there is no common ancestor of MailItem and MeetingItem
@@ -1338,7 +1338,7 @@ Private Sub getNamesFromMeeting(ByRef item As MeetingItem, ByRef senderName As S
         senderName = item.senderName
     End If
 
-    Call getNamesOutOfString(senderName, senderName, firstName, lastName, item.senderEmailAddress)
+    getNamesOutOfString senderName, senderName, firstName, lastName, item.senderEmailAddress
 End Sub
 
 

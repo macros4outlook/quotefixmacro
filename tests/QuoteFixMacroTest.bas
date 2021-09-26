@@ -35,7 +35,7 @@ Private Sub TestInitialize()
     'This method runs before every test in the module.
 
     'Currently required for reformat only
-    Call QuoteFixMacro.LoadConfiguration
+    QuoteFixMacro.LoadConfiguration
 End Sub
 
 '@TestCleanup
@@ -49,7 +49,7 @@ Private Sub FirstnameLastname()
 
     originalName = "Firstname Lastname"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "Firstname Lastname", senderName
     Assert.AreEqual "Firstname", firstName
@@ -67,7 +67,7 @@ Private Sub LASTNAMEfirstname()
 
     originalName = "Lastname, Firstname"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "Firstname Lastname", senderName
     Assert.AreEqual "Firstname", firstName
@@ -85,7 +85,7 @@ Private Sub FirstnameVanLastname()
 
     originalName = "Firstname van Lastname"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "Firstname van Lastname", senderName
     Assert.AreEqual "Firstname", firstName
@@ -121,7 +121,7 @@ Private Sub FirstMiddleLast()
 
     originalName = "First Middle Last"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     'The function cannot know where "Middle" belong to.
     'Safe fallback: put it as first name
@@ -142,7 +142,7 @@ Private Sub firstAtExampleCom()
 
     originalName = "first@example.com"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "First", senderName
     Assert.AreEqual "First", firstName
@@ -161,7 +161,7 @@ Private Sub firstDotLastAtExampleCom()
 
     originalName = "first.last@example.com"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -180,7 +180,7 @@ Private Sub DrFirstLast()
 
     originalName = "Dr. First Last"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "Dr. First Last", senderName
     Assert.AreEqual "First", firstName
@@ -198,7 +198,7 @@ Private Sub UppercaseLASTNAMEfirstname()
 
     originalName = "LAST first"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -217,7 +217,7 @@ Private Sub UppercaseFIRSTNAMEandLASTNAME()
 
     originalName = "FIRST LAST"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -235,7 +235,7 @@ Private Sub FirstnameWithDashCorrectlyCased()
 
     originalName = "First-First Last"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "First-First Last", senderName
     Assert.AreEqual "First-First", firstName
@@ -253,7 +253,7 @@ Private Sub FirstnameLastnameDepartment()
 
     originalName = "First Last DEPT DEPT"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName)
+    getNamesOutOfString originalName, senderName, firstName, lastName
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -271,7 +271,7 @@ Private Sub FirstnameLastnameDrDepartmentEmailWithNumberReverse()
 
     originalName = "Last First Dr. DEP DEP2"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "First.Last3@example.com")
+    getNamesOutOfString originalName, senderName, firstName, lastName, "First.Last3@example.com"
 
     Assert.AreEqual "Dr. First Last", senderName
     Assert.AreEqual "First", firstName
@@ -289,7 +289,7 @@ Private Sub FirstnameLastnameDepartmentEmailWithNumberReverse()
 
     originalName = "Last First DEP DEP2"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "First.Last3@example.com")
+    getNamesOutOfString originalName, senderName, firstName, lastName, "First.Last3@example.com"
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -307,7 +307,7 @@ Private Sub FirstnameLastnameDepartmentEmailReverse()
 
     originalName = "Last First (xy/z)"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "first.last@example.com")
+    getNamesOutOfString originalName, senderName, firstName, lastName, "first.last@example.com"
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -326,7 +326,7 @@ Private Sub UppercaseLastnameFirstnameReversedEmail()
 
     originalName = "last first"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "first.last@example.com")
+    getNamesOutOfString originalName, senderName, firstName, lastName, "first.last@example.com"
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -344,7 +344,7 @@ Private Sub LowerCaseNamesDEPReversedEmail()
 
     originalName = "last first DEP DEP"
 
-    Call getNamesOutOfString(originalName, senderName, firstName, lastName, "first.last@example.com")
+    getNamesOutOfString originalName, senderName, firstName, lastName, "first.last@example.com"
 
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
@@ -394,7 +394,7 @@ End Sub
 Private Sub getNamesOutOfEmailNormalCase()
     On Error GoTo TestFail
 
-    Call getFirstNameLastNameOutOfEmail("firstname.lastname@example.com", firstName, lastName)
+    getFirstNameLastNameOutOfEmail "firstname.lastname@example.com", firstName, lastName
 
     Assert.AreEqual "firstname", firstName
     Assert.AreEqual "lastname", lastName
@@ -409,7 +409,7 @@ End Sub
 Private Sub getNamesOutOfEmailTwoDots()
     On Error GoTo TestFail
 
-    Call getFirstNameLastNameOutOfEmail("firstname.lastname.something@example.com", firstName, lastName)
+    getFirstNameLastNameOutOfEmail "firstname.lastname.something@example.com", firstName, lastName
 
     Assert.AreEqual "firstname.lastname.something", firstName
     Assert.AreEqual vbNullString, lastName
@@ -424,7 +424,7 @@ End Sub
 Private Sub getNamesOutOfEmailNoDot()
     On Error GoTo TestFail
 
-    Call getFirstNameLastNameOutOfEmail("thing@example.com", firstName, lastName)
+    getFirstNameLastNameOutOfEmail "thing@example.com", firstName, lastName
 
     Assert.AreEqual "thing", firstName
     Assert.AreEqual vbNullString, lastName
@@ -439,7 +439,7 @@ End Sub
 Private Sub getNamesOutOfEmailNumberAtEnd()
     On Error GoTo TestFail
 
-    Call getFirstNameLastNameOutOfEmail("First.Last3@example.com", firstName, lastName)
+    getFirstNameLastNameOutOfEmail "First.Last3@example.com", firstName, lastName
 
     Assert.AreEqual "First", firstName
     Assert.AreEqual "Last", lastName

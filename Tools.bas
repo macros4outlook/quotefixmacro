@@ -68,7 +68,7 @@ Public Sub TestColors()
     answer.Display
     Set answer = Nothing 'answer bodyformat changes here to 1 for some stupid reason...
     
-    'Call Tools.DisplayMailItemByID(mid)
+    'Tools.DisplayMailItemByID mid
 End Sub
 
 

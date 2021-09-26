@@ -6,7 +6,7 @@ Sub NewMailMessage()
     Dim Msg As Outlook.MailItem
     Set Msg = Application.CreateItem(olMailItem)
     
-    Call MakeSig(Msg)
+    MakeSig Msg
     Msg.Display
     Set Msg = Nothing
 End Sub
@@ -29,7 +29,7 @@ Sub SwapSig()
     End If
     
     ' Put a new signature on the message.
-    Call MakeSig(Msg)
+    MakeSig Msg
 End Sub
 
 Private Sub MakeSig(ByVal Msg As MailItem)

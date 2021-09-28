@@ -35,7 +35,7 @@ Option Explicit
 Public InterceptorCollection As New Collection
 
 
-Public Sub MarkMailAsUnread(MyMail As MailItem)
+Public Sub MarkMailAsUnread(ByVal MyMail As MailItem)
     MyMail.UnRead = True
 End Sub
 
@@ -72,7 +72,7 @@ Public Sub TestColors()
 End Sub
 
 
-Public Sub FranksMacro(CurrentItem As MailItem)
+Public Sub FranksMacro(ByVal CurrentItem As MailItem)
     'put mails with me as the ONLY recipient into one folder, all others into another
     
     'declare mapifolders to move to here...

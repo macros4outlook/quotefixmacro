@@ -237,7 +237,7 @@ Public Sub FixedForward()
     FixMailText m, TypeForward
 End Sub
 
-Private Function CalcNesting(line As String) As NestingType
+Private Function CalcNesting(ByVal line As String) As NestingType
 
     Dim count As Integer
     count = 0
@@ -342,7 +342,7 @@ End Sub
 
 'Description:
 '   Strips away ">" and " " at the beginning to have the plain text
-Private Function StripLine(line As String) As String
+Private Function StripLine(ByVal line As String) As String
     Dim res As String
     res = line
 
@@ -368,7 +368,7 @@ End Function
 
 'Description:
 '   Adds the current line to unformattedBlock and to curBlock
-Private Sub AppendCurLine(ByRef curLine As String)
+Private Sub AppendCurLine(ByVal curLine As String)
     If Len(unformattedBlock) = 0 Then
         'unformattedBlock has to be used here, because it might be the case that the first
         '  line is "". Therefore curBlock remains "", whereas unformattedBlock gets <> ""
@@ -383,7 +383,7 @@ Private Sub AppendCurLine(ByRef curLine As String)
     End If
 End Sub
 
-Private Sub HandleParagraph(ByRef prefix As String)
+Private Sub HandleParagraph(ByVal prefix As String)
     If Not lastLineWasParagraph Then
         FinishBlock lastNesting
         lastLineWasParagraph = True
@@ -451,7 +451,7 @@ End Sub
 
 'Reformat text to correct broken wrap inserted by Outlook.
 'Needs to be public so the test cases can run this function.
-Public Function ReFormatText(text As String) As String
+Public Function ReFormatText(ByVal text As String) As String
     'Reset (partially global) variables
     result = vbNullString
     curBlock = vbNullString
@@ -682,7 +682,7 @@ Public Function ReFormatText(text As String) As String
 End Function
 
 ' @param UseEnglishTemplate In case USE_QUOTING_TEMPLATE is True, should the default or the English template be used?
-Private Sub FixMailText(SelectedObject As Object, MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False)
+Private Sub FixMailText(ByVal SelectedObject As Object, ByRef MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False)
     LoadConfiguration
 
     'we only understand mail items and meeting items , no PostItems, NoteItems, ...
@@ -982,7 +982,7 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
     Next
 End Function
 
-Private Function getSenderEmailAddress(senderEmailType As String, senderName As String, senderEmailAddress As String, session As NameSpace) As String
+Private Function getSenderEmailAddress(ByVal senderEmailType As String, ByVal senderName As String, ByVal senderEmailAddress As String, ByVal session As NameSpace) As String
     Dim senderEmail As String
 
     If senderEmailType = "SMTP" Then
@@ -1029,7 +1029,7 @@ Private Function IsWordCased(ByVal word As String) As Boolean
     IsWordCased = (word Like "[A-Z][a-z]*") Or (word Like "[A-Z][a-z]*-[A-Z][a-z]*")
 End Function
 
-Private Function FixCase(ByRef word As String) As String
+Private Function FixCase(ByVal word As String) As String
     If Len(word) = 0 Then
         FixCase = word
         Exit Function
@@ -1240,7 +1240,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     lastName = title & lastName
 End Sub
 
-Public Sub getFirstNameLastNameOutOfEmail(ByRef email As String, ByRef firstName As String, ByRef lastName As String)
+Public Sub getFirstNameLastNameOutOfEmail(ByVal email As String, ByRef firstName As String, ByRef lastName As String)
     If Len(email) = 0 Then
         firstName = vbNullString
         lastName = vbNullString
@@ -1316,7 +1316,7 @@ End Function
 '
 'Notes:
 '  * Names are returned by reference
-Private Sub getNamesFromMail(ByRef item As MailItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
+Private Sub getNamesFromMail(ByVal item As MailItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
 
     'Wildcard replacements
     senderName = item.SentOnBehalfOfName
@@ -1329,7 +1329,7 @@ Private Sub getNamesFromMail(ByRef item As MailItem, ByRef senderName As String,
 End Sub
 
 'Code duplication of getNamesFromMail, because there is no common ancestor of MailItem and MeetingItem
-Private Sub getNamesFromMeeting(ByRef item As MeetingItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
+Private Sub getNamesFromMeeting(ByVal item As MeetingItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
 
     'Wildcard replacements
     senderName = item.SentOnBehalfOfName
@@ -1377,7 +1377,7 @@ Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As
 End Function
 
 
-Private Function CalcDownCount(pattern As String, textToSearch As String) As Long
+Private Function CalcDownCount(ByVal pattern As String, ByVal textToSearch As String) As Long
     Dim PosOfPattern As Long
     PosOfPattern = InStr(textToSearch, pattern)
 
@@ -1406,7 +1406,7 @@ End Function
 '  What:     What to count
 'Note:
 '  * Order of parameters taken from "InStr"
-Public Function CountOccurrencesOfStringInString(InString As String, What As String) As Long
+Public Function CountOccurrencesOfStringInString(ByVal InString As String, ByVal What As String) As Long
     Dim count As Long
     count = 0
 
@@ -1435,7 +1435,7 @@ End Function
 '
 ' >
 '
-Private Function cleanUpDoubleLines(quotedText As String) As String
+Private Function cleanUpDoubleLines(ByVal quotedText As String) As String
     Dim previousLineWasEmptyQuote As Boolean
     previousLineWasEmptyQuote = False
 
@@ -1460,7 +1460,7 @@ Private Function cleanUpDoubleLines(quotedText As String) As String
 End Function
 
 
-Private Function StripQuotes(quotedText As String, stripLevel As Integer) As String
+Private Function StripQuotes(ByVal quotedText As String, ByVal stripLevel As Integer) As String
     Dim quoteLines() As String
     quoteLines = Split(quotedText, vbCrLf)
 
@@ -1593,14 +1593,14 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
 End Function
 
 
-Public Sub DisplayMailItemByID(id As String)
+Public Sub DisplayMailItemByID(ByVal id As String)
     Dim it As MailItem
     Set it = session.GetItemFromID(id, session.GetDefaultFolder(olFolderInbox).StoreID)
     it.Display
     Set it = Nothing
 End Sub
 
-Private Function StripSuffixes(ByRef tempName As String) As String
+Private Function StripSuffixes(ByVal tempName As String) As String
     'Create array of possible suffixes
     Dim NameSuffixesArr() As String
     NameSuffixesArr = Split(LASTNAME_SUFFIXES, "/")

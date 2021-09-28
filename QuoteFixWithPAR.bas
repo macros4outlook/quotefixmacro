@@ -31,7 +31,7 @@ Private Const CF_TEXT = 1
 Private Const APINULL = 0
 
 
-Private Function ExecPar(mailtext As String) As String
+Private Function ExecPar(ByVal mailtext As String) As String
     Dim shell As Object
     Set shell = CreateObject("WScript.Shell")
 

@@ -32,14 +32,13 @@ Attribute VB_Name = "Tools"
 
 Option Explicit
 
-Global InterceptorCollection As New Collection
-
-
+Public InterceptorCollection As New Collection
 
 
 Public Sub MarkMailAsUnread(MyMail As MailItem)
     MyMail.UnRead = True
 End Sub
+
 
 Public Sub ReadCurrentMailItemRTF()
     Dim rtf As String
@@ -50,6 +49,7 @@ Public Sub ReadCurrentMailItemRTF()
     
     Debug.Print "RTF READ:" & ret & vbCrLf & rtf
 End Sub
+
 
 Public Sub TestColors()
     Dim mi As MailItem

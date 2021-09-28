@@ -196,7 +196,7 @@ Public Type NestingType
     total As Integer
 End Type
 
-'Global Variables to make code more readable (-> parameter passing gets easier)
+'Module Variables to make code more readable (-> parameter passing gets easier)
 Private result As String
 Private unformattedBlock As String
 Private curBlock As String
@@ -206,7 +206,7 @@ Private lastLineWasParagraph As Boolean
 Private lastNesting As NestingType
 
 '"Fixed Reply" functionality - has to be made available as shortcut in Outlook
-Sub FixedReply()
+Public Sub FixedReply()
     Dim m As Object
     Set m = GetCurrentItem()
 
@@ -214,7 +214,7 @@ Sub FixedReply()
 End Sub
 
 '"Fixed Reply All" functionality - has to be made available as shortcut in Outlook
-Sub FixedReplyAll()
+Public Sub FixedReplyAll()
     Dim m As Object
     Set m = GetCurrentItem()
 
@@ -222,7 +222,7 @@ Sub FixedReplyAll()
 End Sub
 
 '"Fixed Reply All" functionality with English template
-Sub FixedReplyAllEnglish()
+Public Sub FixedReplyAllEnglish()
     Dim m As Object
     Set m = GetCurrentItem()
 
@@ -230,14 +230,14 @@ Sub FixedReplyAllEnglish()
 End Sub
 
 '"Fixed Forward" functionality - has to be made available as shortcut in Outlook
-Sub FixedForward()
+Public Sub FixedForward()
     Dim m As Object
     Set m = GetCurrentItem()
 
     FixMailText m, TypeForward
 End Sub
 
-Function CalcNesting(line As String) As NestingType
+Private Function CalcNesting(line As String) As NestingType
 
     Dim count As Integer
     count = 0
@@ -346,7 +346,7 @@ Private Function StripLine(line As String) As String
     Dim res As String
     res = line
 
-    Do While (Len(res) > 0) And (InStr$("> ", Left$(res, 1)) <> 0)
+    Do While (Len(res) > 0) And (InStr("> ", Left$(res, 1)) <> 0)
         'First character is a space or a quote
         res = Mid$(res, 2)
     Loop
@@ -566,13 +566,13 @@ Public Function ReFormatText(text As String) As String
                     curLine = StripLine(rows(i))
 
                     Dim posColon As Integer
-                    posColon = InStr$(curLine, ":")
+                    posColon = InStr(curLine, ":")
 
                     Dim posLeftBracket As String
-                    posLeftBracket = InStr$(curLine, "[") '[ is the indication of the beginning of the email address
+                    posLeftBracket = InStr(curLine, "[")  '[ is the indication of the beginning of the email address
 
                     Dim posRightBracket As Integer
-                    posRightBracket = InStr$(curLine, "]")
+                    posRightBracket = InStr(curLine, "]")
 
                     If (posLeftBracket) > 0 Then
                         Dim lengthName As Integer
@@ -598,9 +598,9 @@ Public Function ReFormatText(text As String) As String
 
                     i = i + 1
                     curLine = StripLine(rows(i))
-                    If InStr$(curLine, ":") = 0 Then
+                    If InStr(curLine, ":") = 0 Then
                         'There is a wrap in the email address
-                        posRightBracket = InStr$(curLine, "]")
+                        posRightBracket = InStr(curLine, "]")
                         If posRightBracket > 0 Then
                             sEmail = sEmail & Left$(curLine, posRightBracket - 1)
                         Else
@@ -618,7 +618,7 @@ Public Function ReFormatText(text As String) As String
                     'posColon = InStr$(sDate, ":")
                     'sDate = Mid$(sDate, posColon + 2)
                     Dim posFirstComma As Integer
-                    posFirstComma = InStr$(sDate, ",")
+                    posFirstComma = InStr(sDate, ",")
                     sDate = Mid$(sDate, posFirstComma + 2)
                     Dim dDate As Date
                     If IsDate(sDate) Then
@@ -674,7 +674,7 @@ Public Function ReFormatText(text As String) As String
     FinishBlock curNesting
 
     'strip last (unnecessary) line feeds and spaces
-    Do While ((Len(result) > 0) And (InStr$(vbCrLf & " ", Right$(result, 1)) <> 0))
+    Do While ((Len(result) > 0) And (InStr(vbCrLf & " ", Right$(result, 1)) <> 0))
         result = Left$(result, Len(result) - 1)
     Loop
 
@@ -854,7 +854,7 @@ catch:
         getNamesFromMeeting OriginalMeeting, senderName, firstName, lastName
     End If
 
-    If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr$(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
+    If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Or (InStr(MySignature, PATTERN_SENDER_EMAIL) <> 0) Then
         Dim senderEmail As String
         If isMail Then
             senderEmail = getSenderEmailAddress(OriginalMail.senderEmailType, senderName, OriginalMail.senderEmailAddress, OriginalMail.session)
@@ -870,7 +870,7 @@ catch:
         For curIndex = 1 To UBound(FIRSTNAME_REPLACEMENT__EMAIL)
             Dim rEmail As Variant
             rEmail = FIRSTNAME_REPLACEMENT__EMAIL(curIndex)
-            If (Strcomp$(LCase$(senderEmail), LCase$(rEmail)) = 0) Then
+            If (StrComp(LCase$(senderEmail), LCase$(rEmail)) = 0) Then
                 firstName = FIRSTNAME_REPLACEMENT__FIRSTNAME(curIndex)
                 Exit For
             End If
@@ -916,8 +916,8 @@ catch:
     Dim downCount As Long
     downCount = -1
 
-    If InStr$(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
-        If InStr$(MySignature, PATTERN_CURSOR_POSITION) = 0 Then
+    If InStr(MySignature, PATTERN_QUOTED_TEXT) <> 0 Then
+        If InStr(MySignature, PATTERN_CURSOR_POSITION) = 0 Then
             'if PATTERN_CURSOR_POSITION is not set, but PATTERN_QUOTED_TEXT is, then the cursor is moved to the quote
             downCount = CalcDownCount(PATTERN_QUOTED_TEXT, MySignature)
         End If
@@ -927,7 +927,7 @@ catch:
         MySignature = vbCrLf & vbCrLf & MySignature & OutlookHeader & NewText
     End If
 
-    If (InStr$(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
+    If (InStr(MySignature, PATTERN_CURSOR_POSITION) <> 0) Then
         downCount = CalcDownCount(PATTERN_CURSOR_POSITION, MySignature)
         'remove cursor_position pattern from mail text
         MySignature = Replace$(MySignature, PATTERN_CURSOR_POSITION, vbNullString)
@@ -973,7 +973,7 @@ End Sub
 Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
     ' drop the first two lines, they're empty
     For lineCounter = 2 To UBound(BodyLines)
-        If (InStr$(BodyLines(lineCounter), OUTLOOK_ORIGINALMESSAGE) <> 0) Then
+        If (InStr(BodyLines(lineCounter), OUTLOOK_ORIGINALMESSAGE) <> 0) Then
             If (CalcNesting(BodyLines(lineCounter)).level = 1) Then
                 Exit For
             End If
@@ -998,7 +998,7 @@ Private Function getSenderEmailAddress(senderEmailType As String, senderName As 
         'check if we can get the correct item by sendername
         Dim exchAddressEntry As Outlook.AddressEntry
         Set exchAddressEntry = exchAddressEntries.item(senderName)
-        If exchAddressEntry.name <> senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
+        If exchAddressEntry.Name <> senderName Then Set exchAddressEntry = exchAddressEntries.GetFirst
 
         Dim found As Boolean
         found = False
@@ -1107,7 +1107,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
         End If
     End If
 
-    fPos = InStr$(tmpName, ",")
+    fPos = InStr(tmpName, ",")
     If fPos > 0 Then
         'Firstname is separated by comma and positioned behind the lastname
         firstName = Trim$(Mid$(tmpName, fPos + 1))
@@ -1121,7 +1121,7 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     Else
         'Determining first and last name is really hard unless
         'there are only two names, or there is a middle initial(s)
-        fPos = InStr$(Trim$(tmpName), " ")
+        fPos = InStr(Trim$(tmpName), " ")
         If fPos > 0 Then
             'First strip any possible, (single,) formal suffix on the name
             tmpName = StripSuffixes(tmpName)
@@ -1182,12 +1182,12 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
                 End If
             End If
         Else
-            fPos = InStr$(tmpName, "@")
+            fPos = InStr(tmpName, "@")
             If fPos > 0 Then
                 'first name is (currently) an email address. Just take the prefix
                 tmpName = Left$(tmpName, fPos - 1)
             End If
-            fPos = InStr$(tmpName, ".")
+            fPos = InStr(tmpName, ".")
             If fPos > 0 Then
                 'first name is separated by a dot
                 lastName = Mid$(tmpName, fPos + 1)
@@ -1230,10 +1230,10 @@ Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, B
     End If
 
     'fix casing of names
-    If InStr$(firstName, " ") = 0 Then
+    If InStr(firstName, " ") = 0 Then
         firstName = FixCase(firstName)
     End If
-    If InStr$(lastName, " ") = 0 Then
+    If InStr(lastName, " ") = 0 Then
         lastName = FixCase(lastName)
     End If
     senderName = title & Trim$(firstName & " " & lastName)
@@ -1379,7 +1379,7 @@ End Function
 
 Private Function CalcDownCount(pattern As String, textToSearch As String) As Long
     Dim PosOfPattern As Long
-    PosOfPattern = InStr$(textToSearch, pattern)
+    PosOfPattern = InStr(textToSearch, pattern)
 
     Dim TextBeforePattern As String
     TextBeforePattern = Left$(textToSearch, PosOfPattern - 1)
@@ -1388,7 +1388,7 @@ Private Function CalcDownCount(pattern As String, textToSearch As String) As Lon
 End Function
 
 
-Function GetCurrentItem() As Object  'changed to default scope
+Private Function GetCurrentItem() As Object  'changed to default scope
         Dim objApp As Application
         Set objApp = session.Application
 
@@ -1414,12 +1414,12 @@ Public Function CountOccurrencesOfStringInString(InString As String, What As Str
     lastPos = 0
 
     Dim curPos As Long
-    curPos = InStr$(InString, What)
+    curPos = InStr(InString, What)
 
     Do While curPos <> 0
         lastPos = curPos + 1
         count = count + 1
-        curPos = InStr$(lastPos, InString, What)
+        curPos = InStr(lastPos, InString, What)
     Loop
 
     CountOccurrencesOfStringInString = count
@@ -1467,7 +1467,7 @@ Private Function StripQuotes(quotedText As String, stripLevel As Integer) As Str
     Dim i As Integer
     For i = 1 To UBound(quoteLines)
         Dim level As Integer
-        level = InStr$(quoteLines(i), " ") - 1
+        level = InStr(quoteLines(i), " ") - 1
         If level <= stripLevel Then
             Dim res As String
             res = res & quoteLines(i) & vbCrLf
@@ -1520,18 +1520,18 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         'we have our own rtf header, remove generated one
         Dim PosHeaderEnd As Integer
         Dim sTestString As String
-        PosHeaderEnd = InStr$(rtf, "\uc1\pard\plain\deftab360")
+        PosHeaderEnd = InStr(rtf, "\uc1\pard\plain\deftab360")
         If (PosHeaderEnd = 0) Then
             sTestString = "\uc1\pard\f0\fs20\lang1031"
-            PosHeaderEnd = InStr$(rtf, sTestString)
+            PosHeaderEnd = InStr(rtf, sTestString)
         End If
         If (PosHeaderEnd = 0) Then
             sTestString = "\viewkind4\uc1\pard\f0\fs20"
-            PosHeaderEnd = InStr$(rtf, sTestString)
+            PosHeaderEnd = InStr(rtf, sTestString)
         End If
         If (PosHeaderEnd = 0) Then
             sTestString = "\pard\f0\fs20\lang1031"
-            PosHeaderEnd = InStr$(rtf, sTestString)
+            PosHeaderEnd = InStr(rtf, sTestString)
         End If
 
         rtf = Mid$(rtf, PosHeaderEnd + Len(sTestString))

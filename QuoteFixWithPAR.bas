@@ -13,25 +13,25 @@ Private Const PAR_CMD As String = "C:\cygwin\bin\bash.exe --login -c 'export PAR
 
 ' clipboard interaction in win32
 ' Provided by Allen Browne, allen@allenbrowne.com
-Declare Function abOpenClipboard Lib "User32" Alias "OpenClipboard" (ByVal Hwnd As Long) As Long
-Declare Function abCloseClipboard Lib "User32" Alias "CloseClipboard" () As Long
-Declare Function abEmptyClipboard Lib "User32" Alias "EmptyClipboard" () As Long
-Declare Function abIsClipboardFormatAvailable Lib "User32" Alias "IsClipboardFormatAvailable" (ByVal wFormat As Long) As Long
-Declare Function abSetClipboardData Lib "User32" Alias "SetClipboardData" (ByVal wFormat As Long, ByVal hMem As Long) As Long
-Declare Function abGetClipboardData Lib "User32" Alias "GetClipboardData" (ByVal wFormat As Long) As Long
-Declare Function abGlobalAlloc Lib "Kernel32" Alias "GlobalAlloc" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
-Declare Function abGlobalLock Lib "Kernel32" Alias "GlobalLock" (ByVal hMem As Long) As Long
-Declare Function abGlobalUnlock Lib "Kernel32" Alias "GlobalUnlock" (ByVal hMem As Long) As Boolean
-Declare Function abLstrcpy Lib "Kernel32" Alias "lstrcpyA" (ByVal lpString1 As Any, ByVal lpString2 As Any) As Long
-Declare Function abGlobalFree Lib "Kernel32" Alias "GlobalFree" (ByVal hMem As Long) As Long
-Declare Function abGlobalSize Lib "Kernel32" Alias "GlobalSize" (ByVal hMem As Long) As Long
-Const GHND = &H42
-Const CF_TEXT = 1
-Const APINULL = 0
+Private Declare PtrSafe Function abOpenClipboard Lib "User32" Alias "OpenClipboard" (ByVal Hwnd As Long) As Long
+Private Declare PtrSafe Function abCloseClipboard Lib "User32" Alias "CloseClipboard" () As Long
+Private Declare PtrSafe Function abEmptyClipboard Lib "User32" Alias "EmptyClipboard" () As Long
+Private Declare PtrSafe Function abIsClipboardFormatAvailable Lib "User32" Alias "IsClipboardFormatAvailable" (ByVal wFormat As Long) As Long
+Private Declare PtrSafe Function abSetClipboardData Lib "User32" Alias "SetClipboardData" (ByVal wFormat As Long, ByVal hMem As Long) As Long
+Private Declare PtrSafe Function abGetClipboardData Lib "User32" Alias "GetClipboardData" (ByVal wFormat As Long) As Long
+Private Declare PtrSafe Function abGlobalAlloc Lib "Kernel32" Alias "GlobalAlloc" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
+Private Declare PtrSafe Function abGlobalLock Lib "Kernel32" Alias "GlobalLock" (ByVal hMem As Long) As Long
+Private Declare PtrSafe Function abGlobalUnlock Lib "Kernel32" Alias "GlobalUnlock" (ByVal hMem As Long) As Boolean
+Private Declare PtrSafe Function abLstrcpy Lib "Kernel32" Alias "lstrcpyA" (ByVal lpString1 As Any, ByVal lpString2 As Any) As Long
+Private Declare PtrSafe Function abGlobalFree Lib "Kernel32" Alias "GlobalFree" (ByVal hMem As Long) As Long
+Private Declare PtrSafe Function abGlobalSize Lib "Kernel32" Alias "GlobalSize" (ByVal hMem As Long) As Long
+
+Private Const GHND = &H42
+Private Const CF_TEXT = 1
+Private Const APINULL = 0
 
 
-
-Function ExecPar(mailtext As String) As String
+Private Function ExecPar(mailtext As String) As String
     Dim shell As Object
     Set shell = CreateObject("WScript.Shell")
 
@@ -89,7 +89,7 @@ Public Sub ReformatSelectedText()
 End Sub
 
 
-Function Text2Clipboard(szText As String)
+Private Function Text2Clipboard(szText As String)
     ' Get the length, including one extra for a CHR$(0) at the end.
     Dim wLen As Integer
     wLen = Len(szText) + 1
@@ -143,8 +143,7 @@ T2CB_Free:
 End Function
 
 
-
-Function Clipboard2Text()
+Private Function Clipboard2Text()
     If abIsClipboardFormatAvailable(CF_TEXT) = APINULL Then
         Clipboard2Text = Null
         Exit Function

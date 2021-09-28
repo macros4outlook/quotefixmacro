@@ -1,7 +1,7 @@
 Attribute VB_Name = "RandomSignature"
 Option Explicit
 
-Sub NewMailMessage()
+Public Sub NewMailMessage()
     ' Creates a new mail message and tacks a random signature onto the end.
     Dim Msg As Outlook.MailItem
     Set Msg = Application.CreateItem(olMailItem)
@@ -11,7 +11,7 @@ Sub NewMailMessage()
     Set Msg = Nothing
 End Sub
 
-Sub SwapSig()
+Public Sub SwapSig()
     ' Replaces the existing signature with a new randomly chosen one.
     ' Assumes the active window is a compose window.
     If TypeName(Application.ActiveWindow) = "Inspector" Then

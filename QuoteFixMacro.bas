@@ -1065,7 +1065,7 @@ End Function
 'Notes:
 '  * Public to enable testing
 '  * Names are returned by reference
-Public Sub getNamesOutOfString(ByVal originalName, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String, Optional ByRef senderEmailAddress As String = vbNullString)
+Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String, Optional ByRef senderEmailAddress As String = vbNullString)
     'Find out firstName
 
     Dim tmpName As String
@@ -1276,7 +1276,7 @@ Private Function stripNumbers(ByVal s As String) As String
 End Function
 
 
-Public Function removeDepartment(ByVal tmpName) As String
+Public Function removeDepartment(ByVal tmpName As String) As String
     Dim parts() As String
     parts = Split(tmpName, " ")
 

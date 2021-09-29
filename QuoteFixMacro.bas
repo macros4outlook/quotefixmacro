@@ -1002,10 +1002,10 @@ Private Function getSenderEmailAddress(ByVal senderEmailType As String, ByVal se
 
         Dim found As Boolean
         found = False
-        While (Not found) And (Not exchAddressEntry Is Nothing)
+        Do While (Not found) And (Not exchAddressEntry Is Nothing)
             found = (LCase$(exchAddressEntry.Address) = LCase$(senderEmailAddress))
             If Not found Then Set exchAddressEntry = exchAddressEntries.GetNext
-        Wend
+        Loop
 
         If Not exchAddressEntry Is Nothing Then
             senderEmail = exchAddressEntry.GetExchangeUser.PrimarySmtpAddress

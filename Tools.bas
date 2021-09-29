@@ -144,9 +144,9 @@ Public Sub TestPar()
     
     Debug.Print "READING..."
     Dim ret As String
-    'While (pipe.StdOut.AtEndOfStream = False)
+    'Do While (pipe.StdOut.AtEndOfStream = False)
     '    ret = ret & pipe.StdOut.ReadLine() & vbCrLf
-    'Wend
+    'Loop
     ret = pipe.StdOut.ReadAll()
     Debug.Print ret
     

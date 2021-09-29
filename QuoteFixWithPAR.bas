@@ -44,7 +44,7 @@ Private Function ExecPar(ByVal mailtext As String) As String
     pipe.StdIn.Close
 
     Debug.Print "READING..."
-    While (pipe.StdOut.AtEndOfStream = False)
+    Do While (pipe.StdOut.AtEndOfStream = False)
         Dim line As String
         line = pipe.StdOut.ReadLine()
         If (Left$(line, 1) = ">") Then
@@ -53,7 +53,7 @@ Private Function ExecPar(ByVal mailtext As String) As String
         Else
             ret = ret & "> " & line & vbCrLf
         End If
-    Wend
+    Loop
     'ret = pipe.StdOut.ReadAll()
     Debug.Print ret
 

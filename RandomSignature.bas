@@ -51,7 +51,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
     '      last "%" (and last "$") will not be included in any signature.
     Dim strFilePath As String
     strFilePath = Environ$("AppData") & "\Microsoft\Outlook\EmailSigs.txt"
-    Dim numQuotes As Integer
+    Dim numQuotes As Long
     numQuotes = 0
     Dim strQuote As String
     strQuote = vbNullString
@@ -94,7 +94,7 @@ Private Sub MakeSig(ByVal Msg As MailItem)
         Randomize
         
         ' Get the random line number
-        Dim intRandom As Integer
+        Dim intRandom As Long
         intRandom = Int(numQuotes * Rnd())
         
         ' Insert the random quote

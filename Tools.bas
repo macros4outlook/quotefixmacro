@@ -43,7 +43,7 @@ End Sub
 Public Sub ReadCurrentMailItemRTF()
     Dim rtf As String
     rtf = Space$(99999)
-    Dim ret As Integer
+    Dim ret As Long
     ret = ReadRTF("MAPI", GetCurrentItem.EntryID, Session.GetDefaultFolder(olFolderInbox).StoreID, rtf)
     rtf = Trim$(rtf)
     

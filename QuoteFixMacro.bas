@@ -47,7 +47,7 @@ Private Const DEFAULT_USE_COLORIZER As Boolean = False
 'Please enable convert RTF-to-Text at sending. Otherwise, the recipients will always receive HTML emails
 
 'How many different colors should be used for colorizing the quotes?
-Private Const DEFAULT_NUM_RTF_COLORS As Integer = 4
+Private Const DEFAULT_NUM_RTF_COLORS As Long = 4
 
 
 '--------------------------------------------------------
@@ -72,10 +72,10 @@ Private Const DEFAULT_PIXEL_PER_CHARACTER As Double = 8.61842105263158
 '*** Configuration constants ***
 '--------------------------------------------------------
 'If <> -1, strip quotes with level > INCLUDE_QUOTES_TO_LEVEL
-Private Const DEFAULT_INCLUDE_QUOTES_TO_LEVEL As Integer = -1
+Private Const DEFAULT_INCLUDE_QUOTES_TO_LEVEL As Long = -1
 
 'At which column should the text be wrapped?
-Private Const DEFAULT_LINE_WRAP_AFTER As Integer = 75
+Private Const DEFAULT_LINE_WRAP_AFTER As Long = 75
 
 Private Const DEFAULT_DATE_FORMAT As String = "yyyy-mm-dd HH:MM"
 'alternative date format
@@ -137,12 +137,12 @@ Private Const PATTERN_OUTLOOK_HEADER    As String = "%OH"
 'Variables storing the configuration
 'They are set in LoadConfiguration()
 Private USE_COLORIZER As Boolean
-Private NUM_RTF_COLORS As Integer
+Private NUM_RTF_COLORS As Long
 Private USE_SOFTWRAP As Boolean
 Private SEVENTY_SIX_CHARS As String
 Private PIXEL_PER_CHARACTER As Double
-Private INCLUDE_QUOTES_TO_LEVEL As Integer
-Private LINE_WRAP_AFTER As Integer
+Private INCLUDE_QUOTES_TO_LEVEL As Long
+Private LINE_WRAP_AFTER As Long
 Private DATE_FORMAT As String
 Private STRIP_SIGNATURE As Boolean
 Private CONVERT_TO_PLAIN As Boolean
@@ -185,15 +185,15 @@ End Enum
 
 Public Type NestingType
     'the level of the current quote plus
-    level As Integer
+    level As Long
 
     'the amount of spaces until the next word
     'needed as outlook sometimes inserts more than one space to separate the quoteprefix and the actual quote
     'we use that information to fix the quote
-    additionalSpacesCount As Integer
+    additionalSpacesCount As Long
 
     'total = level + additionalSpacesCount + 1
-    total As Integer
+    total As Long
 End Type
 
 'Module Variables to make code more readable (-> parameter passing gets easier)
@@ -239,10 +239,10 @@ End Sub
 
 Private Function CalcNesting(ByVal line As String) As NestingType
 
-    Dim count As Integer
+    Dim count As Long
     count = 0
 
-    Dim i As Integer
+    Dim i As Long
     i = 1
 
     Do While i <= Len(line)
@@ -250,7 +250,7 @@ Private Function CalcNesting(ByVal line As String) As NestingType
         curChar = Mid$(line, i, 1)
         If curChar = ">" Then
             count = count + 1
-            Dim lastQuoteSignPos As Integer
+            Dim lastQuoteSignPos As Long
             lastQuoteSignPos = i
         ElseIf curChar <> " " Then
             'Char is neither ">" nor " " - Quote intro ended
@@ -331,7 +331,7 @@ Public Sub LoadConfiguration()
     ReDim FIRSTNAME_REPLACEMENT__EMAIL(count)
     ReDim FIRSTNAME_REPLACEMENT__FIRSTNAME(count)
 
-    Dim i As Integer
+    Dim i As Long
     For i = 1 To count
         Dim group As String
         group = REG_GROUP_FIRSTNAMES & "\" & i
@@ -410,12 +410,12 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
         Dim prefix As String
         prefix = CalcPrefix(nesting)
 
-        Dim maxLength As Integer
+        Dim maxLength As Long
         maxLength = LINE_WRAP_AFTER - nesting.total
 
         Do While Len(curBlock) > maxLength
             'go through block from maxLength to beginning to find a space
-            Dim i As Integer
+            Dim i As Long
             i = maxLength
             If i > 0 Then
                 Do While (Mid$(curBlock, i, 1) <> " ")
@@ -565,17 +565,17 @@ Public Function ReFormatText(ByVal text As String) As String
                     i = i + 1
                     curLine = StripLine(rows(i))
 
-                    Dim posColon As Integer
+                    Dim posColon As Long
                     posColon = InStr(curLine, ":")
 
                     Dim posLeftBracket As String
                     posLeftBracket = InStr(curLine, "[")  '[ is the indication of the beginning of the email address
 
-                    Dim posRightBracket As Integer
+                    Dim posRightBracket As Long
                     posRightBracket = InStr(curLine, "]")
 
                     If (posLeftBracket) > 0 Then
-                        Dim lengthName As Integer
+                        Dim lengthName As Long
                         lengthName = posLeftBracket - posColon - 3
 
                         If lengthName > 0 Then
@@ -617,7 +617,7 @@ Public Function ReFormatText(ByVal text As String) As String
                     sDate = StripLine(rows(i))
                     'posColon = InStr$(sDate, ":")
                     'sDate = Mid$(sDate, posColon + 2)
-                    Dim posFirstComma As Integer
+                    Dim posFirstComma As Long
                     posFirstComma = InStr(sDate, ",")
                     sDate = Mid$(sDate, posFirstComma + 2)
                     Dim dDate As Date
@@ -866,7 +866,7 @@ catch:
 
     If (UBound(FIRSTNAME_REPLACEMENT__EMAIL) > 0) Then
         'replace firstName by email stored in registry
-        Dim curIndex As Integer
+        Dim curIndex As Long
         For curIndex = 1 To UBound(FIRSTNAME_REPLACEMENT__EMAIL)
             Dim rEmail As Variant
             rEmail = FIRSTNAME_REPLACEMENT__EMAIL(curIndex)
@@ -953,7 +953,7 @@ catch:
     End If
 
     'jump to the right place
-    Dim i As Integer
+    Dim i As Long
     For i = 1 To downCount
         SendKeys "{DOWN}"
     Next
@@ -1100,7 +1100,7 @@ Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As
     'Some companies have "(Text)" at the end of their name.
     'We strip that
     If (Right$(tmpName, 1) = ")") Then
-        Dim fPos As Integer
+        Dim fPos As Long
         fPos = InStrRev(tmpName, "(")
         If fPos > 0 Then
             tmpName = Trim$(Left$(tmpName, fPos - 1))
@@ -1125,7 +1125,7 @@ Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As
         If fPos > 0 Then
             'First strip any possible, (single,) formal suffix on the name
             tmpName = StripSuffixes(tmpName)
-            Dim lPos As Integer
+            Dim lPos As Long
             lPos = InStrRev(Trim$(tmpName), " ")
             If fPos = lPos Then
                 'single first name and last name separated by space
@@ -1148,13 +1148,13 @@ Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As
                         Left$(midName, 2) Like "[A-Z] " Or _
                         Left$(midName, 2) Like "[A-Z]."
                     midName = Trim$(Mid$(midName, 2))
-                    Dim i As Integer
+                    Dim i As Long
                     i = i + 1
                 Loop
                 Do While Right$(midName, 2) Like " [A-Z]" Or _
                         Right$(midName, 2) Like "[A-Z]."
                     midName = Trim$(Left$(midName, Len(midName) - 2))
-                    Dim j As Integer
+                    Dim j As Long
                     j = j + 1
                 Loop
 
@@ -1197,9 +1197,9 @@ Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As
                 'final guess: LastnameFirstname
                 If (IsUpperCaseChar(Left$(tmpName, 1))) Then
                     i = 2
-                    Dim UpperCaseCharCount As Integer
+                    Dim UpperCaseCharCount As Long
                     UpperCaseCharCount = 0
-                    Dim LastUpperCaseCharPos As Integer
+                    Dim LastUpperCaseCharPos As Long
                     LastUpperCaseCharPos = 0
                     Do While (i < Len(tmpName) And (UpperCaseCharCount < 2))
                         If (IsUpperCaseChar(Mid$(tmpName, i, 1))) Then
@@ -1442,7 +1442,7 @@ Private Function cleanUpDoubleLines(ByVal quotedText As String) As String
     Dim quoteLines() As String
     quoteLines = Split(quotedText, vbCrLf)
 
-    Dim i As Integer
+    Dim i As Long
     For i = 0 To UBound(quoteLines)
         If (quoteLines(i) = "> ") Then
             If Not previousLineWasEmptyQuote Then
@@ -1460,13 +1460,13 @@ Private Function cleanUpDoubleLines(ByVal quotedText As String) As String
 End Function
 
 
-Private Function StripQuotes(ByVal quotedText As String, ByVal stripLevel As Integer) As String
+Private Function StripQuotes(ByVal quotedText As String, ByVal stripLevel As Long) As String
     Dim quoteLines() As String
     quoteLines = Split(quotedText, vbCrLf)
 
-    Dim i As Integer
+    Dim i As Long
     For i = 1 To UBound(quoteLines)
-        Dim level As Integer
+        Dim level As Long
         level = InStr(quoteLines(i), " ") - 1
         If level <= stripLevel Then
             Dim res As String
@@ -1518,7 +1518,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         Debug.Print rtf & vbCrLf & "*************************************************************" & vbCrLf
 
         'we have our own rtf header, remove generated one
-        Dim PosHeaderEnd As Integer
+        Dim PosHeaderEnd As Long
         Dim sTestString As String
         PosHeaderEnd = InStr(rtf, "\uc1\pard\plain\deftab360")
         If (PosHeaderEnd = 0) Then
@@ -1544,9 +1544,9 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
         Dim lines() As String
         lines = Split(rtf, vbCrLf)
         
-        Dim i As Integer
+        Dim i As Long
         For i = LBound(lines) To UBound(lines)
-            Dim n As Integer
+            Dim n As Long
             n = QuoteFixMacro.CalcNesting(lines(i)).level
 
             Dim resRTF As String
@@ -1606,7 +1606,7 @@ Private Function StripSuffixes(ByVal tempName As String) As String
     NameSuffixesArr = Split(LASTNAME_SUFFIXES, "/")
 
     'Strip the last suffix (is it ever the case that someone has multiple suffixes?)
-    Dim i As Integer
+    Dim i As Long
     For i = LBound(NameSuffixesArr) To UBound(NameSuffixesArr)
         If (Right$(tempName, Len(NameSuffixesArr(i)) + 1)) = " " & NameSuffixesArr(i) Then
             StripSuffixes = Trim$(Left$(tempName, Len(tempName) - Len(NameSuffixesArr(i))))

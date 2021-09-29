@@ -91,7 +91,7 @@ End Sub
 
 Private Function Text2Clipboard(szText As String)
     ' Get the length, including one extra for a CHR$(0) at the end.
-    Dim wLen As Integer
+    Dim wLen As Long
     wLen = Len(szText) + 1
     szText = szText & Chr$(0)
     Dim hMemory As Long

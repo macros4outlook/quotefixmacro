@@ -499,14 +499,14 @@ Private Sub reformatNoReformat()
     outlookOutput = vbNullString & _
         "> Moin," & vbNewLine & _
         "> " & vbNewLine & _
-        "> Kurzanleitung """"Deckel √∂ffnen"""":" & vbNewLine & _
+        "> Kurzanleitung """"Deckel ˆffnen"""":" & vbNewLine & _
         "> 1. Unten rechts die Kunststoff-Abdeckung mit einem Schraubendreher" & vbNewLine & _
         "> nach rechts schieben." & vbNewLine & _
         "> 2. Das Blech nach links schieben." & vbNewLine & _
-        "> 3. Kreuzschlitzschraube l√∂sen." & vbNewLine & _
+        "> 3. Kreuzschlitzschraube lˆsen." & vbNewLine & _
         "> " & vbNewLine & _
         "> " & vbNewLine & _
-        "> Mit freundlichen Gr√º√üen" & vbNewLine & _
+        "> Mit freundlichen Gr¸ﬂen" & vbNewLine & _
         "> " & vbNewLine & _
         "> company" & vbNewLine & _
         "> Jon Doe"
@@ -531,15 +531,15 @@ Private Sub reformatGreetingsKept()
         "> habe" & vbNewLine & _
         "> so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" & vbNewLine & _
         "> habe." & vbNewLine & _
-        "> xxx xxxxx? Haste eine L√∂sung f√ºr mein Virenprogramm, kann ich was" & vbNewLine & _
+        "> xxx xxxxx? Haste eine Lˆsung f¸r mein Virenprogramm, kann ich was" & vbNewLine & _
         "> runterladen?" & vbNewLine & _
-        "> Lieben Gru√ü Jane"
+        "> Lieben Gruﬂ Jane"
     expectedResult = vbNullString & _
         "> Hallo Jon, ich hatte mal von xxxxxx ein Anti-Virus Programm, aber ich" & vbNewLine & _
         "> habe so viele Spams trotzdem erhalten, dass ich das nicht mehr abonniert" & vbNewLine & _
-        "> habe. xxx xxxxx? Haste eine L√∂sung f√ºr mein Virenprogramm, kann" & vbNewLine & _
+        "> habe. xxx xxxxx? Haste eine Lˆsung f¸r mein Virenprogramm, kann" & vbNewLine & _
         "> ich was runterladen?" & vbNewLine & _
-        "> Lieben Gru√ü Jane"
+        "> Lieben Gruﬂ Jane"
 
     Dim processedText As String
     processedText = QuoteFixMacro.ReFormatText(outlookOutput)

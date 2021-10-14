@@ -2,7 +2,7 @@ Attribute VB_Name = "QuoteFixWithPAR"
 
 ' SPDX-License-Identifier: BSD-3-Clause
 
-' Trys to fix quotes using the "par" tool
+' Tries to fix quotes using the "par" tool
 
 ' For information on QuoteFixMacro heat to: https://macros4outlook.github.io/quotefixmacro/
 
@@ -13,33 +13,30 @@ Private Const PAR_CMD As String = "C:\cygwin\bin\bash.exe --login -c 'export PAR
 
 ' clipboard interaction in win32
 ' Provided by Allen Browne, allen@allenbrowne.com
-Declare Function abOpenClipboard Lib "User32" Alias "OpenClipboard" (ByVal Hwnd As Long) As Long
-Declare Function abCloseClipboard Lib "User32" Alias "CloseClipboard" () As Long
-Declare Function abEmptyClipboard Lib "User32" Alias "EmptyClipboard" () As Long
-Declare Function abIsClipboardFormatAvailable Lib "User32" Alias "IsClipboardFormatAvailable" (ByVal wFormat As Long) As Long
-Declare Function abSetClipboardData Lib "User32" Alias "SetClipboardData" (ByVal wFormat As Long, ByVal hMem As Long) As Long
-Declare Function abGetClipboardData Lib "User32" Alias "GetClipboardData" (ByVal wFormat As Long) As Long
-Declare Function abGlobalAlloc Lib "Kernel32" Alias "GlobalAlloc" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
-Declare Function abGlobalLock Lib "Kernel32" Alias "GlobalLock" (ByVal hMem As Long) As Long
-Declare Function abGlobalUnlock Lib "Kernel32" Alias "GlobalUnlock" (ByVal hMem As Long) As Boolean
-Declare Function abLstrcpy Lib "Kernel32" Alias "lstrcpyA" (ByVal lpString1 As Any, ByVal lpString2 As Any) As Long
-Declare Function abGlobalFree Lib "Kernel32" Alias "GlobalFree" (ByVal hMem As Long) As Long
-Declare Function abGlobalSize Lib "Kernel32" Alias "GlobalSize" (ByVal hMem As Long) As Long
-Const GHND = &H42
-Const CF_TEXT = 1
-Const APINULL = 0
+Private Declare PtrSafe Function abOpenClipboard Lib "User32" Alias "OpenClipboard" (ByVal Hwnd As Long) As Long
+Private Declare PtrSafe Function abCloseClipboard Lib "User32" Alias "CloseClipboard" () As Long
+Private Declare PtrSafe Function abEmptyClipboard Lib "User32" Alias "EmptyClipboard" () As Long
+Private Declare PtrSafe Function abIsClipboardFormatAvailable Lib "User32" Alias "IsClipboardFormatAvailable" (ByVal wFormat As Long) As Long
+Private Declare PtrSafe Function abSetClipboardData Lib "User32" Alias "SetClipboardData" (ByVal wFormat As Long, ByVal hMem As Long) As Long
+Private Declare PtrSafe Function abGetClipboardData Lib "User32" Alias "GetClipboardData" (ByVal wFormat As Long) As Long
+Private Declare PtrSafe Function abGlobalAlloc Lib "Kernel32" Alias "GlobalAlloc" (ByVal wFlags As Long, ByVal dwBytes As Long) As Long
+Private Declare PtrSafe Function abGlobalLock Lib "Kernel32" Alias "GlobalLock" (ByVal hMem As Long) As Long
+Private Declare PtrSafe Function abGlobalUnlock Lib "Kernel32" Alias "GlobalUnlock" (ByVal hMem As Long) As Boolean
+Private Declare PtrSafe Function abLstrcpy Lib "Kernel32" Alias "lstrcpyA" (ByVal lpString1 As Any, ByVal lpString2 As Any) As Long
+Private Declare PtrSafe Function abGlobalFree Lib "Kernel32" Alias "GlobalFree" (ByVal hMem As Long) As Long
+Private Declare PtrSafe Function abGlobalSize Lib "Kernel32" Alias "GlobalSize" (ByVal hMem As Long) As Long
+
+Private Const GHND = &H42
+Private Const CF_TEXT = 1
+Private Const APINULL = 0
 
 
-
-Function ExecPar(mailtext As String) As String
-    Dim ret As String
-    Dim line As String
-
+Private Function ExecPar(ByVal mailtext As String) As String
     Dim shell As Object
-    Dim pipe As Object
     Set shell = CreateObject("WScript.Shell")
 
     Debug.Print PAR_CMD
+    Dim pipe As Object
     Set pipe = shell.Exec(PAR_CMD)
     Debug.Print "END PAR"
 
@@ -47,14 +44,16 @@ Function ExecPar(mailtext As String) As String
     pipe.StdIn.Close
 
     Debug.Print "READING..."
-    While (pipe.StdOut.AtEndOfStream = False)
+    Do While (pipe.StdOut.AtEndOfStream = False)
+        Dim line As String
         line = pipe.StdOut.ReadLine()
-        If (Left(line, 1) = ">") Then
+        If (Left$(line, 1) = ">") Then
+            Dim ret As String
             ret = ret & ">" & line & vbCrLf
         Else
             ret = ret & "> " & line & vbCrLf
         End If
-    Wend
+    Loop
     'ret = pipe.StdOut.ReadAll()
     Debug.Print ret
 
@@ -66,15 +65,14 @@ End Function
 
 
 Public Sub ReformatSelectedText()
-    Dim text As String
-    Dim ret As Variant
-
     'copy selection to clipboard
     SendKeys "^c", True 'ctrl-c, wait until done
 
     'get text from clipboard
+    Dim ret As Variant
     ret = Clipboard2Text
     If (IsNull(ret)) Then Exit Sub 'error or no text in clipboard
+    Dim text As String
     text = CStr(ret)
     Debug.Print "FROM CLIPBOARD: " & vbCrLf & text
 
@@ -91,22 +89,20 @@ Public Sub ReformatSelectedText()
 End Sub
 
 
-Function Text2Clipboard(szText As String)
-    Dim wLen As Integer
-    Dim hMemory As Long
-    Dim lpMemory As Long
-    Dim retval As Variant
-    Dim wFreeMemory As Boolean
-
+Private Function Text2Clipboard(szText As String)
     ' Get the length, including one extra for a CHR$(0) at the end.
+    Dim wLen As Long
     wLen = Len(szText) + 1
     szText = szText & Chr$(0)
+    Dim hMemory As Long
     hMemory = abGlobalAlloc(GHND, wLen + 1)
     If hMemory = APINULL Then
         MsgBox "Unable to allocate memory."
         Exit Function
     End If
+    Dim wFreeMemory As Boolean
     wFreeMemory = True
+    Dim lpMemory As Long
     lpMemory = abGlobalLock(hMemory)
     If lpMemory = APINULL Then
         MsgBox "Unable to lock memory."
@@ -114,6 +110,7 @@ Function Text2Clipboard(szText As String)
     End If
 
     ' Copy our string into the locked memory.
+    Dim retval As Variant
     retval = abLstrcpy(lpMemory, szText)
     ' Don't send clipboard locked memory.
     retval = abGlobalUnlock(hMemory)
@@ -146,21 +143,7 @@ T2CB_Free:
 End Function
 
 
-
-Function Clipboard2Text()
-    Dim wLen As Integer
-    Dim hMemory As Long
-    Dim hMyMemory As Long
-
-    Dim lpMemory As Long
-    Dim lpMyMemory As Long
-
-    Dim retval As Variant
-    Dim wFreeMemory As Boolean
-    Dim wClipAvail As Integer
-    Dim szText As String
-    Dim wSize As Long
-
+Private Function Clipboard2Text()
     If abIsClipboardFormatAvailable(CF_TEXT) = APINULL Then
         Clipboard2Text = Null
         Exit Function
@@ -171,16 +154,21 @@ Function Clipboard2Text()
         GoTo CB2T_Free
     End If
 
+    Dim hMemory As Long
     hMemory = abGetClipboardData(CF_TEXT)
     If hMemory = APINULL Then
         MsgBox "Unable to retrieve text from the Clipboard."
         Exit Function
     End If
+    Dim wSize As Long
     wSize = abGlobalSize(hMemory)
-    szText = Space(wSize)
+    Dim szText As String
+    szText = Space$(wSize)
 
+    Dim wFreeMemory As Boolean
     wFreeMemory = True
 
+    Dim lpMemory As Long
     lpMemory = abGlobalLock(hMemory)
     If lpMemory = APINULL Then
         MsgBox "Unable to lock clipboard memory."
@@ -188,11 +176,12 @@ Function Clipboard2Text()
     End If
 
     ' Copy our string into the locked memory.
+    Dim retval As Variant
     retval = abLstrcpy(szText, lpMemory)
     ' Get rid of trailing stuff.
-    szText = Trim(szText)
+    szText = Trim$(szText)
     ' Get rid of trailing 0.
-    Clipboard2Text = Left(szText, Len(szText) - 1)
+    Clipboard2Text = Left$(szText, Len(szText) - 1)
     wFreeMemory = False
 
 CB2T_Close:

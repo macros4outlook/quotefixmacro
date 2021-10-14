@@ -8,8 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- In case the email target ends with a number, the reversal of names also works. I.e., in the case of `Lastname Firstname <firstname.lastname3@example.org>` "Firstname" is used as firstname.
-- Include "Dr." in the name if that is present
+* Added `ThisOutlookSession.cls` for directly intercepting the standard reply buttons. [[#11](https://github.com/macros4outlook/quotefixmacro/pull/11)]
+* In case the email target ends with a number, the reversal of names also works. I.e., in the case of `Lastname Firstname <firstname.lastname3@example.org>` "Firstname" is used as firstname.
+* Include "Dr." in the name if that is present
+
+### Fixed
+
+* Empty line is kept after the header for forwarded mails [[#12](https://github.com/macros4outlook/quotefixmacro/pull/12)]
 
 ## Version [1.8] - 2021-02-06
 

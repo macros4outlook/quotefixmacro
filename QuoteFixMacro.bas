@@ -1349,7 +1349,7 @@ Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter
     Next lineCounter
 
     'skip OUTLOOK_HEADERFINISH
-    lineCounter = lineCounter + 1
+    'lineCounter = lineCounter + 1
 
 End Function
 

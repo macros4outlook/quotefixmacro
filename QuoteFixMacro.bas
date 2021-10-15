@@ -118,8 +118,8 @@ Private Const DEFAULT_CONDENSED_HEADER_FORMAT As String = "%SN wrote on %D:"
 
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Original Message-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----Ursprüngliche Nachricht-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = As String "-----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE
 Private Const PGP_MARKER                As String = "-----BEGIN PGP"
 Private Const OUTLOOK_HEADERFINISH      As String = "> "

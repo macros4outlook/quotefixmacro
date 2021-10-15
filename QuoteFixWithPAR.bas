@@ -26,9 +26,9 @@ Private Declare PtrSafe Function abLstrcpy Lib "Kernel32" Alias "lstrcpyA" (ByVa
 Private Declare PtrSafe Function abGlobalFree Lib "Kernel32" Alias "GlobalFree" (ByVal hMem As Long) As Long
 Private Declare PtrSafe Function abGlobalSize Lib "Kernel32" Alias "GlobalSize" (ByVal hMem As Long) As Long
 
-Private Const GHND = &H42
-Private Const CF_TEXT = 1
-Private Const APINULL = 0
+Private Const GHND As Long = &H42
+Private Const CF_TEXT As Long = 1
+Private Const APINULL As Long = 0
 
 
 Private Function ExecPar(ByVal mailtext As String) As String

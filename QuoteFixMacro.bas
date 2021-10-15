@@ -789,28 +789,29 @@ catch:
         End If
     End If
 
-    'create reply --> outlook style!
-    Dim NewMail As MailItem
-    Select Case MailMode
-        Case TypeReply
-            If isMail Then
-                Set NewMail = OriginalMail.Reply
-            Else
-                Set NewMail = OriginalMeeting.Reply
-            End If
-        Case TypeReplyAll
-            If isMail Then
-                Set NewMail = OriginalMail.ReplyAll
-            Else
-                Set NewMail = OriginalMeeting.ReplyAll
-            End If
-        Case TypeForward
-            If isMail Then
-                Set NewMail = OriginalMail.Forward
-            Else
-                Set NewMail = OriginalMeeting.Forward
-            End If
-    End Select
+    '''create reply --> outlook style!
+    ''Actions(1) = Actions("Reply")' or 'Actions("Antworten")' respectively, etc.
+    If isMail Then
+        With OriginalMail.Actions(MailMode)
+            Dim OriginalReplyStyle As OlActionReplyStyle
+            OriginalReplyStyle = .ReplyStyle
+            .ReplyStyle = olReplyTickOriginalText
+
+            Dim NewMail As MailItem
+            Set NewMail = .Execute
+
+            .ReplyStyle = OriginalReplyStyle
+        End With
+    Else
+        With OriginalMeeting.Actions(MailMode)
+            OriginalReplyStyle = .ReplyStyle
+            .ReplyStyle = olReplyTickOriginalText
+
+            Set NewMail = .Execute
+
+            .ReplyStyle = OriginalReplyStyle
+        End With
+    End If
 
     'if the mail is marked as a possible phishing mail, a warning will be shown and
     'the reply methods will return null (forward method is ok)
@@ -1332,7 +1333,9 @@ End Sub
 Private Sub getNamesFromMeeting(ByVal item As MeetingItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
 
     'Wildcard replacements
-    senderName = item.SentOnBehalfOfName
+'BUG: `SentOnBehalfOfName` not supported in Outlook 2019 for an MeetingItem
+'    senderName = item.SentOnBehalfOfName
+    senderName = item.senderEmailAddress
 
     If Len(senderName) = 0 Then
         senderName = item.senderName

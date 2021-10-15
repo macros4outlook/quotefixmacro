@@ -750,6 +750,8 @@ catch:
     If isMail Then
         bodyFormat = OriginalMail.bodyFormat
     Else
+'BUG: `MeetingItem.BodyFormat` doesn't exist in Excel 2013 and causes a runtime error
+'     how to deal with that?
         bodyFormat = OriginalMeeting.bodyFormat
     End If
 

@@ -92,7 +92,7 @@ End Sub
 'TODO: 2: add `ByVal` or `ByRef` (default is `ByRef`). `szText` is changed
 '         in the marked line and thus goes (maybe) changed to the calling
 '         procedure. (Is that intended?)
-Private Function Text2Clipboard(szText As String)
+Private Sub Text2Clipboard(szText As String)
     ' Get the length, including one extra for a CHR$(0) at the end.
     Dim wLen As Long
     wLen = Len(szText) + 1
@@ -101,7 +101,7 @@ Private Function Text2Clipboard(szText As String)
     hMemory = abGlobalAlloc(GHND, wLen + 1)
     If hMemory = APINULL Then
         MsgBox "Unable to allocate memory."
-        Exit Function
+        Exit Sub
     End If
     Dim wFreeMemory As Boolean
     wFreeMemory = True
@@ -137,19 +137,19 @@ T2CB_Close:
         MsgBox "Unable to close the Clipboard."
     End If
     If wFreeMemory Then GoTo T2CB_Free
-    Exit Function
+    Exit Sub
 
 T2CB_Free:
     If abGlobalFree(hMemory) <> APINULL Then
         MsgBox "Unable to free global memory."
     End If
-End Function
+End Sub
 
 
-Private Function Clipboard2Text()
+Private Sub Clipboard2Text()
     If abIsClipboardFormatAvailable(CF_TEXT) = APINULL Then
         Clipboard2Text = Null
-        Exit Function
+        Exit Sub
     End If
 
     If abOpenClipboard(0&) = APINULL Then
@@ -161,7 +161,7 @@ Private Function Clipboard2Text()
     hMemory = abGetClipboardData(CF_TEXT)
     If hMemory = APINULL Then
         MsgBox "Unable to retrieve text from the Clipboard."
-        Exit Function
+        Exit Sub
     End If
     Dim wSize As Long
     wSize = abGlobalSize(hMemory)
@@ -192,10 +192,10 @@ CB2T_Close:
         MsgBox "Unable to close the Clipboard."
     End If
     If wFreeMemory Then GoTo CB2T_Free
-    Exit Function
+    Exit Sub
 
 CB2T_Free:
     If abGlobalFree(hMemory) <> APINULL Then
         MsgBox "Unable to free global clipboard memory."
     End If
-End Function
+End Sub

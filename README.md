@@ -343,7 +343,7 @@ You can store the default configuration in the registry:
 2. by writing a routing executing command similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")`
 3. by manually creating entries in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
 
-### Intersept the normal buttons
+### Intercept the normal buttons
 
 Add the content of `ThisOutlookSession.cls` to 'ThisOutlookSession' in the Outlook Visual Basic Macro Editor after having installed QuoteFixMacro and restart Outlook.
 You can then use the normal Reply/ReplyAll/Forward buttons.

@@ -41,6 +41,7 @@ Private Const REG_GROUP_FIRSTNAMES As String = "Firstnames" 'stores replacements
 '*** Feature QuoteColorizer ***
 '--------------------------------------------------------
 Private Const DEFAULT_USE_COLORIZER As Boolean = False
+'TODO: add note where to get the DLL from. I couldn't find it on my system
 'If you enable it, you need MAPIRTF.DLL in C:\Windows\System32
 'Does NOT work at Windows 7/64bit Outlook 2010/32bit
 '
@@ -158,6 +159,8 @@ Private FIRSTNAME_REPLACEMENT__EMAIL() As String
 Private FIRSTNAME_REPLACEMENT__FIRSTNAME() As String
 
 
+'TODO: 1: check if these can also be changed into `Long`s. Unfortunately I
+'         don't have the DLL and therefore can't test it myself
 'For QuoteColorizer
 Public Declare PtrSafe Function WriteRTF _
         Lib "mapirtf.dll" _
@@ -165,7 +168,7 @@ Public Declare PtrSafe Function WriteRTF _
                           ByVal MessageID As String, _
                           ByVal StoreID As String, _
                           ByVal cText As String) _
-        As Integer
+        As Integer      ' <-- {1}
 
 'For QuoteColorizer
 Public Declare PtrSafe Function ReadRTF _
@@ -174,7 +177,7 @@ Public Declare PtrSafe Function ReadRTF _
                          ByVal SrcMsgID As String, _
                          ByVal SrcStoreID As String, _
                          ByRef MsgRTF As String) _
-        As Integer
+        As Integer      '<-- {1}
 
 
 Private Enum ReplyType
@@ -1510,7 +1513,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     Dim rtf  As String
     rtf = Space$(99999)  'init rtf to max length of message!
 
-    Dim ret As Integer
+    Dim ret As Integer      '<-- {1}
     ret = ReadRTF(session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
     If (ret = 0) Then
         'ole call success!!!

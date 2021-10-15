@@ -89,11 +89,14 @@ Public Sub ReformatSelectedText()
 End Sub
 
 
+'TODO: 2: add `ByVal` or `ByRef` (default is `ByRef`). `szText` is changed
+'         in the marked line and thus goes (maybe) changed to the calling
+'         procedure. (Is that intended?)
 Private Function Text2Clipboard(szText As String)
     ' Get the length, including one extra for a CHR$(0) at the end.
     Dim wLen As Long
     wLen = Len(szText) + 1
-    szText = szText & Chr$(0)
+    szText = szText & Chr$(0)       '<-- {2}
     Dim hMemory As Long
     hMemory = abGlobalAlloc(GHND, wLen + 1)
     If hMemory = APINULL Then

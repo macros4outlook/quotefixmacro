@@ -30,6 +30,7 @@ Attribute VB_Name = "Tools"
 '
 '$Revision$ - not released
 
+'@Folder("QuoteFixMacro")
 Option Explicit
 
 Public InterceptorCollection As New Collection

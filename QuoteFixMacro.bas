@@ -16,6 +16,7 @@ Attribute VB_Name = "QuoteFixMacro"
 
 ' For information on configuration head to QuoteFix Macro's homepage: https://macros4outlook.github.io/quotefixmacro/
 
+'@Folder("QuoteFixMacro")
 Option Explicit
 
 

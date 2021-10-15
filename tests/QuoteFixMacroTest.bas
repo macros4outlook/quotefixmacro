@@ -4,7 +4,7 @@ Option Explicit
 Option Private Module
 
 '@TestModule
-'@Folder("Tests")
+'@Folder("QuoteFixMacro.Tests")
 
 Private Assert As Object
 Private Fakes As Object

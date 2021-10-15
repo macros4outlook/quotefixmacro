@@ -6,6 +6,7 @@ Attribute VB_Name = "QuoteFixWithPAR"
 
 ' For information on QuoteFixMacro heat to: https://macros4outlook.github.io/quotefixmacro/
 
+'@Folder("QuoteFixMacro")
 Option Explicit
 
 Private Const PAR_OPTIONS As String = "75q"                                   'DEFAULT=rTbgqR B=.,?_A_a Q=_s>|

@@ -44,7 +44,7 @@ Public Sub ReadCurrentMailItemRTF()
     Dim rtf As String
     rtf = Space$(99999)
     Dim ret As Long
-    ret = ReadRTF("MAPI", GetCurrentItem.EntryID, Session.GetDefaultFolder(olFolderInbox).StoreID, rtf)
+    ret = ReadRTF("MAPI", GetCurrentItem.EntryID, session.GetDefaultFolder(olFolderInbox).StoreID, rtf)
     rtf = Trim$(rtf)
     
     Debug.Print "RTF READ:" & ret & vbCrLf & rtf
@@ -61,10 +61,10 @@ Public Sub TestColors()
     Set answer = mi.reply
     Set mi = Nothing
     
-    answer.BodyFormat = olFormatRichText
+    answer.bodyFormat = olFormatRichText
     
-    Dim mid As String
-    'mid = QuoteColorizerMacro.ColorizeMailItem(answer)
+    Dim ColoredAnswer As String
+    'ColoredAnswer = QuoteColorizerMacro.ColorizeMailItem(answer)
     answer.Display
     Set answer = Nothing 'answer bodyformat changes here to 1 for some stupid reason...
     

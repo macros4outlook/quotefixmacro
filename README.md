@@ -118,6 +118,7 @@ You can also change the name and image of the newly created buttons using the cu
 
    * When replying to a message: "Prefix each line of the original message"
    * When forwarding a message: "Include original message text" or "Prefix each line of the original message"
+   <!-- markdownlint-disable-next-line MD038 -->
    * Prefix each line with: "`> `"
 
 2. Tools > Options > Mail Format
@@ -356,6 +357,7 @@ It should also work if the reply event is triggered otherwise (e.g. by another m
 ## FAQ
 
 Q: What if the whole mail text disappears?
+<!-- markdownlint-disable-next-line MD038 -->
 A: The reply setting in Outlook is not configured as required. Double check that the original text should be prefixed with `> `.
 
 ## Developing

@@ -117,7 +117,7 @@ Private Const DEFAULT_CONDENSED_HEADER_FORMAT As String = "%SN wrote on %D:"
 
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----UrsprÃ¼ngliche Nachricht-----"
 'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE
 Private Const PGP_MARKER                As String = "-----BEGIN PGP"
@@ -750,9 +750,10 @@ catch:
     If isMail Then
         bodyFormat = OriginalMail.bodyFormat
     Else
-'BUG: `MeetingItem.BodyFormat` doesn't exist in Excel 2013 and causes a runtime error
-'     how to deal with that?
+        ' `MeetingItem.BodyFormat` doesn't exist in Outlook 2016 and causes a runtime error --> skip it
+        On Error Resume Next
         bodyFormat = OriginalMeeting.bodyFormat
+        On Error GoTo 0
     End If
 
     'basically, we do not understand HTML mails

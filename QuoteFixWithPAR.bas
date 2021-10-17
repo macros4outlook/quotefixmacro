@@ -6,6 +6,7 @@ Attribute VB_Name = "QuoteFixWithPAR"
 
 ' For information on QuoteFixMacro heat to: https://macros4outlook.github.io/quotefixmacro/
 
+'@Folder("QuoteFixMacro")
 Option Explicit
 
 Private Const PAR_OPTIONS As String = "75q"                                   'DEFAULT=rTbgqR B=.,?_A_a Q=_s>|
@@ -26,9 +27,9 @@ Private Declare PtrSafe Function abLstrcpy Lib "Kernel32" Alias "lstrcpyA" (ByVa
 Private Declare PtrSafe Function abGlobalFree Lib "Kernel32" Alias "GlobalFree" (ByVal hMem As Long) As Long
 Private Declare PtrSafe Function abGlobalSize Lib "Kernel32" Alias "GlobalSize" (ByVal hMem As Long) As Long
 
-Private Const GHND = &H42
-Private Const CF_TEXT = 1
-Private Const APINULL = 0
+Private Const GHND As Long = &H42
+Private Const CF_TEXT As Long = 1
+Private Const APINULL As Long = 0
 
 
 Private Function ExecPar(ByVal mailtext As String) As String
@@ -89,16 +90,19 @@ Public Sub ReformatSelectedText()
 End Sub
 
 
-Private Function Text2Clipboard(szText As String)
+'TODO: 2: add `ByVal` or `ByRef` (default is `ByRef`). `szText` is changed
+'         in the marked line and thus goes (maybe) changed to the calling
+'         procedure. (Is that intended?)
+Private Sub Text2Clipboard(szText As String)
     ' Get the length, including one extra for a CHR$(0) at the end.
     Dim wLen As Long
     wLen = Len(szText) + 1
-    szText = szText & Chr$(0)
+    szText = szText & Chr$(0)       '<-- {2}
     Dim hMemory As Long
     hMemory = abGlobalAlloc(GHND, wLen + 1)
     If hMemory = APINULL Then
         MsgBox "Unable to allocate memory."
-        Exit Function
+        Exit Sub
     End If
     Dim wFreeMemory As Boolean
     wFreeMemory = True
@@ -134,19 +138,19 @@ T2CB_Close:
         MsgBox "Unable to close the Clipboard."
     End If
     If wFreeMemory Then GoTo T2CB_Free
-    Exit Function
+    Exit Sub
 
 T2CB_Free:
     If abGlobalFree(hMemory) <> APINULL Then
         MsgBox "Unable to free global memory."
     End If
-End Function
+End Sub
 
 
-Private Function Clipboard2Text()
+Private Sub Clipboard2Text()
     If abIsClipboardFormatAvailable(CF_TEXT) = APINULL Then
         Clipboard2Text = Null
-        Exit Function
+        Exit Sub
     End If
 
     If abOpenClipboard(0&) = APINULL Then
@@ -158,7 +162,7 @@ Private Function Clipboard2Text()
     hMemory = abGetClipboardData(CF_TEXT)
     If hMemory = APINULL Then
         MsgBox "Unable to retrieve text from the Clipboard."
-        Exit Function
+        Exit Sub
     End If
     Dim wSize As Long
     wSize = abGlobalSize(hMemory)
@@ -189,10 +193,10 @@ CB2T_Close:
         MsgBox "Unable to close the Clipboard."
     End If
     If wFreeMemory Then GoTo CB2T_Free
-    Exit Function
+    Exit Sub
 
 CB2T_Free:
     If abGlobalFree(hMemory) <> APINULL Then
         MsgBox "Unable to free global clipboard memory."
     End If
-End Function
+End Sub

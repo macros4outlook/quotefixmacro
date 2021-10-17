@@ -1,4 +1,6 @@
 Attribute VB_Name = "RandomSignature"
+
+'@Folder("QuoteFixMacro")
 Option Explicit
 
 Public Sub NewMailMessage()

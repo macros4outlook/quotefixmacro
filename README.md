@@ -57,12 +57,12 @@ See what I mean?
 
 Now, what is wrong with this email?
 
-* Horribly broken quotes - line breaks in several wrong places!
+* Horribly broken quotes – line breaks in several wrong places!
 * Outlook basically forced me to do a 'top-post', because empty lines were inserted at the top and the cursor was positioned there. And if I had used a signature, it would have been inserted at the top, too.
 * Empty lines at the end of the message were quoted.
 * The quote header is far too long (5 lines + 2 empty lines) and cannot be modified for a 'personal touch'.
 
-BUT... It doesn't have to be that way. QuoteFixMacro fixes all of the above - and more! The following is an example of how the above message dialog could have looked with QuoteFixMacro:
+BUT... It doesn't have to be that way. QuoteFixMacro fixes all of the above – and more! The following is an example of how the above message dialog could have looked with QuoteFixMacro:
 
 ```text
 Dominik Jain wrote:
@@ -86,7 +86,7 @@ Dominik Jain wrote:
 See what I mean?
 ```
 
-And the best thing about QuoteFixMacro is, **there is absolutely nothing you have to do**. It's all done automatically. You click reply and Outlook-QuoteFix will immediately reformat the message for proper quoting! No message you send is ever going to look like the one in the example at the top again... And if you get all your friends to use this program, too, such messy quotes will soon become the exception to the rule. And even if you don't, QuoteFixMacro will attempt to fix all their messy quotes when you reply to their messages!
+And the best thing about QuoteFixMacro is, **there is absolutely nothing you have to do**. It's all done automatically. You click reply and QuoteFixMacro will immediately reformat the message for proper quoting! No message you send is ever going to look like the one in the example at the top again... And if you get all your friends to use this program, too, such messy quotes will soon become the exception to the rule. And even if you don't, QuoteFixMacro will attempt to fix all their messy quotes when you reply to their messages!
 
 ## Setup
 
@@ -120,18 +120,19 @@ After importing the macro, you need to replace the original "Reply" and "ReplyAl
 
 You can also change the name and image of the newly created buttons using the customization dialog. If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a shortcut for reply. Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro. Nevertheless, the mapping can be done by using AutoHotkey (see below).
 
-### Set up eMail
+### Set up email
 
 1. Tools > Options > Preferences > E-mail Options... > On replies and forwards
 
    * When replying to a message: "Prefix each line of the original message"
    * When forwarding a message: "Include original message text" or "Prefix each line of the original message"
+   <!-- markdownlint-disable-next-line MD038 -->
    * Prefix each line with: "`> `"
 
 2. Tools > Options > Mail Format
 
    * Message format: Plain Text
-   * Not this is not necessary, if `CONVERT_TO_PLAIN` is set to `True`.
+   * Note: this is not necessary, if `CONVERT_TO_PLAIN` is set to `True`.
 
 3. Tools > Options > Mail Format > Internet Format...
 
@@ -146,14 +147,14 @@ You can also change the name and image of the newly created buttons using the cu
 5. Display all E-Mail as Text
 
    * QuoteFixMacro requires plain text to work. One can either read all emails as plain text from the beginning or set `CONVERT_TO_PLAIN` is set to `True`.
-     In case all texts should be read a s plain text,s ee Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature. For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)): File / Options / Security Center / Options for the Security Center / E-Mail Security / "Read as Plain Text" / `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text".
+     In case all texts should be read as plain text, see Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature. For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)): File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text" > `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text".
 
 ## Templates
 
 Templates are **the** place to take full advantage of QuoteFixMacro.
 The macro replaces certain tokens in the signature. Therefore, the signature can also be used as a template for a message.
 
-Please double check that the template is used as "Forward/Reply" signature under Extra.../Options/E-Mail-Format/Signatures.../E-Mail-Signature
+Please double check that the template is used as "Forward/Reply" signature under Extra... > Options > E-Mail-Format > Signatures... > E-Mail-Signature
 
 | Pattern | Description |
 | -- | -- |
@@ -213,12 +214,12 @@ Amie
 
 ### Custom first names
 
-Sometimes, one wants to call someone by a nick name. E.g., one wants to call "Jennifer Muster" just "Jenny". Sometimes, someone does not put his full first name in the Email. E.g., "Adelinde Muster" has "<a.muster@example.org>".
+Sometimes, one wants to call someone by a nick name. E.g., one wants to call "Jennifer Muster" just "Jenny". Sometimes, someone does not put his full first name in the email. E.g., "Adelinde Muster" has "<a.muster@example.org>".
 
 QuoteFixMacro supports that replacement. You have to use the registry keys at `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\firstnames`.
 The key `Count` states how many entries you made.
 `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\firstnames\1` contains the first entry, `...\2` the second, and so on.
-At each entry, there are two keys: email stating the email to match and firstName the first name to use.
+At each entry, there are two keys: `email` stating the email to match and `firstName` the first name to use.
 
 #### Step-by-step instruction
 
@@ -227,13 +228,13 @@ At each entry, there are two keys: email stating the email to match and firstNam
 1. Create key `firstnames`
 1. Create string (!) "Count" with value `X`, where `X` is the number of replacements you want to configure
 1. Create key `firstnames.1`
-1. Create string value `email` with the email you want to specify a firstName for
-1. Create string value `firstName` with the firstname to be used
+1. Create string value `email` with the email you want to specify a first name for
+1. Create string value `firstName` with the first name to be used
 1. Repeat steps 5 to 7 until `X` is reached. Replace `1` at `firstnames.1` by the appropriate number
 
 #### Direct import using `.reg` files
 
-Alternatively, create a `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry.
+Alternatively, create an `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry.
 The distribution of QuoteFixMacro already contains an [`exampleFirstNameConfiguration.reg`](exampleFirstNameConfiguration.reg) with the content below.
 
 ```reg
@@ -316,14 +317,14 @@ One can also condense the first header only `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTL
 
 ### QuoteColorizer
 
-QuoteColorizer colorizes the indented parts in different colors to make it easier to distinguish who wrote which text. Set `USE_COLORIZER` to `true` to use this. The mail format is automatically set to Rich-Text.
+QuoteColorizer colorizes the indented parts in different colors to make it easier to distinguish who wrote which text. Set `USE_COLORIZER` to `True` to use this. The mail format is automatically set to Rich-Text.
 
 The recipient will receive the colors, too.
 In case, you don't want this, enable convert RTF-to-Text at sending.
 
 ### Strip sender's signature
 
-By default, the sender's signature is removed from the reply. If you don't want this, set `STRIP_SIGNATURE` to `false`.
+By default, the sender's signature is removed from the reply. If you don't want this, set `STRIP_SIGNATURE` to `False`.
 
 ### SoftWrap
 
@@ -351,7 +352,7 @@ You can store the default configuration in the registry:
 2. by writing a routing executing command similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")`
 3. by manually creating entries in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
 
-### Intersept the normal buttons
+### Intercept the normal buttons
 
 Add the content of `ThisOutlookSession.cls` to 'ThisOutlookSession' in the Outlook Visual Basic Macro Editor after having installed QuoteFixMacro and restart Outlook.
 You can then use the normal Reply/ReplyAll/Forward buttons.
@@ -364,6 +365,7 @@ It should also work if the reply event is triggered otherwise (e.g. by another m
 ## FAQ
 
 Q: What if the whole mail text disappears?
+<!-- markdownlint-disable-next-line MD038 -->
 A: The reply setting in Outlook is not configured as required. Double check that the original text should be prefixed with `> `.
 
 ## Developing

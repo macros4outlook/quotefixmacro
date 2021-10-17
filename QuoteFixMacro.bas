@@ -1095,7 +1095,7 @@ Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As
         tmpName = Left$(tmpName, Len(tmpName) - 5)
         title = "Dr. "
     ElseIf (Right$(tmpName, 3) = "Dr.") Then
-        tmpName = Left$(tmpName, Len(tmpName) - 3
+        tmpName = Left$(tmpName, Len(tmpName) - 3)
         title = "Dr. "
     End If
 

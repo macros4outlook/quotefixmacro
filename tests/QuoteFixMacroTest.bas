@@ -266,6 +266,24 @@ TestFail:
 End Sub
 
 '@TestMethod("getNamesOutOfString")
+Private Sub LastnameFirstnameDrAllCommaSeparated()
+    On Error GoTo TestFail
+
+    originalName = "Last, First, Dr."
+
+    getNamesOutOfString originalName, senderName, firstName, lastName, "First.Last3@example.com"
+
+    Assert.AreEqual "Dr. First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Dr. Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
 Private Sub FirstnameLastnameDrDepartmentEmailWithNumberReverse()
     On Error GoTo TestFail
 

@@ -1336,9 +1336,9 @@ End Sub
 Private Sub getNamesFromMeeting(ByVal item As MeetingItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
 
     'Wildcard replacements
-'BUG: `SentOnBehalfOfName` not supported in Outlook 2019 for an MeetingItem
-'    senderName = item.SentOnBehalfOfName
-    senderName = item.senderEmailAddress
+    ' `MeetingItem.SentOnBehalfOfName` not supported in Outlook 2019.
+    ' Thus, we fall back to `senderName`.
+    senderName = item.senderName
 
     If Len(senderName) = 0 Then
         senderName = item.senderName

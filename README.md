@@ -116,9 +116,9 @@ You can also change the name and image of the newly created buttons using the cu
 
 1. Tools > Options > Preferences > E-mail Options... > On replies and forwards
 
-   * Prefix each line with: "`> `"
-     (To change the entry temporarily change the value of "When replying to a
-     message" to "Prefix each line of the original message")
+   * Change the value "When replying to a message" to "Prefix each line of original message"
+   * Set "Prefix each line with" to "`> `"
+   * Change the value "When replying to a message" back to to "Insert text of original message"
 
 2. Tools > Options > Mail Format
 

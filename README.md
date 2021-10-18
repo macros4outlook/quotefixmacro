@@ -116,10 +116,10 @@ You can also change the name and image of the newly created buttons using the cu
 
 1. Tools > Options > Preferences > E-mail Options... > On replies and forwards
 
-   * When replying to a message: "Prefix each line of the original message"
-   * When forwarding a message: "Include original message text" or "Prefix each line of the original message"
+   * Change the value "When replying to a message" to "Prefix each line of the original message"
    <!-- markdownlint-disable-next-line MD038 -->
-   * Prefix each line with: "`> `"
+   * Set "Prefix each line with" to "`> `"
+   * Change the value "When replying to a message" back to to "Include original message text"
 
 2. Tools > Options > Mail Format
 

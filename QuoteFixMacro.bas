@@ -119,8 +119,8 @@ Private Const DEFAULT_CONDENSED_HEADER_FORMAT As String = "%SN wrote on %D:"
 
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----Ursprüngliche Nachricht-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = As String "-----Original Message-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----UrsprÃ¼ngliche Nachricht-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE
 Private Const PGP_MARKER                As String = "-----BEGIN PGP"
 Private Const OUTLOOK_HEADERFINISH      As String = "> "
@@ -754,7 +754,10 @@ catch:
     If isMail Then
         bodyFormat = OriginalMail.bodyFormat
     Else
+        ' `MeetingItem.BodyFormat` doesn't exist in Outlook 2016 and causes a runtime error --> skip it
+        On Error Resume Next
         bodyFormat = OriginalMeeting.bodyFormat
+        On Error GoTo 0
     End If
 
     'basically, we do not understand HTML mails
@@ -793,28 +796,29 @@ catch:
         End If
     End If
 
-    'create reply --> outlook style!
-    Dim NewMail As MailItem
-    Select Case MailMode
-        Case TypeReply
-            If isMail Then
-                Set NewMail = OriginalMail.Reply
-            Else
-                Set NewMail = OriginalMeeting.Reply
-            End If
-        Case TypeReplyAll
-            If isMail Then
-                Set NewMail = OriginalMail.ReplyAll
-            Else
-                Set NewMail = OriginalMeeting.ReplyAll
-            End If
-        Case TypeForward
-            If isMail Then
-                Set NewMail = OriginalMail.Forward
-            Else
-                Set NewMail = OriginalMeeting.Forward
-            End If
-    End Select
+    '''create reply --> outlook style!
+    ''Actions(1) = Actions("Reply")' or 'Actions("Antworten")' respectively, etc.
+    If isMail Then
+        With OriginalMail.Actions(MailMode)
+            Dim OriginalReplyStyle As OlActionReplyStyle
+            OriginalReplyStyle = .ReplyStyle
+            .ReplyStyle = olReplyTickOriginalText
+
+            Dim NewMail As MailItem
+            Set NewMail = .Execute
+
+            .ReplyStyle = OriginalReplyStyle
+        End With
+    Else
+        With OriginalMeeting.Actions(MailMode)
+            OriginalReplyStyle = .ReplyStyle
+            .ReplyStyle = olReplyTickOriginalText
+
+            Set NewMail = .Execute
+
+            .ReplyStyle = OriginalReplyStyle
+        End With
+    End If
 
     'if the mail is marked as a possible phishing mail, a warning will be shown and
     'the reply methods will return null (forward method is ok)
@@ -1338,7 +1342,9 @@ End Sub
 Private Sub getNamesFromMeeting(ByVal item As MeetingItem, ByRef senderName As String, ByRef firstName As String, ByRef lastName As String)
 
     'Wildcard replacements
-    senderName = item.SentOnBehalfOfName
+    ' `MeetingItem.SentOnBehalfOfName` not supported in Outlook 2019.
+    ' Thus, we fall back to `senderName`.
+    senderName = item.senderName
 
     If Len(senderName) = 0 Then
         senderName = item.senderName

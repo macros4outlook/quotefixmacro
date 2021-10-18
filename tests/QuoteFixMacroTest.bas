@@ -4,7 +4,7 @@ Option Explicit
 Option Private Module
 
 '@TestModule
-'@Folder("Tests")
+'@Folder("QuoteFixMacro.Tests")
 
 Private Assert As Object
 Private Fakes As Object
@@ -258,6 +258,24 @@ Private Sub FirstnameLastnameDepartment()
     Assert.AreEqual "First Last", senderName
     Assert.AreEqual "First", firstName
     Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub LastnameFirstnameDrAllCommaSeparated()
+    On Error GoTo TestFail
+
+    originalName = "Last, First, Dr."
+
+    getNamesOutOfString originalName, senderName, firstName, lastName, "First.Last3@example.com"
+
+    Assert.AreEqual "Dr. First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Dr. Last", lastName
 
 TestExit:
     Exit Sub

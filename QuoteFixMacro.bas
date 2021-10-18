@@ -16,6 +16,7 @@ Attribute VB_Name = "QuoteFixMacro"
 
 ' For information on configuration head to QuoteFix Macro's homepage: https://macros4outlook.github.io/quotefixmacro/
 
+'@Folder("QuoteFixMacro")
 Option Explicit
 
 
@@ -41,6 +42,7 @@ Private Const REG_GROUP_FIRSTNAMES As String = "Firstnames" 'stores replacements
 '*** Feature QuoteColorizer ***
 '--------------------------------------------------------
 Private Const DEFAULT_USE_COLORIZER As Boolean = False
+'TODO: add note where to get the DLL from. I couldn't find it on my system
 'If you enable it, you need MAPIRTF.DLL in C:\Windows\System32
 'Does NOT work at Windows 7/64bit Outlook 2010/32bit
 '
@@ -117,8 +119,8 @@ Private Const DEFAULT_CONDENSED_HEADER_FORMAT As String = "%SN wrote on %D:"
 
 
 Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Ursprüngliche Nachricht-----"
-'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE = "-----Original Message-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----Ursprüngliche Nachricht-----"
+'Private Const OUTLOOK_PLAIN_ORIGINALMESSAGE As String = "-----Original Message-----"
 Private Const OUTLOOK_ORIGINALMESSAGE   As String = "> " & OUTLOOK_PLAIN_ORIGINALMESSAGE
 Private Const PGP_MARKER                As String = "-----BEGIN PGP"
 Private Const OUTLOOK_HEADERFINISH      As String = "> "
@@ -158,6 +160,8 @@ Private FIRSTNAME_REPLACEMENT__EMAIL() As String
 Private FIRSTNAME_REPLACEMENT__FIRSTNAME() As String
 
 
+'TODO: 1: check if these can also be changed into `Long`s. Unfortunately I
+'         don't have the DLL and therefore can't test it myself
 'For QuoteColorizer
 Public Declare PtrSafe Function WriteRTF _
         Lib "mapirtf.dll" _
@@ -165,7 +169,7 @@ Public Declare PtrSafe Function WriteRTF _
                           ByVal MessageID As String, _
                           ByVal StoreID As String, _
                           ByVal cText As String) _
-        As Integer
+        As Integer      ' <-- {1}
 
 'For QuoteColorizer
 Public Declare PtrSafe Function ReadRTF _
@@ -174,7 +178,7 @@ Public Declare PtrSafe Function ReadRTF _
                          ByVal SrcMsgID As String, _
                          ByVal SrcStoreID As String, _
                          ByRef MsgRTF As String) _
-        As Integer
+        As Integer      '<-- {1}
 
 
 Private Enum ReplyType
@@ -1092,12 +1096,14 @@ Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As
 
     tmpName = removeDepartment(tmpName)
 
-    If (Left$(tmpName, 3) = "Dr.") Then
+    If (Left$(tmpName, 4) = "Dr. ") Then
         tmpName = Mid$(tmpName, 5)
         title = "Dr. "
-    End If
-    If (Right$(tmpName, 3) = "Dr.") Then
-        tmpName = Left$(tmpName, Len(tmpName) - 4)
+    ElseIf (Right$(tmpName, 5) = ", Dr.") Then
+        tmpName = Left$(tmpName, Len(tmpName) - 5)
+        title = "Dr. "
+    ElseIf (Right$(tmpName, 3) = "Dr.") Then
+        tmpName = Left$(tmpName, Len(tmpName) - 3)
         title = "Dr. "
     End If
 
@@ -1516,7 +1522,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
     Dim rtf  As String
     rtf = Space$(99999)  'init rtf to max length of message!
 
-    Dim ret As Integer
+    Dim ret As Integer      '<-- {1}
     ret = ReadRTF(session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
     If (ret = 0) Then
         'ole call success!!!

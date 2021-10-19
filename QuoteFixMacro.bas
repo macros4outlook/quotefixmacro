@@ -900,7 +900,7 @@ catch:
         'The real condensing is made below, where CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS is checked
         'Disabling getOutlookHeader leads to an unmodified lineCounter, which in turn gets the header included in "quotedText"
     Else
-        OutlookHeader = getOutlookHeader(BodyLines, lineCounter)
+        OutlookHeader = getOutlookHeader(BodyLines, lineCounter, MailMode)
     End If
 
     Dim quotedText As String
@@ -1354,7 +1354,7 @@ Private Sub getNamesFromMeeting(ByVal item As MeetingItem, ByRef senderName As S
 End Sub
 
 
-Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
+Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter As Long, ByRef MailMode As ReplyType) As String
     ' parse until we find the header finish "> " (Outlook_Headerfinish)
 
     For lineCounter = lineCounter To UBound(BodyLines)
@@ -1364,8 +1364,10 @@ Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter
         getOutlookHeader = getOutlookHeader & BodyLines(lineCounter) & vbCrLf
     Next
 
-    'skip OUTLOOK_HEADERFINISH
-    'lineCounter = lineCounter + 1
+    'skip OUTLOOK_HEADERFINISH for replies
+    If Not MailMode = TypeForward Then
+        lineCounter = lineCounter + 1
+    End If
 
 End Function
 

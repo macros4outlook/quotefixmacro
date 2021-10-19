@@ -92,19 +92,27 @@ And the best thing about QuoteFixMacro is, **there is absolutely nothing you hav
 
 ### Download
 
-Download the latest version from the GitHub release page.
+Download the latest version from the [GitHub release page](https://github.com/macros4outlook/quotefixmacro/releases).
+You can also download the latest development version using <https://github.com/macros4outlook/quotefixmacro/archive/refs/heads/main.zip>.
 
 ### Import macros
 
 1. Extract the downloaded zip-file
-2. In Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor"), import `QuoteFixMacro.bas` by right-clicking on "Modules" and selecting "Import...".
-3. If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check. A better solution is to sign the macro. See "Signing a Macro" below.
+2. Open Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor")
+3. File > Import File ... > Select `QuoteFixMacro.bas` > Open
+4. If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check. A better solution is to sign the macro. See "Signing a Macro" below.
 
-Pro tip: In case you want to try out the current "random signature generation", import `RandomSignature.bas`. The `QuoteFixWithPAR.bas` is not ready for testing yet. You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
+### Advanced features
+
+In case you want to try out the current "random signature generation", import `RandomSignature.bas`.
+
+The `QuoteFixWithPAR.bas` is not ready for testing yet.
+
+You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
 
 ### Assign macros to buttons
 
-After that, you need to replace the original "Reply" and "ReplyAll" buttons with buttons that trigger the macros defined in the file you just imported. Remember, these buttons are in Outlook's main window, and also in the message window that pops up when you double click on an email.
+After importing the module, you need to replace the original "Reply" and "ReplyAll" buttons with buttons that trigger the macros defined in the file you just imported. Remember, these buttons are in Outlook's main window, and also in the message window that pops up when you double click on an email.
 
 1. Right-click on the toolbar and select "Customize..."
 2. Go to the "Commands" tab and navigate to the "Macro" category

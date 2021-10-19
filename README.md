@@ -112,7 +112,7 @@ You can easily import all files at once by dragging them from the Explorer into 
 
 ### Assign macros to buttons
 
-After importing the macro, you need to replace the original "Reply" and "ReplyAll" buttons with buttons that trigger the macros defined in the file you just imported. Remember, these buttons are in Outlook's main window, and also in the message window that pops up when you double click on an email.
+After importing the module, you need to replace the original "Reply" and "ReplyAll" buttons with buttons that trigger the macros defined in the file you just imported. Remember, these buttons are in Outlook's main window, and also in the message window that pops up when you double click on an email.
 
 1. Right-click on the toolbar and select "Customize..."
 2. Go to the "Commands" tab and navigate to the "Macro" category

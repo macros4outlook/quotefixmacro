@@ -59,10 +59,10 @@ Private Const DEFAULT_NUM_RTF_COLORS As Long = 4
 'resize window so that the text editor wraps the text automatically
 'after N characters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
-'you can edit the auto wrap setting at "Tools / Options / Email Format / Internet Format"
+'you can edit the auto wrap setting at "File > Options > Mail > Message format > Remove extra line breaks in plain text messages
 Private Const DEFAULT_USE_SOFTWRAP As Boolean = False
 
-'put as much characters as set in Outlook at "Tools / Options / Email Format / Internet Format"
+'put as much characters as set in Outlook at "File > Options > Mail > Message format > Automatically wrap text at character"
 'default: 76 characters
 Private Const DEFAULT_SEVENTY_SIX_CHARS As String = "123456789x123456789x123456789x123456789x123456789x123456789x123456789x123456"
 

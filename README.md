@@ -106,7 +106,7 @@ You can also download the latest development version using <https://github.com/m
 
 In case you want to try out the current "random signature generation", import `RandomSignature.bas`.
 
-The `QuoteFixWithPAR.bas` is not ready for testing yet.
+The `QuoteFixWithPar.bas` is not ready for testing yet.
 
 You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
 

@@ -541,7 +541,7 @@ Public Function ReFormatText(ByVal text As String) As String
                 End If
             Else
                 'Quote is the last one - just use it
-                AppendCurLine curLine
+                FinishBlock lastNesting
             End If
 
         Else
@@ -1557,7 +1557,7 @@ Public Function ColorizeMailItem(MyMailItem As MailItem) As String
 
         Dim lines() As String
         lines = Split(rtf, vbCrLf)
-        
+
         Dim i As Long
         For i = LBound(lines) To UBound(lines)
             Dim n As Long

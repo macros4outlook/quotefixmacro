@@ -1,4 +1,4 @@
-Attribute VB_Name = "QuoteFixWithPAR"
+Attribute VB_Name = "QuoteFixWithPar"
 
 ' SPDX-License-Identifier: BSD-3-Clause
 

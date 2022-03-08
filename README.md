@@ -99,8 +99,9 @@ You can also download the latest development version using <https://github.com/m
 
 1. Extract the downloaded zip-file
 2. Open Outlook's VBA editor (<kbd>Alt</kbd>+<kbd>F11</kbd> or "Tools > Macro > Visual Basic-Editor")
-3. File > Import File ... > Select `QuoteFixMacro.bas` > Open
-4. If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check. A better solution is to sign the macro. See "Signing a Macro" below.
+3. File > Import File ... > Select `QuoteFixMacro.bas` > Open  
+   If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check. A better solution is to sign the macro. See "Signing a Macro" below.
+4. File > Import File ... > Select `QuoteFixNames.bas` > Open
 
 ### Advanced features
 

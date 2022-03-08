@@ -17,6 +17,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Empty line is kept after the header for forwarded mails [[#12](https://github.com/macros4outlook/quotefixmacro/pull/12)]
 * Single-line emails keep the quoting character in the created reply email
 
+### Changed
+
+* Created separate file `QuoteFixNames.bas` (to eease development) [[#22](https://github.com/macros4outlook/quotefixmacro/pull/22)]
+
 ## Version [1.8] - 2021-02-06
 
 ### Added

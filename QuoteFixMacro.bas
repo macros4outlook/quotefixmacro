@@ -60,7 +60,7 @@ Private Const DEFAULT_NUM_RTF_COLORS As Long = 4
 'after N characters. Outlook wraps text automatically after sending it,
 'but doesn't display the wrap when editing
 'you can edit the auto wrap setting at "File > Options > Mail > Message format > Remove extra line breaks in plain text messages
-Private Const DEFAULT_USE_SOFTWRAP As Boolean = False
+Private Const DEFAULT_USE_SOFTWRAP As Boolean = True
 
 'put as much characters as set in Outlook at "File > Options > Mail > Message format > Automatically wrap text at character"
 'default: 76 characters
@@ -87,10 +87,10 @@ Private Const DEFAULT_DATE_FORMAT As String = "yyyy-mm-dd HH:MM"
 Private Const DEFAULT_STRIP_SIGNATURE As Boolean = True
 
 'Automatically convert HTML/RTF-Mails to plain text?
-Private Const DEFAULT_CONVERT_TO_PLAIN As Boolean = False
+Private Const DEFAULT_CONVERT_TO_PLAIN As Boolean = True
 
 'Enable QUOTING_TEMPLATE
-Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = False
+Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = True
 
 'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
 Private Const DEFAULT_QUOTING_TEMPLATE As String = "(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)\n\n%SN wrote on %D:\n\n%Q\n\nCheers"

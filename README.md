@@ -130,25 +130,9 @@ You can also change the name and image of the newly created buttons using the cu
    * Set "Prefix each line with" to "`> `"
    * Change the value "When replying to a message" back to to "Include original message text"
 
-2. Tools > Options > Mail Format
-
-   * Message format: Plain Text
-   * Note: this is not necessary, if `CONVERT_TO_PLAIN` is set to `True`.
-
-3. Tools > Options > Mail Format > Internet Format...
+2. Tools > Options > Mail Format > Internet Format...
 
    * Automatic wordwrap after: 76 characters (which is the default when you did not touch that setting)
-
-4. Tools > Options > Mail Format > Signatures...
-
-   * Create a signature that is only used for reply and forward. You have to insert at least `%Q` to get the quoted original mail.
-   * Assign this signature to every mail account you want to use.
-   * Alternatively, you can configure `QUOTING_TEMPLATE` (see below).
-
-5. Display all E-Mail as Text
-
-   * QuoteFixMacro requires plain text to work. One can either read all emails as plain text from the beginning or set `CONVERT_TO_PLAIN` is set to `True`.
-     In case all texts should be read as plain text, see Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature. For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)): File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text" > `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text".
 
 ## Templates
 
@@ -300,6 +284,13 @@ Configuration is done via constants in the QuoteFix code (see below for a storag
 The variable `QUOTING_TEMPLATE` can be used to store the quoting template.
 Thus, the Outlook configuration can be left untouched.
 
+If this is not enabled, one has to configure Outlook differently:
+
+Tools > Options > Mail Format > Signatures...
+
+* Create a signature that is only used for reply and forward. You have to insert at least `%Q` to get the quoted original mail.
+* Assign this signature to every mail account you want to use.
+
 ### English replies
 
 The variable `QUOTING_TEMPLATE_EN` can be used to store en English quoting template.
@@ -308,6 +299,18 @@ In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called,
 ### Auto conversion to plain format
 
 By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted to text mails.
+
+If this is not configured, on has to configure Outlook differently:
+
+Tools > Options > Mail Format
+
+* Message format: Plain Text
+* Note: this is not necessary, if `CONVERT_TO_PLAIN` is set to `True`.
+
+### Read all email as text
+
+QuoteFixMacro requires plain text to work. One can either read all emails as plain text from the beginning or set `CONVERT_TO_PLAIN` is set to `True`.
+In case all texts should be read as plain text, see Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature. For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)): File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text" > `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text".
 
 ### Condense Headers
 

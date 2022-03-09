@@ -28,7 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
-* Created separate file `QuoteFixNames.bas` (to eease development) [[#22](https://github.com/macros4outlook/quotefixmacro/pull/22)]
+* Created separate file `QuoteFixNames.bas` (to ease development) [[#22](https://github.com/macros4outlook/quotefixmacro/pull/22)]
 
 ## Version [1.8] - 2021-02-06
 

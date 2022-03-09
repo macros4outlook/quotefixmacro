@@ -300,7 +300,7 @@ In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called,
 
 By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted to text mails.
 
-If this is not configured, on has to configure Outlook differently:
+If this is not configured, one has to configure Outlook differently:
 
 Tools > Options > Mail Format
 

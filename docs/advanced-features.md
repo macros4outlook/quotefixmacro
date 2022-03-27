@@ -60,4 +60,9 @@ Thus, this is useful to double-check that no new line breaks are introduced by O
 
 One can set `USE_SOFTWRAP` to `False` to disable it.
 
+## Use templates from the code
+
+Instead of confuring a template in the signature setting, one can set `DEFAULT_USE_QUOTING_TEMPLATE` to `True`.
+Then, QuoteFixMacro reads the signature from `DEFAULT_QUOTING_TEMPLATE_EN` for English emails and from `DEFAULT_QUOTING_TEMPLATE` for all other languages.
+
 <!-- markdownlint-disable-file MD033 -->

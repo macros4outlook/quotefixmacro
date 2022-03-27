@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Chaned
+
+* User documentation is now put inside the "docs/" folder.
+
 ## Version [1.9] - 2022-03-08
 
 ### Added

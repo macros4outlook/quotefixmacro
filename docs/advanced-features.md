@@ -65,4 +65,8 @@ One can set `USE_SOFTWRAP` to `False` to disable it.
 Instead of confuring a template in the signature setting, one can set `DEFAULT_USE_QUOTING_TEMPLATE` to `True`.
 Then, QuoteFixMacro reads the signature from `DEFAULT_QUOTING_TEMPLATE_EN` for English emails and from `DEFAULT_QUOTING_TEMPLATE` for all other languages.
 
+## Random Signature Generation
+
+In case you want to try out the current "random signature generation", import `RandomSignature.bas`.
+
 <!-- markdownlint-disable-file MD033 -->

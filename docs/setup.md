@@ -17,13 +17,7 @@ You can also download the latest development version using <https://github.com/m
    If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check. A better solution is to sign the macro. See "Signing a Macro" below.
 4. File > Import File ... > Select `QuoteFixNames.bas` > Open
 
-## Advanced features
-
-In case you want to try out the current "random signature generation", import `RandomSignature.bas`.
-
-The `QuoteFixWithPar.bas` is not ready for testing yet.
-
-You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
+Note: You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
 
 ## Assign macros to buttons
 

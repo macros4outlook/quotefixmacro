@@ -29,6 +29,11 @@ In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called,
 ## Auto conversion to plain format
 
 By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted to text mails.
+Without the usage of Microsoft Echange, one cannot convert the messages back to HTML after replying in the current Outlook session.
+One has to restart Microsoft Outlook.
+When using Microsofot Exhange, the messaged in plain text is saved as a copy one the server.
+Some users report that Outlook 2016 asks them whether they want to store the modified version of the message.
+When answering "now", the message is presented in HTML again.
 
 Note that if this makes following Outlook obsolete:
 

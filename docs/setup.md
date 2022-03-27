@@ -38,12 +38,14 @@ Note: You can easily import all files at once by dragging them from the Explorer
    * Automatic wordwrap after: 76 characters (which is the default when you did not touch that setting)
 
 4. QuoteFixMacro requires plain text to work.
-   It is possible, to read all emails as plain text right from the start.
-   For Outlook 2010 and later:  
-   File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text" >  
-   `[X]` Read all standard mail in plain text,  
-   `[X]` Read all digitally signed mail in plain text".
-   See also Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) and ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US) for another explanation.  
+   It is possible, to read all emails as plain text right from the start.\
+   File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text"\
+   🇩🇪: Datei > Optionen > Trust Center > E-Mail-Sicherheit > Als Nur-Text lesen\
+   `[X]` Read all standard mail in plain text,\
+   🇩🇪: Standardnachrichten im Nur-Text-Format lesen\
+   `[X]` Read all digitally signed mail in plain text".\
+   See also Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) and ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US) for another explanation.\
+   \
    Note that one can also have QuoteFixMacro converting all emails automatically to text.
    See [Advanced Features](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#auto-conversion-to-plain-format) for details.
    This setting, however, has issues with Outlook 2019.

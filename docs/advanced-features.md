@@ -24,23 +24,17 @@ Tools > Options > Mail Format > Signatures...
 ## English replies
 
 The variable `QUOTING_TEMPLATE_EN` can be used to store en English quoting template.
-In case `USE_QUOTING_TEMPLATE` is `True` (Default since 2.0) and `FixedReplyAllEnglish()` is called, that template is used.
+In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called, that template is used.
 
 ## Auto conversion to plain format
 
-By setting `CONVERT_TO_PLAIN` to `True` (Default since 2.0), HTML mails are automatically converted to text mails.
+By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted to text mails.
 
-If this is not configured, one has to configure Outlook differently:
+Note that if this makes following Outlook obsolete:
 
 Tools > Options > Mail Format
 
 * Message format: Plain Text
-* Note: this is not necessary, if `CONVERT_TO_PLAIN` is set to `True`.
-
-## Read all email as text
-
-QuoteFixMacro requires plain text to work. One can either read all emails as plain text from the beginning or set `CONVERT_TO_PLAIN` is set to `True`.
-In case all texts should be read as plain text, see Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature. For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)): File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text" > `[X]` Read all standard mail in plain text, `[X]` Read all digitally signed mail in plain text".
 
 ## Condense Headers
 

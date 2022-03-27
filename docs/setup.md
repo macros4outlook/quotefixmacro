@@ -48,6 +48,20 @@ You can also change the name and image of the newly created buttons using the cu
 
    * Automatic wordwrap after: 76 characters (which is the default when you did not touch that setting)
 
+## Read all email as text
+
+QuoteFixMacro requires plain text to work. One can either read all emails as plain text from the beginning.
+In case all texts should be read as plain text, see Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) for an explanation how to turn on this feature.
+For Outlook 2010 and later (also described at ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US)):
+
+File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text" >  
+`[X]` Read all standard mail in plain text,  
+`[X]` Read all digitally signed mail in plain text".
+
+Note that one can also have QuoteFixMacro converting all emails automatically to text.
+See [Advanced Features](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#auto-conversion-to-plain-format) for details.
+This setting, however, has issues with Outlook 2019.
+
 ## Persist settings across updates
 
 An update of QuoteFixMacro happens by replacing the content of the `.bas` file.

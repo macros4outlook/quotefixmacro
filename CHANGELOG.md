@@ -6,13 +6,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Changed
-
-* We changed the default configuration to be more user convenient:
-  * Outlook does not need to be configured to convert emails: `DEFAULT_CONVERT_TO_PLAIN` is `True` (instead of `False`)
-  * QuoteFixMacro does not require to reconfigure the signatures any more: `DEFAULT_USE_QUOTING_TEMPLATE` is `True` (instead of `False`)
-  * The newly opened window is made as wide as required to display the wrapping as it will be when the email is being sent: `DEFAULT_USE_SOFTWRAP` is `True` (instead of `False`)
-
 ## Version [1.9] - 2022-03-08
 
 ### Added

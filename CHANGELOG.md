@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Chaned
 
 * User documentation is now put inside the "docs/" folder.
+* `DEFAULT_QUOTING_TEMPLATE` changed to have a salutation at the beginning.
 
 ## Version [1.9] - 2022-03-08
 

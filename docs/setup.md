@@ -22,24 +22,24 @@ Note: You can easily import all files at once by dragging them from the Explorer
 
 ## Configure Outlook to prepare the messages for QuoteFixMacro
 
-1. Tools > Options > Preferences > E-mail Options... > On replies and forwards
+1. File > Options > Mail > (scroll down to) Replies and forwards
 
-   * Change the value "When replying to a message" to "Prefix each line of the original message"
+   * Change the value of "When replying to a message" to "Prefix each line of the original message"
    <!-- markdownlint-disable-next-line MD038 -->
-   * Set "Prefix each line with" to "`> `"
-   * Change the value "When replying to a message" back to to "Include original message text"
+   * Ensure that "Prefix each line in a plain-text message with" contains "`> `"
+   * Change the value "When replying to a message" back to "Include original message text"
 
-2. Tools > Options > Mail Format
+2. Tools > Options > Mail > (scroll up to) Compose messages
 
-   * Message format: Plain Text
+   * Change the value of "Compose messages in this format:" to "Plain Text"
 
-3. Tools > Options > Mail Format > Internet Format...
+3. Tools > Options > Mail > (scroll down to) Message format
 
-   * Automatic wordwrap after: 76 characters (which is the default when you did not touch that setting)
+   * "Automatic wrap text at character": 76 characters (which is the default when you did not touch that setting)
 
 4. QuoteFixMacro requires plain text to work.
    It is possible, to read all emails as plain text right from the start.\
-   🇺🇸: File > Options > Security Center > Options for the Security Center > E-Mail Security > "Read as Plain Text"\
+   🇺🇸: Navigate to Tools > Options > Trust Center > Trust Center Settings... > Email Security > "Read as Plain Text"
    🇩🇪: Datei > Optionen > Trust Center > E-Mail-Sicherheit > Als Nur-Text lesen\
    🇺🇸: `[X]` Read all standard mail in plain text,\
    🇩🇪: Standardnachrichten im Nur-Text-Format lesen\
@@ -55,7 +55,7 @@ Note: You can easily import all files at once by dragging them from the Explorer
 QuoteFixMacro needs to know where to put the fixed quote.
 For that, it uses the placeholder `%Q` in the signature.
 
-Go top Tools > Options > Mail Format > Signatures...
+Go to File > Options > Mail > section "Compose messages" > Signatures...
 
 * Create a signature that is only used for reply and forward. You have to insert at least `%Q` to get the quoted original mail.
 * Assign this signature to every mail account you want to use.
@@ -68,7 +68,8 @@ After importing the module, you need to replace the original "Reply" and "ReplyA
 Remember, these buttons are in Outlook's main window, and also in the message window that pops up when you double click on an email.
 
 1. Right-click on the toolbar and select "Customize..."
-2. Go to the "Commands" tab and navigate to the "Macro" category
+2. Go to the "Quick Access Toolbar" tab
+3. Choose "Macros" at "Choose commands from"
 3. Drag the "FixedReply" and "FixedReplyAll" entries and drop it onto the toolbar
 
 You can also change the name and image of the newly created buttons using the customization dialog.

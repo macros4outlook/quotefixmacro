@@ -1,6 +1,7 @@
 # QuoteFixMacro
 
-This is a VBA macro to fix quotations.
+Avoids top-posting and ebables [interleaved quoting](https://en.wikipedia.org/wiki/Posting_style#Interleaved_style).
+
 See <https://macros4outlook.github.io/quotefixmacro/> for the user documentaiton.
 
 ## Developing

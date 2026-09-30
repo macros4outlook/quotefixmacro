@@ -450,6 +450,39 @@ Private Sub FinishBlock(ByRef nesting As NestingType)
     'lastLineWasParagraph = False
 End Sub
 
+'Description:
+'   Formats the date of a quoted Outlook header line (e.g., "Sent: Thursday, April 07, 2011 9:36 AM") using DATE_FORMAT
+'   The label and the weekday are optional
+'   If the date cannot be parsed, it is returned as found in the email
+Private Function FormatHeaderDate(ByVal headerLine As String) As String
+    Dim sDate As String
+    sDate = headerLine
+
+    'strip the label
+    Dim posLabelEnd As Long
+    posLabelEnd = InStr(sDate, ": ")
+    If posLabelEnd > 0 Then
+        sDate = Mid$(sDate, posLabelEnd + 2)
+    End If
+
+    'strip the weekday: the text before the first comma is a weekday if it does not contain a digit
+    '("Thursday, April 07, 2011" has a weekday, "April 7, 2011" has none)
+    Dim posFirstComma As Long
+    posFirstComma = InStr(sDate, ",")
+    If posFirstComma > 0 Then
+        If Not (Left$(sDate, posFirstComma - 1) Like "*#*") Then
+            sDate = Trim$(Mid$(sDate, posFirstComma + 1))
+        End If
+    End If
+
+    If IsDate(sDate) Then
+        FormatHeaderDate = Format$(CDate(sDate), DATE_FORMAT)
+    Else
+        'leave sDate as is -> date is output as found in email
+        FormatHeaderDate = sDate
+    End If
+End Function
+
 'Reformat text to correct broken wrap inserted by Outlook.
 'Needs to be public so the test cases can run this function.
 Public Function ReFormatText(ByVal text As String) As String
@@ -583,6 +616,7 @@ Public Function ReFormatText(ByVal text As String) As String
                             Dim sName As String
                             sName = Mid$(curLine, posColon + 2, lengthName)
                         Else
+                            sName = vbNullString
                             Debug.Print "Could not get name. Is the header formatted correctly?"
                         End If
 
@@ -613,25 +647,8 @@ Public Function ReFormatText(ByVal text As String) As String
                     End If
 
                     'Date
-                    'We assume that there is always a weekday present before the date
                     Dim sDate As String
-                    sDate = StripLine(rows(i))
-                    'posColon = InStr$(sDate, ":")
-                    'sDate = Mid$(sDate, posColon + 2)
-                    Dim posFirstComma As Long
-                    posFirstComma = InStr(sDate, ",")
-                    sDate = Mid$(sDate, posFirstComma + 2)
-                    Dim dDate As Date
-                    If IsDate(sDate) Then
-                        dDate = DateValue(sDate)
-                        'there is no function "IsTime", therefore try with brute force
-                        dDate = dDate + TimeValue(sDate)
-                    End If
-                    If dDate <> CDate("00:00:00") Then
-                        sDate = Format$(dDate, DATE_FORMAT)
-                    Else
-                        'leave sDate as is -> date is output as found in email
-                    End If
+                    sDate = FormatHeaderDate(StripLine(rows(i)))
 
                     i = i + 3 'skip next three lines (To, [possibly CC], Subject, empty line)
                     'if CC exists, then i points to the empty line

@@ -144,3 +144,114 @@ TestFail:
 End Sub
 
 
+'Required settings:
+'
+'CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = True
+'CONDENSED_HEADER_FORMAT = "%SN wrote on %D:"
+'DATE_FORMAT = "yyyy-mm-dd HH:MM"
+'
+'The dates in the headers are written as yyyy-mm-dd, because the parsing of other formats depends on the regional settings of Windows
+
+'@TestMethod("condense")
+Private Sub condenseHeaderDateWithWeekday()
+    On Error GoTo TestFail
+
+    outlookOutput = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> > -----Original Message-----" & vbNewLine & _
+        "> > From: Art Ross" & vbNewLine & _
+        "> > Sent: Thursday, 2011-04-07 09:36" & vbNewLine & _
+        "> > To: Adam Swift" & vbNewLine & _
+        "> > Subject: RE: Testing" & vbNewLine & _
+        "> > " & vbNewLine & _
+        "> > Hi Adam,"
+    expectedResult = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Art Ross wrote on 2011-04-07 09:36:" & vbNewLine & _
+        ">> Hi Adam,"
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("condense")
+Private Sub condenseHeaderDateWithoutWeekday()
+    On Error GoTo TestFail
+
+    outlookOutput = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> > -----Original Message-----" & vbNewLine & _
+        "> > From: Art Ross" & vbNewLine & _
+        "> > Sent: 2011-04-07 09:36" & vbNewLine & _
+        "> > To: Adam Swift" & vbNewLine & _
+        "> > Subject: RE: Testing" & vbNewLine & _
+        "> > " & vbNewLine & _
+        "> > Hi Adam,"
+    expectedResult = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Art Ross wrote on 2011-04-07 09:36:" & vbNewLine & _
+        ">> Hi Adam,"
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("condense")
+Private Sub condenseHeaderUnparsableDateIsNotTakenFromPreviousHeader()
+    On Error GoTo TestFail
+
+    outlookOutput = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> > -----Original Message-----" & vbNewLine & _
+        "> > From: Art Ross" & vbNewLine & _
+        "> > Sent: Thursday, 2011-04-07 09:36" & vbNewLine & _
+        "> > To: Adam Swift" & vbNewLine & _
+        "> > Subject: RE: Testing" & vbNewLine & _
+        "> > " & vbNewLine & _
+        "> > Hi Adam," & vbNewLine & _
+        "> > " & vbNewLine & _
+        "> > > -----Original Message-----" & vbNewLine & _
+        "> > > From: Adam Swift" & vbNewLine & _
+        "> > > Sent: some day" & vbNewLine & _
+        "> > > To: Art Ross" & vbNewLine & _
+        "> > > Subject: Testing" & vbNewLine & _
+        "> > > " & vbNewLine & _
+        "> > > Hi Art,"
+    expectedResult = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Art Ross wrote on 2011-04-07 09:36:" & vbNewLine & _
+        ">> Hi Adam," & vbNewLine & _
+        ">> " & vbNewLine & _
+        ">> Adam Swift wrote on some day:" & vbNewLine & _
+        ">>> Hi Art,"
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub

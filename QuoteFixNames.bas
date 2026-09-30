@@ -118,7 +118,12 @@ Public Sub getNamesOutOfString(ByVal originalName As String, ByRef senderName As
         fPos = InStr(Trim$(tmpName), " ")
         If fPos > 0 Then
             'First strip any possible, (single,) formal suffix on the name
-            tmpName = StripSuffixes(tmpName)
+            'A name consisting of two words only is kept as is, because no last name would be left
+            Dim nameWithoutSuffix As String
+            nameWithoutSuffix = StripSuffixes(tmpName)
+            If InStr(nameWithoutSuffix, " ") > 0 Then
+                tmpName = nameWithoutSuffix
+            End If
             Dim lPos As Long
             lPos = InStrRev(Trim$(tmpName), " ")
             If fPos = lPos Then
@@ -277,14 +282,16 @@ Private Function StripSuffixes(ByVal tempName As String) As String
     Dim NameSuffixesArr() As String
     NameSuffixesArr = Split(LASTNAME_SUFFIXES, "/")
 
+    StripSuffixes = tempName
+
     'Strip the last suffix (is it ever the case that someone has multiple suffixes?)
     Dim i As Long
     For i = LBound(NameSuffixesArr) To UBound(NameSuffixesArr)
         If (Right$(tempName, Len(NameSuffixesArr(i)) + 1)) = " " & NameSuffixesArr(i) Then
             StripSuffixes = Trim$(Left$(tempName, Len(tempName) - Len(NameSuffixesArr(i))))
+            Exit Function
         End If
     Next
-    StripSuffixes = tempName
 End Function
 
 Private Function IsUpperCaseChar(ByVal c As String) As Boolean

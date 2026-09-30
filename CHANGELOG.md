@@ -11,6 +11,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * User documentation is now put inside the "docs/" folder.
 * `DEFAULT_QUOTING_TEMPLATE` changed to have a salutation at the beginning.
 
+### Fixed
+
+* Name suffixes (e.g., `Jr.`) are stripped: `Firstname Lastname Jr.` and `Lastname Jr., Firstname` now yield the correct first name and last name.
+* Condensed headers: A date without a weekday (e.g., `Sent: April 7, 2011 9:52 AM`) is parsed correctly.
+* Condensed headers: If the date or the sender name of a header cannot be determined, the one of the previously condensed header is no longer used.
+
 ## [1.9] - 2022-03-08
 
 ### Added

@@ -388,6 +388,61 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+'@TestMethod("getNamesOutOfString")
+Private Sub FirstnameLastnameSuffix()
+    On Error GoTo TestFail
+
+    originalName = "First Last Jr."
+
+    getNamesOutOfString originalName, senderName, firstName, lastName
+
+    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub LastnameSuffixCommaFirstname()
+    On Error GoTo TestFail
+
+    originalName = "Last Jr., First"
+
+    getNamesOutOfString originalName, senderName, firstName, lastName
+
+    Assert.AreEqual "First Last", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Last", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("getNamesOutOfString")
+Private Sub TwoWordNameEndingWithSuffixIsKept()
+    On Error GoTo TestFail
+
+    originalName = "First Sr"
+
+    getNamesOutOfString originalName, senderName, firstName, lastName
+
+    'Stripping the suffix would not leave a last name
+    Assert.AreEqual "First Sr", senderName
+    Assert.AreEqual "First", firstName
+    Assert.AreEqual "Sr", lastName
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
 
 '@TestMethod("removeDepartmentName")
 Private Sub FirstnameLastnameDepartmentFunction()

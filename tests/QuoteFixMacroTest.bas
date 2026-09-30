@@ -6,15 +6,8 @@ Option Private Module
 '@TestModule
 '@Folder("QuoteFixMacro.Tests")
 
-#Const LateBind = LateBindTests
-
-#If LateBind Then
-    Private Assert As Object
-    Private Fakes As Object
-#Else
-    Private Assert As Rubberduck.AssertClass
-    Private Fakes As Rubberduck.FakesProvider
-#End If
+Private Assert As Rubberduck.AssertClass
+Private Fakes As Rubberduck.FakesProvider
 
 Private outlookOutput As String
 Private expectedResult As String
@@ -22,13 +15,8 @@ Private expectedResult As String
 '@ModuleInitialize
 Private Sub ModuleInitialize()
     'this method runs once per module.
-#If LateBind Then
-        Set Assert = CreateObject("Rubberduck.AssertClass")
-        Set Fakes = CreateObject("Rubberduck.FakesProvider")
-#Else
-        Set Assert = New Rubberduck.AssertClass
-        Set Fakes = New Rubberduck.FakesProvider
-#End If
+    Set Assert = New Rubberduck.AssertClass
+    Set Fakes = New Rubberduck.FakesProvider
 End Sub
 
 '@ModuleCleanup

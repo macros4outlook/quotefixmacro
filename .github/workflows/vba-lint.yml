@@ -1,0 +1,35 @@
+name: Check VBA syntax
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.bas'
+      - '**.cls'
+      - '.gitattributes'
+      - '.github/workflows/vba-lint.yml'
+  pull_request:
+    paths:
+      - '**.bas'
+      - '**.cls'
+      - '.gitattributes'
+      - '.github/workflows/vba-lint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vba-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+      - name: Install VBA-Linter
+        # Pinned to a commit, because the latest release (0.0.4) does not work with current antlr4-vba
+        run: pip install "git+https://github.com/Beakerboy/VBA-Linter.git@714cfb964b7d387d7bd62160a0e4ec5f0f041ee9"
+      - name: Check that VBA code parses
+        run: python -m vba_linter .

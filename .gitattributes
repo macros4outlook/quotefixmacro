@@ -1,0 +1,4 @@
+# VBA editor imports and exports CRLF, see also .editorconfig
+*.bas text eol=crlf
+*.cls text eol=crlf
+*.doccls text eol=crlf

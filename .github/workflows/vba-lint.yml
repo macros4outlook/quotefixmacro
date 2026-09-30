@@ -7,11 +7,13 @@ on:
     paths:
       - '**.bas'
       - '**.cls'
+      - '.gitattributes'
       - '.github/workflows/vba-lint.yml'
   pull_request:
     paths:
       - '**.bas'
       - '**.cls'
+      - '.gitattributes'
       - '.github/workflows/vba-lint.yml'
   workflow_dispatch:
 
@@ -30,5 +32,4 @@ jobs:
         # Pinned to a commit, because the latest release (0.0.4) does not work with current antlr4-vba
         run: pip install "git+https://github.com/Beakerboy/VBA-Linter.git@714cfb964b7d387d7bd62160a0e4ec5f0f041ee9"
       - name: Check that VBA code parses
-        # E400: the linter expects CRLF line endings, but the repository stores LF
-        run: python -m vba_linter -i 400 .
+        run: python -m vba_linter .

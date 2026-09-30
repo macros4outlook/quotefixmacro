@@ -6,29 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-### Chaned
+### Changed
 
 * User documentation is now put inside the "docs/" folder.
 * `DEFAULT_QUOTING_TEMPLATE` changed to have a salutation at the beginning.
 
-## Version [1.9] - 2022-03-08
+## [1.9] - 2022-03-08
 
 ### Added
 
-* Added `ThisOutlookSession.cls` for directly intercepting the standard reply buttons. [[#11](https://github.com/macros4outlook/quotefixmacro/pull/11)]
+* Added `ThisOutlookSession.cls` for directly intercepting the standard reply buttons. [#11](https://github.com/macros4outlook/quotefixmacro/pull/11)
 * In case the email target ends with a number, the reversal of names also works. I.e., in the case of `Lastname Firstname <firstname.lastname3@example.org>` "Firstname" is used as firstname.
 * Include "Dr." in the name if that is present
 
 ### Fixed
 
-* Empty line is kept after the header for forwarded mails [[#12](https://github.com/macros4outlook/quotefixmacro/pull/12)]
+* Empty line is kept after the header for forwarded mails [#12](https://github.com/macros4outlook/quotefixmacro/pull/12)
 * Single-line emails keep the quoting character in the created reply email
 
 ### Changed
 
-* Created separate file `QuoteFixNames.bas` (to ease development) [[#22](https://github.com/macros4outlook/quotefixmacro/pull/22)]
+* Created separate file `QuoteFixNames.bas` (to ease development) [#22](https://github.com/macros4outlook/quotefixmacro/pull/22)
 
-## Version [1.8] - 2021-02-06
+## [1.8] - 2021-02-06
 
 ### Added
 
@@ -43,7 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 * Names with dashes are correctly cased (before, they were converted to First-first)
 
-## Version [1.7] - 2021-01-24
+## [1.7] - 2021-01-24
 
 ### Added
 
@@ -56,7 +56,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 * If sender writes FIRSTNAME LASTNAME, first name is correctly detected
 
-## Version [1.6] - 2021-01-15
+## [1.6] - 2021-01-15
 
 ### Changed
 
@@ -75,7 +75,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Applied fix by "helper-01" to enable macro usage at 64bit Outlook
 * Always use "Firstname Lastname" as sender name, even if some names are formatted "Lastname, Firstname"
 
-## Version [1.5] - 2012-01-11
+## [1.5] - 2012-01-11
 
 ### Added
 
@@ -88,7 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Letters of first name are also lower cased
 * Only the first word of a potential first name is used as first name
 
-## Version [1.4] - 2011-07-04
+## [1.4] - 2011-07-04
 
 ### Added
 
@@ -107,7 +107,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Fixed compile time constants to work with Outlook 2007 and 2010
 * Applied patch 3296731 by Matej Mihelic - Replaced hardcoded call to "MAPI"
 
-## Version [1.3] - 2011-04-22
+## [1.3] - 2011-04-22
 
 ### Added
 
@@ -139,26 +139,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Original mail is marked as read
 * fixed cursor position in the case of absence of `%C`, but presence of `%Q`
 
-## Version 1.2b - 2007-01-24
+## [1.2b] - 2007-01-24
 
 ### Added
 
 * included on-behalf-of handling written by Per Soderlind
 
-## Version 1.2a - 2006-09-26
+## [1.2a] - 2006-09-26
 
 ### Fixed
 
 * quick fix of bug introduced by reformating first-level-quotes (it was reformated too often)
 
-## Version 1.2 - 2006-09-25
+## [1.2] - 2006-09-25
 
 ### Added
 
 * QuoteFix now also fixes newly introduced first-level-quotes (`> text`)
 * Header matching now matches the English header
 
-## Version 1.1 - 2006-09-15
+## [1.1] - 2006-09-15
 
 ### Added
 
@@ -169,9 +169,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 * Outlook header contains `> ` at the end
 * If no macros are in the signature, the default behavior of outlook (insert header and quoted text) text is used. (1.0a removed the header)
 
-## Version 1.0a - 2006-09-14
+## [1.0a] - 2006-09-14
 
-* first public release
+### Added
+
+* First public release
 
 [Unreleased]: https://github.com/macros4outlook/quotefixmacro/compare/v1.9...HEAD
 [1.9]: https://github.com/macros4outlook/quotefixmacro/compare/v1.8...v1.9
@@ -181,5 +183,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 [1.5]: https://github.com/macros4outlook/quotefixmacro/compare/v1.4...v1.5
 [1.4]: https://github.com/macros4outlook/quotefixmacro/compare/v1.3...v1.4
 [1.3]: https://github.com/macros4outlook/quotefixmacro/compare/v1.2b...v1.3
+[1.2b]: https://github.com/macros4outlook/quotefixmacro/releases/tag/v1.2b
+[1.2a]: https://github.com/macros4outlook/quotefixmacro/commits/v1.2b
+[1.2]: https://github.com/macros4outlook/quotefixmacro/commits/v1.2b
+[1.1]: https://github.com/macros4outlook/quotefixmacro/commits/v1.2b
+[1.0a]: https://github.com/macros4outlook/quotefixmacro/commits/v1.2b
 
 <!-- markdownlint-disable-file MD024 -->

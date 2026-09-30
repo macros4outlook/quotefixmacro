@@ -1,0 +1,28 @@
+name: Check CHANGELOG.md
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'CHANGELOG.md'
+      - '.github/workflows/heylogs.yml'
+  pull_request:
+    paths:
+      - 'CHANGELOG.md'
+      - '.github/workflows/heylogs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  heylogs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check CHANGELOG.md with heylogs
+        uses: jbangdev/jbang-action@v0.142.0
+        with:
+          script: com.github.nbbrd.heylogs:heylogs-cli:0.19.1:bin
+          scriptargs: "check --format github-actions"

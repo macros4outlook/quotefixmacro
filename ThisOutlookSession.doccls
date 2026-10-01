@@ -29,3 +29,8 @@ Private Sub oItem_Forward(ByVal Response As Object, Cancel As Boolean)
    Cancel = True
    Call QuoteFixMacro.FixedForward
 End Sub
+
+Private Sub Application_ItemSend(ByVal Item As Object, Cancel As Boolean)
+   'A colored reply (USE_COLORIZER) is sent as plain text mail
+   Call QuoteFixMacro.BeforeSend(Item)
+End Sub

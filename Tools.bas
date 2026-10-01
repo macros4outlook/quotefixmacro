@@ -41,17 +41,6 @@ Public Sub MarkMailAsUnread(ByVal MyMail As MailItem)
 End Sub
 
 
-Public Sub ReadCurrentMailItemRTF()
-    Dim rtf As String
-    rtf = Space$(99999)
-    Dim ret As Long
-    ret = ReadRTF("MAPI", GetCurrentItem.EntryID, session.GetDefaultFolder(olFolderInbox).StoreID, rtf)
-    rtf = Trim$(rtf)
-    
-    Debug.Print "RTF READ:" & ret & vbCrLf & rtf
-End Sub
-
-
 Public Sub TestColors()
     Dim mi As MailItem
     'Set mi = Session.GetDefaultFolder(olFolderInbox).Items(99)

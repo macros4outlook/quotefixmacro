@@ -6,12 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+* Replies to mails which are not plain text mails (HTML, Rich Text) are handled: The quoted text is taken from the HTML of the original mail, quotes within it (`<blockquote>`) are kept as quote levels, and the reply is a plain text mail. This requires the new file `QuoteFixHtml.bas`.
+* In a reply, the headers of older mails are condensed even if they lack the line `-----Original Message-----` (as in HTML mails), and the text below such a header gets one quote level more. The new placeholder `%TO` of `CONDENSED_HEADER_FORMAT` stands for the recipients.
+* The colored mode (`USE_COLORIZER`) works again, without `mapirtf.dll`: the reply is an HTML mail with one color per author (known from the condensed headers; your own text is gray), or per quote level otherwise. `ThisOutlookSession` converts it to plain text before it is sent (`COLORIZER_SEND_AS_PLAIN`, default `True`).
+
 ### Changed
 
 * User documentation is now put inside the "docs/" folder.
 * `DEFAULT_QUOTING_TEMPLATE` changed to have a salutation at the beginning.
+* A reply to a mail which is not a plain text mail is no longer left to Outlook.
+* Replies no longer depend on the Outlook setting "Prefix each line of the original message": QuoteFixMacro prefixes and wraps the original text itself. Forwarding is unchanged.
+* In a reply, the header of the original mail is written by QuoteFixMacro. Its language (German or English) follows the language of the original mail. If that cannot be detected, the language of Outlook is used.
+* In a reply to a plain text mail, a line between two quotes is kept as an answer if it would have fit into the line above. Before, it was always joined with the quote.
+* `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER` is `True` by default: the header of the mail you reply to is condensed, too. Set it to `False` if your template contains a line such as "You wrote on %D:".
+
+* `NUM_RTF_COLORS` is now called `NUM_QUOTE_COLORS`. The old name in the registry is still read.
+
+### Removed
+
+* Removed `CONVERT_TO_PLAIN`: The original mail is not converted anymore.
+* Removed the colorizer based on `mapirtf.dll` (`ReadRTF`, `WriteRTF`, `DisplayMailItemByID`). [#18](https://github.com/macros4outlook/quotefixmacro/issues/18)
 
 ### Fixed
+
+* The last line of the quoted text was dropped if it followed a line with a deeper quote level.
 
 * Name suffixes (e.g., `Jr.`) are stripped: `Firstname Lastname Jr.` and `Lastname Jr., Firstname` now yield the correct first name and last name.
 * Condensed headers: A date without a weekday (e.g., `Sent: April 7, 2011 9:52 AM`) is parsed correctly.

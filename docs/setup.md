@@ -17,12 +17,16 @@ You can also download the latest development version using <https://github.com/m
    If you don't want to get a security warning when you use the macros, go to "Tools > Macro > Security" and disable the security check.
    A better solution is to sign the macro. See "Signing a Macro" below.
 4. File > Import File ... > Select `QuoteFixNames.bas` > Open
+5. File > Import File ... > Select `QuoteFixHtml.bas` > Open
 
 Note: You can easily import all files at once by dragging them from the Explorer into the VBA editor and dropping them onto the project tree.
 
 ## Configure Outlook to prepare the messages for QuoteFixMacro
 
 1. File > Options > Mail > (scroll down to) Replies and forwards
+
+   This step is only required for `FixedForward`.
+   Replies do not depend on it, because QuoteFixMacro prefixes the original text itself.
 
    * Change the value of "When replying to a message" to "Prefix each line of the original message"
    <!-- markdownlint-disable-next-line MD038 -->
@@ -37,8 +41,9 @@ Note: You can easily import all files at once by dragging them from the Explorer
 
    * "Automatic wrap text at character": 76 characters (which is the default when you did not touch that setting)
 
-4. QuoteFixMacro requires plain text to work.
-   It is possible, to read all emails as plain text right from the start.\
+4. QuoteFixMacro also replies to HTML mails: The reply is a plain text mail, the original mail is left untouched.
+   See [Advanced Features](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#replying-to-html-mails) for details.
+   Reading all emails as plain text is therefore optional.\
    🇺🇸: Navigate to Tools > Options > Trust Center > Trust Center Settings... > Email Security > "Read as Plain Text"
 
     * 🇩🇪: Datei > Optionen > Trust Center > E-Mail-Sicherheit > Als Nur-Text lesen
@@ -46,9 +51,6 @@ Note: You can easily import all files at once by dragging them from the Explorer
     * 🇩🇪: Standardnachrichten im Nur-Text-Format lesen
     * 🇺🇸: `[X]` Read all digitally signed mail in plain text".
     * See also Microsoft [KB 831607](https://support.microsoft.com/en-us/office/change-the-message-format-to-html-rich-text-format-or-plain-text-338a389d-11da-47fe-b693-cf41f792fefa?ui=en-us&rs=en-us&ad=us) and ["Read email messages in plain text"](https://support.microsoft.com/en-us/office/read-email-messages-in-plain-text-16dfe54a-fadc-4261-b2ce-19ad072ed7e3?ui=en-US&rs=en-US&ad=US) for another explanation.
-    * Note that one can also have QuoteFixMacro converting all emails automatically to text.
-      See [Advanced Features](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#auto-conversion-to-plain-format) for details.
-      This setting, however, has issues with Outlook 2019.
 
 ## Set email signature
 
@@ -87,7 +89,7 @@ The macro **NEVER** stores entries in the registry by itself.
 You can store the default configuration in the registry:
 
 1. by executing `StoreDefaultConfiguration()`
-2. by writing a routing executing command similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true")`
+2. by writing a routing executing command similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", "false")`
 3. by manually creating entries in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
 
 <!-- markdownlint-disable-file MD033 -->

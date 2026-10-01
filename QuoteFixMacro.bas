@@ -30,7 +30,7 @@ Option Explicit
 'You can store the default configuration in the registry by executing
 '  StoreDefaultConfiguration()
 'or by writing a routing executing commands similar to the following:
-'   SaveSetting APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", "true"
+'   SaveSetting APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", "false"
 'Finally, or by manually creating entries in this registry hive:
 '    HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro
 Private Const APPNAME As String = "QuoteFixMacro"
@@ -41,15 +41,17 @@ Private Const REG_GROUP_FIRSTNAMES As String = "Firstnames" 'stores replacements
 '--------------------------------------------------------
 '*** Feature QuoteColorizer ***
 '--------------------------------------------------------
+'Colored mode: the reply is an HTML mail in which each quote level has its own color.
+'Before the mail is sent, ThisOutlookSession converts it to plain text (COLORIZER_SEND_AS_PLAIN).
+'Without ThisOutlookSession, the mail is sent as HTML mail.
 Private Const DEFAULT_USE_COLORIZER As Boolean = False
-'TODO: add note where to get the DLL from. I couldn't find it on my system
-'If you enable it, you need MAPIRTF.DLL in C:\Windows\System32
-'Does NOT work at Windows 7/64bit Outlook 2010/32bit
-'
-'Please enable convert RTF-to-Text at sending. Otherwise, the recipients will always receive HTML emails
 
-'How many different colors should be used for colorizing the quotes?
-Private Const DEFAULT_NUM_RTF_COLORS As Long = 4
+'How many different colors should be used? (at most the number of QUOTE_COLORS)
+'Each author gets a color (an author is known from the condensed header "X wrote on ..."), otherwise each quote level
+Private Const DEFAULT_NUM_QUOTE_COLORS As Long = 6
+
+'Send a colored reply as plain text mail?
+Private Const DEFAULT_COLORIZER_SEND_AS_PLAIN As Boolean = True
 
 
 '--------------------------------------------------------
@@ -86,9 +88,6 @@ Private Const DEFAULT_DATE_FORMAT As String = "yyyy-mm-dd HH:MM"
 'Strip the sender's signature?
 Private Const DEFAULT_STRIP_SIGNATURE As Boolean = True
 
-'Automatically convert HTML/RTF-Mails to plain text?
-Private Const DEFAULT_CONVERT_TO_PLAIN As Boolean = False
-
 'Enable QUOTING_TEMPLATE
 Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = False
 
@@ -102,14 +101,15 @@ Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inlin
 '*** Configuration of condensing ***
 '--------------------------------------------------------
 
-'Condense embedded quoted Outlook headers?
+'Condense the headers of the older mails within the quoted text (From, Sent, To, Subject) to one line each?
+'In a reply, the text below such a header gets one quote level more
 Private Const DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS As Boolean = True
 
-'Should the first header also be condensed?
-'In case you use a custom header, (e.g., "You wrote on %D:", this should be set to false)
-Private Const DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER As Boolean = False
+'Should the header of the mail being replied to also be condensed?
+'In case you use a custom header (e.g., "You wrote on %D:" in QUOTING_TEMPLATE), this should be set to False
+Private Const DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER As Boolean = True
 
-'Format of condensed header
+'Format of a condensed header: %SN sender, %SE sender's address, %D date (DATE_FORMAT), %TO recipients
 Private Const DEFAULT_CONDENSED_HEADER_FORMAT As String = "%SN wrote on %D:"
 
 '----- END OF DEFAULT CONFIGURATION -----------------------------------------------------------------------------------
@@ -123,6 +123,22 @@ Private Const PGP_MARKER                As String = "-----BEGIN PGP"
 Private Const OUTLOOK_HEADERFINISH      As String = "> "
 Private Const SIGNATURE_SEPARATOR       As String = "> --"
 
+'A line of a plain text mail which is not longer is regarded as wrapped by the sender
+Private Const MAX_HARD_WRAP_WIDTH       As Long = 80
+
+'Application.LanguageSettings: the language of the user interface (msoLanguageIDUI)
+Private Const LANGUAGE_ID_UI            As Long = 2
+'the primary languages of a language id
+Private Const LANGUAGE_GERMAN           As Long = 7
+Private Const LANGUAGE_ENGLISH          As Long = 9
+
+'Frequent words which are used to detect the language of a mail
+'Words existing in both languages (e.g., "in", "was", "will") are left out
+Private Const WORDS_GERMAN              As String = " der die das und ist nicht ich wir sie ein eine einen mit auf den dem des zu von es auch noch hallo danke bitte wenn kann haben wird sind dass sich aber oder wie bei nach aus mir dir uns zum zur nur schon viele habe hat bis im "
+Private Const WORDS_ENGLISH             As String = " the and is are you we to of for on that this it with have be not hello thanks regards please can would but or as at by from your our i my me if there what which do does they their been has "
+'The language is detected using the first words of a mail
+Private Const MAX_WORDS_FOR_DETECTION   As Long = 300
+
 Private Const PATTERN_QUOTED_TEXT       As String = "%Q"
 Private Const PATTERN_CURSOR_POSITION   As String = "%C"
 Private Const PATTERN_SENDER_NAME       As String = "%SN"
@@ -131,12 +147,22 @@ Private Const PATTERN_FIRST_NAME        As String = "%FN"
 Private Const PATTERN_LAST_NAME         As String = "%LN"
 Private Const PATTERN_SENT_DATE         As String = "%D"
 Private Const PATTERN_OUTLOOK_HEADER    As String = "%OH"
+'recipients of a condensed header
+Private Const PATTERN_RECIPIENTS        As String = "%TO"
+
+'Labels of the first line of the header of an older mail ("From:"), lower case, several languages
+Private Const LABELS_FROM               As String = " from von de da van fra od af "
+'Labels of the last line of such a header ("Subject:")
+Private Const LABELS_SUBJECT            As String = " subject betreff objet oggetto onderwerp asunto assunto emne temat aihe "
+'A header has at most this number of lines
+Private Const MAX_HEADER_LINES          As Long = 8
 
 
 'Variables storing the configuration
 'They are set in LoadConfiguration()
 Private USE_COLORIZER As Boolean
-Private NUM_RTF_COLORS As Long
+Private NUM_QUOTE_COLORS As Long
+Private COLORIZER_SEND_AS_PLAIN As Boolean
 Private USE_SOFTWRAP As Boolean
 Private SEVENTY_SIX_CHARS As String
 Private PIXEL_PER_CHARACTER As Double
@@ -144,7 +170,6 @@ Private INCLUDE_QUOTES_TO_LEVEL As Long
 Private LINE_WRAP_AFTER As Long
 Private DATE_FORMAT As String
 Private STRIP_SIGNATURE As Boolean
-Private CONVERT_TO_PLAIN As Boolean
 Private USE_QUOTING_TEMPLATE As Boolean
 Private QUOTING_TEMPLATE As String
 Private QUOTING_TEMPLATE_EN As String
@@ -157,31 +182,29 @@ Private FIRSTNAME_REPLACEMENT__EMAIL() As String
 Private FIRSTNAME_REPLACEMENT__FIRSTNAME() As String
 
 
-'TODO: 1: check if these can also be changed into `Long`s. Unfortunately I
-'         don't have the DLL and therefore can't test it myself
-'For QuoteColorizer
-Public Declare PtrSafe Function WriteRTF _
-        Lib "mapirtf.dll" _
-        Alias "writertf" (ByVal ProfileName As String, _
-                          ByVal MessageID As String, _
-                          ByVal StoreID As String, _
-                          ByVal cText As String) _
-        As Integer      ' <-- {1}
+'Colors of the colored mode (RGB in hexadecimal, separated by ";"): blue, green, purple, amber, teal, brown
+Private Const QUOTE_COLORS As String = "1F6FB2;2E8B57;7B4FA0;B8731B;008B8B;8B5A2B"
+'The color of the quoted text written by the user (dark gray)
+Private Const OWN_TEXT_COLOR As String = "555555"
 
-'For QuoteColorizer
-Public Declare PtrSafe Function ReadRTF _
-        Lib "mapirtf.dll" _
-        Alias "readrtf" (ByVal ProfileName As String, _
-                         ByVal SrcMsgID As String, _
-                         ByVal SrcStoreID As String, _
-                         ByRef MsgRTF As String) _
-        As Integer      '<-- {1}
+'The property marking a colored reply. ThisOutlookSession converts such a mail to plain text before it is sent
+Private Const COLORED_MAIL_PROPERTY As String = "QuoteFixMacroColored"
 
 
 Private Enum ReplyType
     TypeReply = 1
     TypeReplyAll = 2
     TypeForward = 3
+End Enum
+
+'Where the text handed to ReFormatText comes from
+Public Enum QuoteSource
+    'Outlook prefixed the text and thereby wrapped it: the broken wraps are repaired
+    SourceOutlookReply = 0
+    'A plain text mail prefixed by QuoteText: paragraphs with lines being too long are wrapped anew
+    SourcePlainText = 1
+    'A mail converted by HtmlToPlainText and prefixed by QuoteText: each line is a paragraph and wrapped on its own
+    SourceHtml = 2
 End Enum
 
 Public Type NestingType
@@ -205,6 +228,7 @@ Private curBlockNeedsToBeReFormatted As Boolean
 Private curPrefix As String
 Private lastLineWasParagraph As Boolean
 Private lastNesting As NestingType
+Private curSource As QuoteSource
 
 '"Fixed Reply" functionality - has to be made available as shortcut in Outlook
 Public Sub FixedReply()
@@ -271,7 +295,12 @@ Private Function CalcNesting(ByVal line As String) As NestingType
         'One space is normal, the others are nesting
         '  It could be, that there is no space
 
-        res.additionalSpacesCount = i - lastQuoteSignPos - 2
+        If count = 0 Then
+            'not quoted: the spaces at the beginning are indentation
+            res.additionalSpacesCount = i - 1
+        Else
+            res.additionalSpacesCount = i - lastQuoteSignPos - 2
+        End If
         If res.additionalSpacesCount < 0 Then
             res.additionalSpacesCount = 0
         End If
@@ -287,7 +316,8 @@ End Function
 'Stores the default values in the system registry
 Public Sub StoreDefaultConfiguration()
     SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_COLORIZER", DEFAULT_USE_COLORIZER
-    SaveSetting APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", DEFAULT_NUM_RTF_COLORS
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "NUM_QUOTE_COLORS", DEFAULT_NUM_QUOTE_COLORS
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "COLORIZER_SEND_AS_PLAIN", DEFAULT_COLORIZER_SEND_AS_PLAIN
     SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", DEFAULT_USE_SOFTWRAP
     SaveSetting APPNAME, REG_GROUP_CONFIG, "SEVENTY_SIX_CHARS", DEFAULT_SEVENTY_SIX_CHARS
     SaveSetting APPNAME, REG_GROUP_CONFIG, "PIXEL_PER_CHARACTER", DEFAULT_PIXEL_PER_CHARACTER
@@ -295,7 +325,6 @@ Public Sub StoreDefaultConfiguration()
     SaveSetting APPNAME, REG_GROUP_CONFIG, "LINE_WRAP_AFTER", DEFAULT_LINE_WRAP_AFTER
     SaveSetting APPNAME, REG_GROUP_CONFIG, "DATE_FORMAT", DEFAULT_DATE_FORMAT
     SaveSetting APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", DEFAULT_STRIP_SIGNATURE
-    SaveSetting APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", DEFAULT_CONVERT_TO_PLAIN
     SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN
@@ -307,7 +336,9 @@ End Sub
 'Loads the personal settings from the registry.
 Public Sub LoadConfiguration()
     USE_COLORIZER = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_COLORIZER", DEFAULT_USE_COLORIZER))
-    NUM_RTF_COLORS = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", DEFAULT_NUM_RTF_COLORS))
+    'NUM_RTF_COLORS is the name of the setting in versions up to 1.9
+    NUM_QUOTE_COLORS = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "NUM_QUOTE_COLORS", GetSetting(APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", DEFAULT_NUM_QUOTE_COLORS)))
+    COLORIZER_SEND_AS_PLAIN = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "COLORIZER_SEND_AS_PLAIN", DEFAULT_COLORIZER_SEND_AS_PLAIN))
     USE_SOFTWRAP = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", DEFAULT_USE_SOFTWRAP))
     SEVENTY_SIX_CHARS = GetSetting(APPNAME, REG_GROUP_CONFIG, "SEVENTY_SIX_CHARS", DEFAULT_SEVENTY_SIX_CHARS)
     PIXEL_PER_CHARACTER = CDbl(GetSetting(APPNAME, REG_GROUP_CONFIG, "PIXEL_PER_CHARACTER", DEFAULT_PIXEL_PER_CHARACTER))
@@ -315,7 +346,6 @@ Public Sub LoadConfiguration()
     LINE_WRAP_AFTER = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "LINE_WRAP_AFTER", DEFAULT_LINE_WRAP_AFTER))
     DATE_FORMAT = GetSetting(APPNAME, REG_GROUP_CONFIG, "DATE_FORMAT", DEFAULT_DATE_FORMAT)
     STRIP_SIGNATURE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", DEFAULT_STRIP_SIGNATURE))
-    CONVERT_TO_PLAIN = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONVERT_TO_PLAIN", DEFAULT_CONVERT_TO_PLAIN))
     USE_QUOTING_TEMPLATE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE))
     CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS))
     CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER))
@@ -364,7 +394,12 @@ Private Function CalcPrefix(ByRef nesting As NestingType) As String
     res = String$(nesting.level, ">")
     res = res & String$(nesting.additionalSpacesCount, " ")
 
-    CalcPrefix = res & " "
+    If nesting.level = 0 Then
+        'not quoted: no space separating the quote characters from the text
+        CalcPrefix = res
+    Else
+        CalcPrefix = res & " "
+    End If
 End Function
 
 'Description:
@@ -381,6 +416,13 @@ Private Sub AppendCurLine(ByVal curLine As String)
     Else
         curBlock = curBlock & IIf(Len(curBlock) = 0, vbNullString, " ") & curLine
         unformattedBlock = unformattedBlock & curPrefix & curLine & vbCrLf
+    End If
+
+    If curSource = SourcePlainText Then
+        'The line is too long with its prefix, but short enough to be a line wrapped by the sender
+        If (Len(curPrefix) + Len(curLine) > LINE_WRAP_AFTER) And (Len(curLine) <= MAX_HARD_WRAP_WIDTH) Then
+            curBlockNeedsToBeReFormatted = True
+        End If
     End If
 End Sub
 
@@ -455,6 +497,14 @@ End Sub
 '   The label and the weekday are optional
 '   If the date cannot be parsed, it is returned as found in the email
 Private Function FormatHeaderDate(ByVal headerLine As String) As String
+    Dim formatted As String
+    TryFormatHeaderDate headerLine, formatted
+    FormatHeaderDate = formatted
+End Function
+
+'Description:
+'   The same as FormatHeaderDate, but tells whether a date was found (formatted is the text as found otherwise)
+Private Function TryFormatHeaderDate(ByVal headerLine As String, ByRef formatted As String) As Boolean
     Dim sDate As String
     sDate = headerLine
 
@@ -476,17 +526,465 @@ Private Function FormatHeaderDate(ByVal headerLine As String) As String
     End If
 
     If IsDate(sDate) Then
-        FormatHeaderDate = Format$(CDate(sDate), DATE_FORMAT)
+        formatted = Format$(CDate(sDate), DATE_FORMAT)
+        TryFormatHeaderDate = True
     Else
         'leave sDate as is -> date is output as found in email
-        FormatHeaderDate = sDate
+        formatted = sDate
+        TryFormatHeaderDate = False
     End If
+End Function
+
+'Description:
+'   Condenses the header of each older mail within the text to one line (CONDENSED_HEADER_FORMAT)
+'   A header at the same quote level as the text above it starts an older mail: the text below it gets one level more
+'   A header which is deeper than the text above it is quoted already: its condensed line gets one level less
+'Notes:
+'   * Public to enable testing
+Public Function CondenseHeaders(ByVal text As String) As String
+    Dim rows() As String
+    rows = Split(text, vbCrLf)
+
+    'the quote levels at which older mails start: a line at such a level or deeper gets one level more per entry
+    Dim startLevels() As Long
+    ReDim startLevels(1 To 1)
+    Dim startCount As Long
+    startCount = 0
+
+    'the quote level (including the additional levels) of the last line with text
+    Dim previousTextLevel As Long
+    previousTextLevel = 0
+
+    Dim res As String
+    Dim i As Long
+    i = LBound(rows)
+    Do While i <= UBound(rows)
+        Dim level As Long
+        level = CalcNesting(rows(i)).level
+        Dim extraLevels As Long
+        extraLevels = CountStartLevelsUpTo(startLevels, startCount, level)
+
+        Dim endIndex As Long
+        Dim condensedHeader As String
+        If TryCondenseHeader(rows, i, endIndex, condensedHeader) Then
+            Dim condensedLevel As Long
+            If level + extraLevels > previousTextLevel Then
+                'the older mail is quoted deeper already
+                condensedLevel = level + extraLevels - 1
+            Else
+                'the older mail starts here
+                condensedLevel = level + extraLevels
+                startCount = startCount + 1
+                ReDim Preserve startLevels(1 To startCount)
+                startLevels(startCount) = level
+            End If
+
+            If condensedLevel > 0 Then
+                res = res & String$(condensedLevel, ">") & " "
+            End If
+            res = res & condensedHeader & vbCrLf
+
+            'the text of the older mail follows directly
+            i = endIndex + 1
+            Do While i <= UBound(rows)
+                If Len(StripLine(rows(i))) > 0 Then Exit Do
+                i = i + 1
+            Loop
+        Else
+            If extraLevels > 0 Then
+                res = res & String$(extraLevels, ">") & " "
+            End If
+            res = res & rows(i) & vbCrLf
+
+            If Len(StripLine(rows(i))) > 0 Then
+                previousTextLevel = level + extraLevels
+            End If
+            i = i + 1
+        End If
+    Loop
+
+    If Len(res) > 0 Then
+        res = Left$(res, Len(res) - 2)
+    End If
+    CondenseHeaders = res
+End Function
+
+Private Function CountStartLevelsUpTo(ByRef startLevels() As Long, ByVal startCount As Long, ByVal level As Long) As Long
+    Dim i As Long
+    For i = 1 To startCount
+        If startLevels(i) <= level Then
+            CountStartLevelsUpTo = CountStartLevelsUpTo + 1
+        End If
+    Next
+End Function
+
+'Description:
+'   Checks whether a header of an older mail starts at rows(start): an optional marker line ("-----Original Message-----"),
+'   a "From:" line, and further "Label: value" lines up to the "Subject:" line or an empty line, all at the same quote level.
+'   One of the lines has to contain a date.
+'Returns:
+'   True if a header was found. Then, endIndex is its last line, and condensedHeader the line replacing it
+Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, ByRef endIndex As Long, ByRef condensedHeader As String) As Boolean
+    Dim level As Long
+    level = CalcNesting(rows(start)).level
+
+    Dim i As Long
+    i = start
+    Dim line As String
+    line = StripLine(rows(i))
+
+    Dim hasMarker As Boolean
+    hasMarker = IsHeaderMarker(line)
+    If hasMarker Then
+        i = i + 1
+        If i > UBound(rows) Then Exit Function
+        If CalcNesting(rows(i)).level <> level Then Exit Function
+        line = StripLine(rows(i))
+    End If
+
+    If Not IsListedLabel(GetLabel(line), LABELS_FROM) Then Exit Function
+
+    'the lines of the header: "Label: value"
+    Dim values() As String
+    ReDim values(1 To MAX_HEADER_LINES)
+    Dim valueCount As Long
+    valueCount = 0
+    Dim dateIndex As Long
+    dateIndex = 0
+
+    Do While i <= UBound(rows)
+        If CalcNesting(rows(i)).level <> level Then Exit Do
+        line = StripLine(rows(i))
+        If Len(line) = 0 Then Exit Do
+
+        Dim label As String
+        label = GetLabel(line)
+        If Len(label) > 0 Then
+            If valueCount = MAX_HEADER_LINES Then Exit Do
+            valueCount = valueCount + 1
+            values(valueCount) = Trim$(Mid$(line, Len(label) + 2))
+            If dateIndex = 0 And valueCount > 1 Then
+                If IsDateLike(values(valueCount)) Then dateIndex = valueCount
+            End If
+            If IsListedLabel(label, LABELS_SUBJECT) Then
+                i = i + 1
+                Exit Do
+            End If
+        ElseIf valueCount > 0 And Len(values(valueCount)) >= 50 Then
+            'a long value was wrapped by a mail program
+            values(valueCount) = values(valueCount) & " " & line
+        Else
+            Exit Do
+        End If
+        i = i + 1
+    Loop
+
+    'a header needs sender, date, and at least one more line
+    If valueCount < 3 Or dateIndex = 0 Then Exit Function
+
+    Dim senderRaw As String
+    Dim senderEmail As String
+    SplitSender values(1), senderRaw, senderEmail
+    Dim senderName As String
+    Dim firstName As String
+    Dim lastName As String
+    getNamesOutOfString senderRaw, senderName, firstName, lastName, senderEmail
+
+    'the recipients follow the date
+    Dim recipients As String
+    If dateIndex < valueCount Then
+        recipients = values(dateIndex + 1)
+    End If
+
+    condensedHeader = CONDENSED_HEADER_FORMAT
+    condensedHeader = Replace$(condensedHeader, PATTERN_SENDER_NAME, senderName)
+    condensedHeader = Replace$(condensedHeader, PATTERN_SENT_DATE, FormatHeaderDate(values(dateIndex)))
+    condensedHeader = Replace$(condensedHeader, PATTERN_SENDER_EMAIL, senderEmail)
+    condensedHeader = Replace$(condensedHeader, PATTERN_RECIPIENTS, recipients)
+
+    endIndex = i - 1
+    TryCondenseHeader = True
+End Function
+
+'"-----Original Message-----" (any language), or the line Outlook on the web puts above a header
+Private Function IsHeaderMarker(ByVal line As String) As Boolean
+    If Left$(line, Len(PGP_MARKER)) = PGP_MARKER Then Exit Function
+    IsHeaderMarker = (Left$(line, 5) = "-----") Or (Left$(line, 10) = "__________")
+End Function
+
+'Description:
+'   Returns the label of a "Label: value" line (without the colon), vbNullString if the line has none
+'   A label consists of 2 to 20 letters or spaces and is followed by ": " or ":" at the end of the line
+Private Function GetLabel(ByVal line As String) As String
+    Dim posColon As Long
+    posColon = InStr(line, ":")
+    If posColon < 3 Or posColon > 21 Then Exit Function
+    If posColon < Len(line) Then
+        If Mid$(line, posColon + 1, 1) <> " " Then Exit Function
+    End If
+
+    Dim i As Long
+    For i = 1 To posColon - 1
+        Dim c As String
+        c = Mid$(line, i, 1)
+        If Not (c Like "[A-Za-z ]") And AscW(c) < 128 And AscW(c) >= 0 Then Exit Function
+    Next
+
+    GetLabel = Left$(line, posColon - 1)
+End Function
+
+Private Function IsListedLabel(ByVal label As String, ByVal labels As String) As Boolean
+    If Len(label) = 0 Then Exit Function
+    IsListedLabel = (InStr(labels, " " & LCase$(label) & " ") > 0)
+End Function
+
+'True if the text contains a date, or at least a number of four digits (e.g., a year within a date which cannot be parsed)
+Private Function IsDateLike(ByVal value As String) As Boolean
+    Dim formatted As String
+    If TryFormatHeaderDate(value, formatted) Then
+        IsDateLike = True
+        Exit Function
+    End If
+    IsDateLike = (value Like "*#???#*") And (value Like "*####*")
+End Function
+
+'Description:
+'   Splits "Name <address>" or "Name [mailto:address]" into name and address
+Private Sub SplitSender(ByVal fromValue As String, ByRef senderRaw As String, ByRef senderEmail As String)
+    Dim posStart As Long
+    Dim addressOffset As Long
+    posStart = InStr(fromValue, "<")
+    addressOffset = 1
+    If posStart = 0 Then
+        posStart = InStr(fromValue, "[mailto:")
+        addressOffset = 8
+    End If
+
+    If posStart = 0 Then
+        senderRaw = Trim$(fromValue)
+        senderEmail = vbNullString
+    Else
+        senderRaw = Trim$(Left$(fromValue, posStart - 1))
+        senderEmail = Mid$(fromValue, posStart + addressOffset)
+        Dim posEnd As Long
+        posEnd = InStr(senderEmail, ">")
+        If posEnd = 0 Then posEnd = InStr(senderEmail, "]")
+        If posEnd > 0 Then senderEmail = Left$(senderEmail, posEnd - 1)
+        senderEmail = Trim$(senderEmail)
+    End If
+
+    If Len(senderRaw) = 0 Then
+        senderRaw = senderEmail
+    End If
+End Sub
+
+'Description:
+'   Prefixes each line of the text with "> ", the way Outlook does it for a plain text mail
+'   Empty lines at the end are dropped
+'Notes:
+'   * Public to enable testing
+Public Function QuoteText(ByVal text As String) As String
+    Dim lines() As String
+    lines = Split(Replace$(text, vbCrLf, vbLf), vbLf)
+
+    Dim lastLine As Long
+    lastLine = UBound(lines)
+    Do While lastLine >= LBound(lines)
+        If Len(Trim$(lines(lastLine))) > 0 Then Exit Do
+        lastLine = lastLine - 1
+    Loop
+
+    Dim i As Long
+    For i = LBound(lines) To lastLine
+        If i > LBound(lines) Then
+            QuoteText = QuoteText & vbCrLf
+        End If
+        QuoteText = QuoteText & "> " & lines(i)
+    Next
+End Function
+
+'Description:
+'   Detects the language of a mail by counting frequent words
+'   Only the newest part of the mail is regarded: the text above the first quote or header of an older mail
+'   Returns the primary language id (7 for German, 9 for English), or 0 if there is no clear result
+'Notes:
+'   * Public to enable testing
+Public Function DetectLanguage(ByVal text As String) As Long
+    Dim rows() As String
+    rows = Split(Replace$(text, vbCrLf, vbLf), vbLf)
+
+    Dim countGerman As Long
+    Dim countEnglish As Long
+    Dim countWords As Long
+
+    Dim i As Long
+    For i = LBound(rows) To UBound(rows)
+        Dim row As String
+        row = LCase$(Trim$(rows(i)))
+        If IsStartOfOlderMail(row) Or countWords >= MAX_WORDS_FOR_DETECTION Then Exit For
+
+        'everything but a letter separates words
+        Dim word As String
+        word = vbNullString
+        Dim j As Long
+        For j = 1 To Len(row) + 1
+            Dim c As String
+            c = Mid$(row, j, 1)
+            If IsLetter(c) Then
+                word = word & c
+            ElseIf Len(word) > 0 Then
+                If InStr(WORDS_GERMAN, " " & word & " ") > 0 Then
+                    countGerman = countGerman + 1
+                End If
+                If InStr(WORDS_ENGLISH, " " & word & " ") > 0 Then
+                    countEnglish = countEnglish + 1
+                End If
+                countWords = countWords + 1
+                word = vbNullString
+            End If
+        Next
+    Next
+
+    'a clear result: at least two words of a language, and at least twice as many as of the other language
+    If countGerman >= 2 And countGerman >= 2 * countEnglish Then
+        DetectLanguage = LANGUAGE_GERMAN
+    ElseIf countEnglish >= 2 And countEnglish >= 2 * countGerman Then
+        DetectLanguage = LANGUAGE_ENGLISH
+    End If
+End Function
+
+'row has to be trimmed and in lower case
+Private Function IsStartOfOlderMail(ByVal row As String) As Boolean
+    IsStartOfOlderMail = (Left$(row, 1) = ">") Or (Left$(row, 5) = "-----") Or (Left$(row, 5) = "_____") _
+        Or (Left$(row, 6) = "from: ") Or (Left$(row, 5) = "von: ")
+End Function
+
+'c has to be in lower case
+Private Function IsLetter(ByVal c As String) As Boolean
+    If Len(c) = 0 Then Exit Function
+
+    'letters outside of a-z (e.g., umlauts) have a code above 127, or a negative one
+    IsLetter = (c Like "[a-z]") Or (AscW(c) > 127) Or (AscW(c) < 0)
+End Function
+
+'Description:
+'   Builds the header of the original mail the way Outlook puts it above the original text of a plain text mail
+'   The header is German if languageId is German, English otherwise
+'   Each line ends with a line break
+'Notes:
+'   * Public to enable testing
+Public Function BuildOutlookHeader(ByVal languageId As Long, ByVal senderName As String, ByVal senderEmail As String, ByVal sentDate As String, ByVal recipientsTo As String, ByVal recipientsCc As String, ByVal mailSubject As String) As String
+    'the lower ten bits of a language id are the primary language
+    Dim isGerman As Boolean
+    isGerman = ((languageId And 1023) = LANGUAGE_GERMAN)
+
+    Dim fromValue As String
+    fromValue = senderName
+    If Len(senderEmail) > 0 Then
+        fromValue = fromValue & " [mailto:" & senderEmail & "]"
+    End If
+
+    Dim header As String
+    If isGerman Then
+        header = "-----Urspr" & ChrW$(252) & "ngliche Nachricht-----" & vbCrLf
+        header = header & "Von: " & fromValue & vbCrLf
+        header = header & "Gesendet: " & sentDate & vbCrLf
+        header = header & "An: " & recipientsTo & vbCrLf
+    Else
+        header = "-----Original Message-----" & vbCrLf
+        header = header & "From: " & fromValue & vbCrLf
+        header = header & "Sent: " & sentDate & vbCrLf
+        header = header & "To: " & recipientsTo & vbCrLf
+    End If
+
+    If Len(recipientsCc) > 0 Then
+        header = header & "Cc: " & recipientsCc & vbCrLf
+    End If
+
+    If isGerman Then
+        header = header & "Betreff: " & mailSubject & vbCrLf
+    Else
+        header = header & "Subject: " & mailSubject & vbCrLf
+    End If
+
+    BuildOutlookHeader = header
+End Function
+
+Private Function FirstWord(ByVal text As String) As String
+    Dim posSpace As Long
+    posSpace = InStr(text, " ")
+    If posSpace = 0 Then
+        FirstWord = text
+    Else
+        FirstWord = Left$(text, posSpace - 1)
+    End If
+End Function
+
+'Description:
+'   Wraps each line being longer than LINE_WRAP_AFTER
+'   Each line is wrapped on its own (it is not joined with the next line), the quote prefix is repeated
+'   Words being too long (e.g., links) are not broken
+Private Function WrapLongLines(ByVal text As String) As String
+    Dim rows() As String
+    rows = Split(text, vbCrLf)
+
+    Dim i As Long
+    For i = LBound(rows) To UBound(rows)
+        If i > LBound(rows) Then
+            WrapLongLines = WrapLongLines & vbCrLf
+        End If
+
+        If Len(rows(i)) <= LINE_WRAP_AFTER Then
+            WrapLongLines = WrapLongLines & rows(i)
+        Else
+            Dim nesting As NestingType
+            nesting = CalcNesting(rows(i))
+
+            Dim prefix As String
+            If nesting.level = 0 Then
+                prefix = vbNullString
+            Else
+                prefix = CalcPrefix(nesting)
+            End If
+
+            Dim maxLength As Long
+            maxLength = LINE_WRAP_AFTER - Len(prefix)
+            If maxLength < 20 Then
+                'very deep nesting: keep some room for the text
+                maxLength = 20
+            End If
+
+            Dim remaining As String
+            remaining = StripLine(rows(i))
+            Do While Len(remaining) > maxLength
+                'wrap at the last space which still fits
+                Dim breakPos As Long
+                breakPos = InStrRev(remaining, " ", maxLength + 1)
+                If breakPos = 0 Then
+                    'the first word is too long: keep it complete
+                    breakPos = InStr(remaining, " ")
+                    If breakPos = 0 Then Exit Do
+                End If
+
+                WrapLongLines = WrapLongLines & prefix & RTrim$(Left$(remaining, breakPos - 1)) & vbCrLf
+                remaining = LTrim$(Mid$(remaining, breakPos + 1))
+            Loop
+            WrapLongLines = WrapLongLines & prefix & remaining
+        End If
+    Next
 End Function
 
 'Reformat text to correct broken wrap inserted by Outlook.
 'Needs to be public so the test cases can run this function.
-Public Function ReFormatText(ByVal text As String) As String
+'
+'textSource tells where the text comes from, see QuoteSource
+Public Function ReFormatText(ByVal text As String, Optional ByVal textSource As QuoteSource = SourceOutlookReply) As String
     'Reset (partially global) variables
+    curSource = textSource
+
+    If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS And (textSource <> SourceOutlookReply) Then
+        text = CondenseHeaders(text)
+    End If
     result = vbNullString
     curBlock = vbNullString
     unformattedBlock = vbNullString
@@ -520,7 +1018,8 @@ Public Function ReFormatText(ByVal text As String) As String
                 AppendCurLine curLine
                 lastLineWasParagraph = False
 
-                If (curNesting.level = 1) And (i < UBound(rows)) Then
+                'Only Outlook breaks lines of the first level (when it prefixes them)
+                If (curSource = SourceOutlookReply) And (curNesting.level = 1) And (i < UBound(rows)) Then
                     'check if the next line contains a wrong break
                     Dim nextNesting As NestingType
                     nextNesting = CalcNesting(rows(i + 1))
@@ -539,7 +1038,16 @@ Public Function ReFormatText(ByVal text As String) As String
 
             If (i < UBound(rows)) Then
                 nextNesting = CalcNesting(rows(i + 1))
-                If nextNesting.total = lastNesting.total Then
+                'The nesting of text converted from HTML is given by the HTML: there are no broken wraps
+                Dim isBrokenWrap As Boolean
+                isBrokenWrap = (curSource <> SourceHtml) And (nextNesting.total = lastNesting.total)
+                If isBrokenWrap And (curSource = SourcePlainText) And (Len(curLine) > 0) Then
+                    'Outlook only broke the line above if the first word of this line did not fit into it.
+                    'Otherwise, this line is an answer between two quotes
+                    isBrokenWrap = (Len(rows(i - 1)) > LINE_WRAP_AFTER - Len(FirstWord(curLine)) - 10) '10: the same rough heuristics as above
+                End If
+
+                If isBrokenWrap Then
                     'Yeah. Wrong line wrap found
 
                     If Len(curLine) = 0 Then
@@ -572,6 +1080,7 @@ Public Function ReFormatText(ByVal text As String) As String
             Else
                 'Quote is the last one - just use it
                 FinishBlock lastNesting
+                AppendCurLine curLine
             End If
 
         Else
@@ -589,7 +1098,8 @@ Public Function ReFormatText(ByVal text As String) As String
                 End If
             End If
 
-            If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS Then
+            'Text not prefixed by Outlook has its headers condensed by CondenseHeaders already
+            If CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS And (curSource = SourceOutlookReply) Then
                 If Left$(curLine, Len(OUTLOOK_PLAIN_ORIGINALMESSAGE)) = OUTLOOK_PLAIN_ORIGINALMESSAGE _
                 And Not Left$(curLine, Len(PGP_MARKER)) = PGP_MARKER _
                 Then
@@ -696,6 +1206,11 @@ Public Function ReFormatText(ByVal text As String) As String
         result = Left$(result, Len(result) - 1)
     Loop
 
+    If curSource <> SourceOutlookReply Then
+        'Outlook did not wrap the text
+        result = WrapLongLines(result)
+    End If
+
     ReFormatText = result
 End Function
 
@@ -774,40 +1289,32 @@ catch:
         On Error GoTo 0
     End If
 
-    'basically, we do not understand HTML mails
-    If Not (bodyFormat = olFormatPlain) Then
-        If CONVERT_TO_PLAIN Then
-            'Unfortunately, it is only possible to convert the original mail as there is
-            'no easy way to create a clone. Therefore, you cannot go back to the original format!
-            'If you e.g. would decide that you need to forward the mail in HTML format,
-            'this will not be possible anymore.
-            SelectedObject.bodyFormat = olFormatPlain
-        Else
-            Dim ReplyObj As MailItem
-            Select Case MailMode
-                Case TypeReply
-                    If isMail Then
-                        Set ReplyObj = OriginalMail.Reply
-                    Else
-                        Set ReplyObj = OriginalMeeting.Reply
-                    End If
-                Case TypeReplyAll
-                    If isMail Then
-                        Set ReplyObj = OriginalMail.ReplyAll
-                    Else
-                        Set ReplyObj = OriginalMeeting.ReplyAll
-                    End If
-                Case TypeForward
-                    If isMail Then
-                        Set ReplyObj = OriginalMail.Forward
-                    Else
-                        Set ReplyObj = OriginalMeeting.Forward
-                    End If
-            End Select
+    Dim originalIsPlain As Boolean
+    originalIsPlain = (bodyFormat = olFormatPlain)
 
-            ReplyObj.Display
-            Exit Sub
+    'Forwarding is left as it was before replies to HTML mails were supported:
+    'A mail which is not a plain text mail is forwarded by Outlook itself,
+    'the text of a plain text mail is prefixed by Outlook
+    Dim isForward As Boolean
+    isForward = (MailMode = TypeForward)
+    If isForward And Not originalIsPlain Then
+        Dim ForwardObj As Object
+        If isMail Then
+            Set ForwardObj = OriginalMail.Forward
+        Else
+            Set ForwardObj = OriginalMeeting.Forward
         End If
+        ForwardObj.Display
+        Exit Sub
+    End If
+
+    'Reply: Outlook creates the reply without the original text, header and text of the original are added below.
+    'The original mail is never modified. The reply is always a plain text mail.
+    Dim NewReplyStyle As OlActionReplyStyle
+    If isForward Then
+        NewReplyStyle = olReplyTickOriginalText
+    Else
+        NewReplyStyle = olOmitOriginalText
     End If
 
     '''create reply --> outlook style!
@@ -816,7 +1323,7 @@ catch:
         With OriginalMail.Actions(MailMode)
             Dim OriginalReplyStyle As OlActionReplyStyle
             OriginalReplyStyle = .ReplyStyle
-            .ReplyStyle = olReplyTickOriginalText
+            .ReplyStyle = NewReplyStyle
 
             Dim NewMail As MailItem
             Set NewMail = .Execute
@@ -826,7 +1333,7 @@ catch:
     Else
         With OriginalMeeting.Actions(MailMode)
             OriginalReplyStyle = .ReplyStyle
-            .ReplyStyle = olReplyTickOriginalText
+            .ReplyStyle = NewReplyStyle
 
             Set NewMail = .Execute
 
@@ -838,6 +1345,10 @@ catch:
     'the reply methods will return null (forward method is ok)
     If NewMail Is Nothing Then Exit Sub
 
+    If Not originalIsPlain Then
+        NewMail.bodyFormat = olFormatPlain
+    End If
+
     'put the whole mail as composed by Outlook into an array
     Dim BodyLines() As String
     BodyLines = Split(NewMail.Body, vbCrLf)
@@ -847,15 +1358,37 @@ catch:
     'back the new value.
     Dim lineCounter As Long
 
-    ' A new mail starts with signature -if- set, try to parse until we find the the
-    ' original message separator - might loop until the end of the whole message since
-    ' this depends on the International Option settings (english), even worse it might
-    ' find some separator in-between and mess up the whole reply, so check the nesting too.
-    '
-    ' We need to call getSignature in all cases as it sets "lineCounter" as side effect
     Dim MySignature As String
-    MySignature = getSignature(BodyLines, lineCounter)
-    ' lineCounter now indicates the line after the signature
+    Dim textSource As QuoteSource
+    If isForward Then
+        ' A new mail starts with signature -if- set, try to parse until we find the the
+        ' original message separator - might loop until the end of the whole message since
+        ' this depends on the International Option settings (english), even worse it might
+        ' find some separator in-between and mess up the whole reply, so check the nesting too.
+        '
+        ' We need to call getSignature in all cases as it sets "lineCounter" as side effect
+        MySignature = getSignature(BodyLines, lineCounter)
+        ' lineCounter now indicates the line after the signature
+
+        textSource = SourceOutlookReply
+    Else
+        'The reply consists of the signature only
+        MySignature = getSignatureOfEmptyReply(BodyLines)
+
+        'Header and text of the original are put into BodyLines the way Outlook does it when it prefixes a plain text mail
+        If isMail Then
+            BodyLines = Split(getQuotedOriginalOfMail(OriginalMail, originalIsPlain), vbCrLf)
+        Else
+            BodyLines = Split(getQuotedOriginalOfMeeting(OriginalMeeting), vbCrLf)
+        End If
+        lineCounter = 0
+
+        If originalIsPlain Then
+            textSource = SourcePlainText
+        Else
+            textSource = SourceHtml
+        End If
+    End If
 
     If USE_QUOTING_TEMPLATE Then
         'Override MySignature in case the QUOTING_TEMPLATE should be used
@@ -918,7 +1451,7 @@ catch:
     End If
 
     Dim quotedText As String
-    quotedText = getQuotedText(BodyLines, lineCounter)
+    quotedText = getQuotedText(BodyLines, lineCounter, textSource)
 
     Dim NewText As String
     'create mail according to reply mode
@@ -957,22 +1490,17 @@ catch:
 
     MySignature = cleanUpDoubleLines(MySignature)
 
-    NewMail.Body = MySignature
-
-    'Extensions, in case Colorize is activated
     If USE_COLORIZER Then
-        Dim mailID As String
-        mailID = ColorizeMailItem(NewMail)
-        If (Len(Trim$(vbNullString & mailID)) > 0) Then  'no error occurred or quotefix macro not there...
-            DisplayMailItemByID mailID
-        Else
-            'Display window
-            NewMail.Display
-        End If
+        NewMail.bodyFormat = olFormatHTML
+        NewMail.HTMLBody = TextToColoredHtml(MySignature, getOwnName())
+        'the mark lets ThisOutlookSession convert the mail to plain text before it is sent
+        NewMail.UserProperties.Add(COLORED_MAIL_PROPERTY, olText, False).Value = "yes"
     Else
-        'Display window
-        NewMail.Display
+        NewMail.Body = MySignature
     End If
+
+    'Display window
+    NewMail.Display
 
     'jump to the right place
     Dim i As Long
@@ -1002,6 +1530,104 @@ Private Function getSignature(ByRef BodyLines() As String, ByRef lineCounter As 
         End If
         getSignature = getSignature & BodyLines(lineCounter) & vbCrLf
     Next
+End Function
+
+'Description:
+'   Returns the signature of a reply Outlook created without the original text
+Private Function getSignatureOfEmptyReply(ByRef BodyLines() As String) As String
+    'drop the empty lines at the beginning
+    Dim i As Long
+    i = LBound(BodyLines)
+    Do While i <= UBound(BodyLines)
+        If Len(Trim$(Replace$(BodyLines(i), ChrW$(160), " "))) > 0 Then Exit Do
+        i = i + 1
+    Loop
+
+    For i = i To UBound(BodyLines)
+        getSignatureOfEmptyReply = getSignatureOfEmptyReply & BodyLines(i) & vbCrLf
+    Next
+End Function
+
+'Description:
+'   Returns header and text of a mail the way Outlook puts them into the reply to a plain text mail:
+'   each line is prefixed, header and text are separated by an empty line
+Private Function getQuotedOriginalOfMail(ByVal item As MailItem, ByVal isPlainText As Boolean) As String
+    Dim originalText As String
+    If isPlainText Then
+        originalText = item.Body
+    Else
+        'Outlook offers HTML for Rich Text mails, too
+        originalText = HtmlToPlainText(item.HTMLBody)
+    End If
+
+    Dim senderEmail As String
+    If item.senderEmailType = "SMTP" Then
+        senderEmail = item.senderEmailAddress
+    End If
+
+    Dim header As String
+    header = BuildOutlookHeader(getHeaderLanguageId(originalText), item.senderName, senderEmail, Format$(item.SentOn, DATE_FORMAT), item.To, item.CC, item.Subject)
+
+    getQuotedOriginalOfMail = QuoteText(header & vbCrLf & originalText)
+End Function
+
+'Code duplication of getQuotedOriginalOfMail, because there is no common ancestor of MailItem and MeetingItem
+Private Function getQuotedOriginalOfMeeting(ByVal item As MeetingItem) As String
+    Dim senderEmail As String
+    If item.senderEmailType = "SMTP" Then
+        senderEmail = item.senderEmailAddress
+    End If
+
+    'MeetingItem does not offer "To"
+    Dim recipientNames As String
+    Dim curRecipient As Recipient
+    For Each curRecipient In item.Recipients
+        If Len(recipientNames) > 0 Then
+            recipientNames = recipientNames & "; "
+        End If
+        recipientNames = recipientNames & curRecipient.Name
+    Next
+
+    Dim header As String
+    header = BuildOutlookHeader(getHeaderLanguageId(item.Body), item.senderName, senderEmail, Format$(item.SentOn, DATE_FORMAT), recipientNames, vbNullString, item.Subject)
+
+    'MeetingItem does not offer HTMLBody
+    getQuotedOriginalOfMeeting = QuoteText(header & vbCrLf & item.Body)
+End Function
+
+'Description:
+'   Returns the language for the header of the original mail: the language of the mail.
+'   If that cannot be detected, it is the language of Outlook's user interface
+Private Function getHeaderLanguageId(ByVal originalText As String) As Long
+    getHeaderLanguageId = DetectLanguage(originalText)
+    If getHeaderLanguageId = 0 Then
+        getHeaderLanguageId = getUiLanguageId()
+    End If
+End Function
+
+'Description:
+'   Returns the name of the user ("Firstname Lastname"), vbNullString if it cannot be determined
+Private Function getOwnName() As String
+    Dim rawName As String
+    On Error Resume Next
+    rawName = session.CurrentUser.Name
+    On Error GoTo 0
+    If Len(rawName) = 0 Then Exit Function
+
+    Dim senderName As String
+    Dim firstName As String
+    Dim lastName As String
+    getNamesOutOfString rawName, senderName, firstName, lastName
+    getOwnName = senderName
+End Function
+
+'Description:
+'   Returns the language of Outlook's user interface (e.g., 1031 for German, 1033 for English)
+'   If it cannot be determined, 0 is returned
+Private Function getUiLanguageId() As Long
+    On Error Resume Next
+    getUiLanguageId = Application.LanguageSettings.LanguageID(LANGUAGE_ID_UI)
+    On Error GoTo 0
 End Function
 
 Private Function getSenderEmailAddress(ByVal senderEmailType As String, ByVal senderName As String, ByVal senderEmailAddress As String, ByVal session As NameSpace) As String
@@ -1062,10 +1688,11 @@ Private Function getOutlookHeader(ByRef BodyLines() As String, ByRef lineCounter
 End Function
 
 
-Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As Long) As String
+Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As Long, ByVal textSource As QuoteSource) As String
     ' parse the rest of the message
     For lineCounter = lineCounter To UBound(BodyLines)
-        If STRIP_SIGNATURE And (BodyLines(lineCounter) = SIGNATURE_SEPARATOR) Then
+        'the separator of a signature is "-- ": the space at its end is ignored
+        If STRIP_SIGNATURE And (RTrim$(BodyLines(lineCounter)) = SIGNATURE_SEPARATOR) Then
             'beginning of signature reached
             Exit For
         End If
@@ -1073,7 +1700,7 @@ Private Function getQuotedText(ByRef BodyLines() As String, ByRef lineCounter As
         getQuotedText = getQuotedText & BodyLines(lineCounter) & vbCrLf
     Next
 
-    getQuotedText = ReFormatText(getQuotedText)
+    getQuotedText = ReFormatText(getQuotedText, textSource)
 
     If INCLUDE_QUOTES_TO_LEVEL <> -1 Then
         getQuotedText = StripQuotes(getQuotedText, INCLUDE_QUOTES_TO_LEVEL)
@@ -1196,110 +1823,208 @@ Public Sub ResizeWindowForSoftWrap()
 End Sub
 
 
-Public Function ColorizeMailItem(MyMailItem As MailItem) As String
-    'save the mailitem to get an entry id, then forget reference to that rtf gets committed.
-    'display mailitem by id later on.
-    If ((Not MyMailItem.bodyFormat = olFormatPlain)) Then 'we just understand Plain Mails
-        ColorizeMailItem = vbNullString
-        Exit Function
-    End If
+'Description:
+'   Converts the text of the reply into HTML in which each author has its own color (colored mode)
+'   The author of a quote level is known from the condensed header above it ("X wrote on ...:"), which is shown
+'   as heading in the color of the author. A level without known author gets the color of the level.
+'   The text of the user (ownName, "Firstname Lastname") is dark gray.
+'   Each line becomes a paragraph without space around it, so that the conversion back to plain text yields the lines again.
+'   The color is set on a span within the paragraph, not on the paragraph: this way, a new paragraph
+'   created by pressing Enter at the end of a quoted line gets the default color (black) for the answer.
+'Notes:
+'   * Public to enable testing
+Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String) As String
+    Dim html As String
+    html = "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbCrLf
 
-    'rich text it
-    MyMailItem.bodyFormat = olFormatRichText
-    MyMailItem.Save  'need to save to be able to access rtf via EntryID (.save creates EntryID if not saved before)!
+    Dim headerPattern As String
+    headerPattern = CondensedHeaderPattern()
 
-    Dim folder As MAPIFolder
-    Set folder = session.GetDefaultFolder(olFolderInbox)
+    'the authors of the quote levels, as far as known from the condensed headers
+    Dim authorOfLevel(1 To 50) As String
+    'the authors in the order of their first appearance, separated by ";" (each one gets the next color)
+    Dim authors As String
+    authors = ";"
 
-    Dim rtf  As String
-    rtf = Space$(99999)  'init rtf to max length of message!
+    Dim rows() As String
+    rows = Split(Replace$(text, vbCrLf, vbLf), vbLf)
 
-    Dim ret As Integer      '<-- {1}
-    ret = ReadRTF(session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, rtf)
-    If (ret = 0) Then
-        'ole call success!!!
-        rtf = Trim$(rtf)  'kill unnecessary spaces (from rtf var init with Space$(rtf))
-        Debug.Print rtf & vbCrLf & "*************************************************************" & vbCrLf
+    Dim i As Long
+    For i = LBound(rows) To UBound(rows)
+        Dim level As Long
+        level = CalcNesting(rows(i)).level
 
-        'we have our own rtf header, remove generated one
-        Dim PosHeaderEnd As Long
-        Dim sTestString As String
-        PosHeaderEnd = InStr(rtf, "\uc1\pard\plain\deftab360")
-        If (PosHeaderEnd = 0) Then
-            sTestString = "\uc1\pard\f0\fs20\lang1031"
-            PosHeaderEnd = InStr(rtf, sTestString)
-        End If
-        If (PosHeaderEnd = 0) Then
-            sTestString = "\viewkind4\uc1\pard\f0\fs20"
-            PosHeaderEnd = InStr(rtf, sTestString)
-        End If
-        If (PosHeaderEnd = 0) Then
-            sTestString = "\pard\f0\fs20\lang1031"
-            PosHeaderEnd = InStr(rtf, sTestString)
-        End If
+        Dim line As String
+        line = StripLine(rows(i))
 
-        rtf = Mid$(rtf, PosHeaderEnd + Len(sTestString))
+        'the style of the span holding the text of the line (empty: no span)
+        Dim spanStyle As String
+        spanStyle = vbNullString
 
-        rtf = "{\rtf1\ansi\ansicpg1252 \deff0{\fonttbl" & vbCrLf & _
-                "{\f0\fswiss\fcharset0 Courier New;}}" & vbCrLf & _
-                "{\colortbl\red0\green0\blue0;\red106\green44\blue44;\red44\green106\blue44;\red44\green44\blue106;}" & vbCrLf & _
-                rtf
-
-        Dim lines() As String
-        lines = Split(rtf, vbCrLf)
-
-        Dim i As Long
-        For i = LBound(lines) To UBound(lines)
-            Dim n As Long
-            n = QuoteFixMacro.CalcNesting(lines(i)).level
-
-            Dim resRTF As String
-            If (n = 0) Then
-                resRTF = resRTF & lines(i) & vbCrLf
-            Else
-                If (Right$(lines(i), 4) = "\par") Then
-                    Dim s As String
-                    s = Left$(lines(i), Len(lines(i)) - Len("\par"))
-                    resRTF = resRTF & "\cf" & n Mod NUM_RTF_COLORS & " " & s & "\cf0  " & "\par" & vbCrLf
-                Else
-                    resRTF = resRTF & "\cf" & n Mod NUM_RTF_COLORS & " " & lines(i) & "\cf0  " & vbCrLf
-                End If
+        If (Len(line) > 0) And (line Like headerPattern) Then
+            'the header of an older mail: the lines below it (one level deeper) are written by its author
+            Dim author As String
+            author = HeaderAuthor(line)
+            If level + 1 <= UBound(authorOfLevel) Then
+                authorOfLevel(level + 1) = author
+                Dim deeperLevel As Long
+                For deeperLevel = level + 2 To UBound(authorOfLevel)
+                    authorOfLevel(deeperLevel) = vbNullString
+                Next
             End If
-        Next
-    Else
-        Debug.Print "error while reading rtf! " & ret
-        ColorizeMailItem = vbNullString
-        Exit Function
-    End If
+            spanStyle = "color:#" & ColorOfAuthor(author, ownName, authors) & ";font-weight:bold"
+        ElseIf level > 0 Then
+            If HasKnownAuthor(authorOfLevel, level) Then
+                spanStyle = "color:#" & ColorOfAuthor(authorOfLevel(level), ownName, authors)
+            Else
+                spanStyle = "color:#" & QuoteColor(level)
+            End If
+        End If
 
-    'remove some rtf commands
-    resRTF = Replace$(resRTF, "\viewkind4\uc1", vbNullString)
-    resRTF = Replace$(resRTF, "\uc1", vbNullString)
-    'VERY IMPORTANT, outlook will change the message back to PlainText otherwise!!!
-    resRTF = Replace$(resRTF, "\fromtext", vbNullString)
-    Debug.Print resRTF
+        Dim content As String
+        content = EscapeHtml(rows(i))
+        If Len(content) = 0 Then
+            'an empty paragraph would be dropped
+            content = "&nbsp;"
+        ElseIf Len(spanStyle) > 0 Then
+            content = "<span style=""" & spanStyle & """>" & content & "</span>"
+        End If
 
-    'write RTF back to form
-    ret = WriteRTF(session.CurrentProfileName, MyMailItem.EntryID, folder.StoreID, resRTF)
-    If (ret = 0) Then
-        Debug.Print "rtf write okay"
-    Else
-        Debug.Print "rtf write FAILURE"
-        ColorizeMailItem = vbNullString
-        Exit Function
-    End If
+        html = html & "<p style=""margin:0"">" & content & "</p>" & vbCrLf
+    Next
 
-    'dereference all objects! otherwise, rtf isn't going to be updated!
-    Set folder = Nothing
-    'save return value
-    ColorizeMailItem = MyMailItem.EntryID
-    Set MyMailItem = Nothing
+    TextToColoredHtml = html & "</div></body></html>"
 End Function
 
+Private Function HasKnownAuthor(ByRef authorOfLevel() As String, ByVal level As Long) As Boolean
+    If level < LBound(authorOfLevel) Or level > UBound(authorOfLevel) Then Exit Function
+    HasKnownAuthor = (Len(authorOfLevel(level)) > 0)
+End Function
 
-Public Sub DisplayMailItemByID(ByVal id As String)
-    Dim it As MailItem
-    Set it = session.GetItemFromID(id, session.GetDefaultFolder(olFolderInbox).StoreID)
-    it.Display
-    Set it = Nothing
+'The pattern (for Like) matching a condensed header, built from CONDENSED_HEADER_FORMAT
+Private Function CondensedHeaderPattern() As String
+    Dim pattern As String
+    pattern = CONDENSED_HEADER_FORMAT
+    'characters having a meaning in a pattern
+    pattern = Replace$(pattern, "[", "[[]")
+    pattern = Replace$(pattern, "#", "[#]")
+    pattern = Replace$(pattern, "?", "[?]")
+    pattern = Replace$(pattern, PATTERN_SENDER_NAME, "*")
+    pattern = Replace$(pattern, PATTERN_SENDER_EMAIL, "*")
+    pattern = Replace$(pattern, PATTERN_SENT_DATE, "*")
+    pattern = Replace$(pattern, PATTERN_RECIPIENTS, "*")
+    CondensedHeaderPattern = pattern
+End Function
+
+'Description:
+'   Returns the name of the author within a condensed header: the text at the place of %SN in CONDENSED_HEADER_FORMAT
+Private Function HeaderAuthor(ByVal condensedHeader As String) As String
+    Dim posName As Long
+    posName = InStr(CONDENSED_HEADER_FORMAT, PATTERN_SENDER_NAME)
+    If posName = 0 Then
+        HeaderAuthor = condensedHeader
+        Exit Function
+    End If
+
+    'the text behind %SN up to the next placeholder
+    Dim textBehind As String
+    textBehind = Mid$(CONDENSED_HEADER_FORMAT, posName + Len(PATTERN_SENDER_NAME))
+    Dim posPlaceholder As Long
+    posPlaceholder = InStr(textBehind, "%")
+    If posPlaceholder > 0 Then
+        textBehind = Left$(textBehind, posPlaceholder - 1)
+    End If
+
+    Dim nameStart As Long
+    nameStart = posName
+    Dim nameEnd As Long
+    If Len(textBehind) > 0 Then
+        nameEnd = InStr(nameStart, condensedHeader, textBehind)
+    End If
+    If nameEnd = 0 Then
+        nameEnd = Len(condensedHeader) + 1
+    End If
+
+    HeaderAuthor = Trim$(Mid$(condensedHeader, nameStart, nameEnd - nameStart))
+End Function
+
+'Returns the color (RGB in hexadecimal) of an author. A new author gets the next color, the user gets OWN_TEXT_COLOR
+Private Function ColorOfAuthor(ByVal author As String, ByVal ownName As String, ByRef authors As String) As String
+    If Len(ownName) > 0 Then
+        If LCase$(author) = LCase$(ownName) Then
+            ColorOfAuthor = OWN_TEXT_COLOR
+            Exit Function
+        End If
+    End If
+
+    Dim key As String
+    key = ";" & LCase$(author) & ";"
+    If InStr(authors, key) = 0 Then
+        authors = authors & LCase$(author) & ";"
+    End If
+
+    'the number of the author: the number of ";" in front of its name
+    Dim authorIndex As Long
+    authorIndex = CountOccurrencesOfStringInString(Left$(authors, InStr(authors, key)), ";") - 1
+
+    ColorOfAuthor = QuoteColor(authorIndex + 1)
+End Function
+
+'Returns the color (RGB in hexadecimal) of a quote level (or the n-th author)
+Private Function QuoteColor(ByVal level As Long) As String
+    Dim colors() As String
+    colors = Split(QUOTE_COLORS, ";")
+
+    Dim numColors As Long
+    numColors = NUM_QUOTE_COLORS
+    If numColors < 1 Or numColors > UBound(colors) + 1 Then
+        numColors = UBound(colors) + 1
+    End If
+
+    QuoteColor = colors((level - 1) Mod numColors)
+End Function
+
+'Description:
+'   Escapes the characters having a meaning in HTML; spaces at the beginning and multiple spaces are kept
+Private Function EscapeHtml(ByVal text As String) As String
+    Dim res As String
+    res = Replace$(text, "&", "&amp;")
+    res = Replace$(res, "<", "&lt;")
+    res = Replace$(res, ">", "&gt;")
+    res = Replace$(res, """", "&quot;")
+
+    If Left$(res, 1) = " " Then
+        res = "&nbsp;" & Mid$(res, 2)
+    End If
+    Do While InStr(res, "  ") > 0
+        res = Replace$(res, "  ", " &nbsp;")
+    Loop
+
+    EscapeHtml = res
+End Function
+
+'Description:
+'   Has to be called by ThisOutlookSession before a mail is sent:
+'   a colored reply is converted to plain text (COLORIZER_SEND_AS_PLAIN)
+Public Sub BeforeSend(ByVal mailToSend As Object)
+    If TypeName(mailToSend) <> "MailItem" Then Exit Sub
+
+    Dim mark As UserProperty
+    Set mark = mailToSend.UserProperties.Find(COLORED_MAIL_PROPERTY)
+    If mark Is Nothing Then Exit Sub
+
+    LoadConfiguration
+    If COLORIZER_SEND_AS_PLAIN Then
+        'Outlook's own conversion to plain text wraps the lines anew and puts an empty line behind each paragraph,
+        'therefore the text is taken from the HTML by QuoteFixHtml
+        Dim plainText As String
+        plainText = HtmlToPlainText(mailToSend.HTMLBody)
+        'the separator of the signature needs its space at the end
+        plainText = Replace$(vbCrLf & plainText & vbCrLf, vbCrLf & "--" & vbCrLf, vbCrLf & "-- " & vbCrLf)
+        plainText = Mid$(plainText, 3, Len(plainText) - 4)
+
+        mailToSend.bodyFormat = olFormatPlain
+        mailToSend.Body = plainText
+    End If
+    mark.Delete
 End Sub

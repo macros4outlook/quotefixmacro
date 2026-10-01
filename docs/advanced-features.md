@@ -26,32 +26,81 @@ Tools > Options > Mail Format > Signatures...
 The variable `QUOTING_TEMPLATE_EN` can be used to store en English quoting template.
 In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called, that template is used.
 
-## Auto conversion to plain format
+## Replying to HTML mails
 
-By setting `CONVERT_TO_PLAIN` to `True`, HTML mails are automatically converted to text mails.
-Without the usage of Microsoft Echange, one cannot convert the messages back to HTML after replying in the current Outlook session.
-One has to restart Microsoft Outlook.
-When using Microsofot Exhange, the messaged in plain text is saved as a copy one the server.
-Some users report that Outlook 2016 asks them whether they want to store the modified version of the message.
-When answering "now", the message is presented in HTML again.
+QuoteFixMacro also handles mails which are not plain text mails (HTML and Rich Text).
+The original mail is left untouched.
+The reply is a plain text mail, whose quoted text is taken from the HTML of the original mail:
 
-Note that if this makes following Outlook obsolete:
+* Quotes within the original mail (`<blockquote>`, as written by Gmail, Thunderbird, and Apple Mail) are kept as quote levels.
+* Each paragraph is wrapped on its own at `LINE_WRAP_AFTER`.
+* A link is shown as `text <target>`.
+* Pictures and formatting are lost.
 
-Tools > Options > Mail Format
+Forwarding such a mail is left to Outlook.
 
-* Message format: Plain Text
+The setting `CONVERT_TO_PLAIN` of former versions does not exist anymore.
+
+## Header of the original mail
+
+In a reply, the header of the original mail (`-----Original Message-----`, which `%OH` stands for) is written by QuoteFixMacro.
+Its language follows the language of the original mail, which is detected by counting frequent German and English words in the newest part of the mail.
+If there is no clear result (e.g., for a very short mail), the header is German if Outlook is German, and English otherwise.
+There is no setting for it.
+
+## Wrapping of the quoted text
+
+In a reply, QuoteFixMacro prefixes and wraps the original text itself.
+The rules, and why [par](http://www.nicemice.net/par/) is not used for that, are described in the [decision on wrapping](https://macros4outlook.github.io/quotefixmacro/decisions/0001-wrap-quoted-text-with-built-in-code-instead-of-par.html).
 
 ## Condense Headers
 
-With `CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS`, one condenses reply/forwarding headers added by outlook so that the email gets even shorter
-The format of the condensed header is configured at `CONDENSED_HEADER_FORMAT`
+In a reply, the header of each older mail within the quoted text (`From:`, `Sent:`, `To:`, `Subject:`, in any language, with or without the line `-----Original Message-----`) is condensed to one line, and the text below it gets one quote level more:
 
-One can also condense the first header only `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER`.
+```text
+Art Ross wrote on 2011-04-07 09:36:
+> Hi Adam,
+>
+> Adam Swift wrote on 2011-04-06 15:12:
+>> is it ok?
+```
+
+* `CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS` switches this off (`False`).
+* `CONDENSED_HEADER_FORMAT` is the format of the condensed line, by default `%SN wrote on %D:`.
+  Placeholders: `%SN` sender, `%SE` address of the sender, `%D` date (in `DATE_FORMAT`), `%TO` recipients.
+* `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER` (default `True`) also condenses the header of the mail you reply to.
+  Set it to `False` if your template says that already (e.g., "You wrote on %D:").
+
+When forwarding (`FixedForward`), only headers marked with `-----Original Message-----` and quoted deeper than the text around them are condensed, as in earlier versions.
 
 ### Date format
 
 The date format used is [ISO-8601](https://xkcd.com/1179/), which is `YYYY-MM-DD`.
 One can change the format in the variable `DEFAULT_DATE_FORMAT`.
+
+## Colored quotes
+
+With `USE_COLORIZER` set to `True`, the reply is written as HTML mail in which each author has their own color.
+This helps to see who wrote what while answering.
+The author of a quote level is taken from the condensed header above it ("X wrote on ...:"), which is shown as heading in the author's color.
+Your own quoted text is dark gray.
+If the headers are not condensed, each quote level gets a color instead.
+
+To answer inline, press <kbd>Enter</kbd> at the end of a quoted line: the new paragraph is black.
+If you split a quoted line in its middle, the text you type keeps the color of the quote; <kbd>Ctrl</kbd>+<kbd>Space</kbd> resets it.
+`NUM_QUOTE_COLORS` (at most six) is the number of colors in use: blue, green, purple, amber, teal, brown.
+
+Before the mail is sent, it is converted to a plain text mail, so that the recipients get the same mail as without the colors.
+This conversion needs the following procedure in 'ThisOutlookSession' (Project1 > Microsoft Outlook Objects in the Visual Basic Editor); it is part of `ThisOutlookSession.doccls`, the other procedures of that file are optional:
+
+```vb
+Private Sub Application_ItemSend(ByVal Item As Object, Cancel As Boolean)
+   Call QuoteFixMacro.BeforeSend(Item)
+End Sub
+```
+
+Without it, the mail is sent as HTML mail with the colors.
+With `COLORIZER_SEND_AS_PLAIN` set to `False`, the recipients get the colors on purpose.
 
 ## Strip sender's signature
 

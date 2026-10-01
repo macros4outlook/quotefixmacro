@@ -6,13 +6,17 @@ parent: Setup
 
 ## Intercept the normal buttons
 
-Add the content of `ThisOutlookSession.cls` to 'ThisOutlookSession' in the Outlook Visual Basic Macro Editor after having installed QuoteFixMacro and restart Outlook.
+Copy the content of `ThisOutlookSession.doccls` into 'ThisOutlookSession' (Project1 > Microsoft Outlook Objects) in the Outlook Visual Basic Macro Editor after having installed QuoteFixMacro and restart Outlook.
+`ThisOutlookSession` cannot be imported as a file; `.doccls` is the suffix [Rubberduck](https://rubberduckvba.com/) uses for such document modules.
 You can then use the normal Reply/ReplyAll/Forward buttons.
 No need to add custom Buttons to the menubar.
 Currently a separate button for "ReplyAllEnglish" is required using the previous method as described in `README.md`.
 
 This also works with the standard reply buttons that appear in the reading pane.
 It should also work if the reply event is triggered otherwise (e.g. by another macro) but I have not tested this.
+
+The file also contains `Application_ItemSend`, which converts a colored reply (`USE_COLORIZER`) to plain text before it is sent.
+If you only want that, copy that one procedure, see [Advanced Features](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#colored-quotes).
 
 ## Remap key bindings
 

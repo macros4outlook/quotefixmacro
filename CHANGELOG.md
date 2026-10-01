@@ -16,19 +16,12 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 ### Changed
 
 * User documentation is now put inside the "docs/" folder.
-
 * `DEFAULT_QUOTING_TEMPLATE` changed to have a salutation at the beginning.
-
 * A reply to a mail which is not a plain text mail is no longer left to Outlook.
-
 * Replies no longer depend on the Outlook setting "Prefix each line of the original message": QuoteFixMacro prefixes and wraps the original text itself. Forwarding is unchanged.
-
 * In a reply, the header of the original mail is written by QuoteFixMacro. Its language (German or English) follows the language of the original mail. If that cannot be detected, the language of Outlook is used.
-
 * In a reply to a plain text mail, a line between two quotes is kept as an answer if it would have fit into the line above. Before, it was always joined with the quote.
-
 * `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER` is `True` by default: the header of the mail you reply to is condensed, too. Set it to `False` if your template contains a line such as "You wrote on %D:".
-
 * `NUM_RTF_COLORS` is now called `NUM_QUOTE_COLORS`. The old name in the registry is still read.
 
 ### Removed
@@ -39,11 +32,8 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 ### Fixed
 
 * The last line of the quoted text was dropped if it followed a line with a deeper quote level.
-
 * Name suffixes (e.g., `Jr.`) are stripped: `Firstname Lastname Jr.` and `Lastname Jr., Firstname` now yield the correct first name and last name.
-
 * Condensed headers: A date without a weekday (e.g., `Sent: April 7, 2011 9:52 AM`) is parsed correctly.
-
 * Condensed headers: If the date or the sender name of a header cannot be determined, the one of the previously condensed header is no longer used.
 
 ## [1.9] - 2022-03-08

@@ -15,6 +15,10 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 * `%MN` and `%MFN` in templates stand for your own name and first name; the default template uses `%MN` instead of `{Name}` and works without any change.
 * `SendWithColors`, a macro for the message window: sends the current colored reply as HTML mail whatever the configuration says.
 
+### Removed
+
+* Removed `QuoteFixWithPar.bas` and `TestPar`, the experiments with par (see the decision record on wrapping).
+
 ### Fixed
 
 * The cursor is moved to the quote (or to `%C`) through the editor instead of one `SendKeys` call per line, which could switch off NumLock. [#33](https://github.com/macros4outlook/quotefixmacro/issues/33)

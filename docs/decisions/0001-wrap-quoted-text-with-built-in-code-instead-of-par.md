@@ -60,7 +60,7 @@ Each of its lines is a paragraph and is wrapped on its own.
 * Bad, because the repair is a heuristic: an answer between two quotes is still taken for a broken line if the quoted line above it is nearly full.
 * Bad, because the lines are filled greedily, whereas par balances the line lengths of a paragraph.
 * [#1](https://github.com/macros4outlook/quotefixmacro/pull/1) is closed.
-  `QuoteFixWithPar.bas` (reformatting the selected text with par) is not affected.
+  `QuoteFixWithPar.bas` (reformatting the selected text with par through the clipboard) and `TestPar` in `Tools.bas` are removed, too.
 
 ### Confirmation
 
@@ -111,7 +111,7 @@ PARINIT='rTbgqR B=.,?_A_a Q=_s>|' par 75q
 ```
 
 One call through `docker run --rm -i` took about 0.3 seconds.
-The sample of `TestPar` in `Tools.bas`, for which par "combines all the lines together" according to the comment of 2011, is wrapped correctly by this version, both with LF and with CRLF line ends.
+The sample of `TestPar` (formerly in `Tools.bas`), for which par "combines all the lines together" according to the comment of 2011, is wrapped correctly by this version, both with LF and with CRLF line ends.
 
 In the outputs below, blanks at the end of the lines are removed.
 

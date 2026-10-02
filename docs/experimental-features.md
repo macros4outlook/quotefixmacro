@@ -10,7 +10,5 @@ It does not need `mapirtf.dll` anymore.
 
 ## Advanced rewrapping
 
-[par](http://www.nicemice.net/par/) is a tool implementing rewrapping of quotes.
-It could be used to replace the internal VBA codde to rewrap messages.
-However, the current implementation at `QuoteFixWithPar.bas` is not ready for testing yet.
-See <https://github.com/macros4outlook/quotefixmacro/pull/1> for more implementation details.
+[par](http://www.nicemice.net/par/) was considered for rewrapping the quotes and turned down, see the [decision on wrapping](https://macros4outlook.github.io/quotefixmacro/decisions/0001-wrap-quoted-text-with-built-in-code-instead-of-par.html).
+The experimental module `QuoteFixWithPar.bas` was removed with version 2026-10-02.

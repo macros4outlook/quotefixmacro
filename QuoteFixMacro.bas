@@ -96,10 +96,10 @@ Private Const DEFAULT_STRIP_SIGNATURE As Boolean = True
 Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = False
 
 'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
-Private Const DEFAULT_QUOTING_TEMPLATE As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n{Name}\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
 'English quote template
-Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n{Name}\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
 '--------------------------------------------------------
 '*** Configuration of condensing ***
@@ -153,6 +153,9 @@ Private Const PATTERN_SENT_DATE         As String = "%D"
 Private Const PATTERN_OUTLOOK_HEADER    As String = "%OH"
 'recipients of a condensed header
 Private Const PATTERN_RECIPIENTS        As String = "%TO"
+'the user's own name and first name
+Private Const PATTERN_MY_NAME           As String = "%MN"
+Private Const PATTERN_MY_FIRST_NAME     As String = "%MFN"
 
 'Labels of the first line of the header of an older mail ("From:"), lower case, several languages
 Private Const LABELS_FROM               As String = " from von de da van fra od af "
@@ -1458,6 +1461,15 @@ catch:
     End If
     MySignature = Replace$(MySignature, PATTERN_SENDER_NAME, senderName)
 
+    If InStr(MySignature, PATTERN_MY_NAME) > 0 Then
+        Dim ownName As String
+        Dim ownFirstName As String
+        getOwnNames ownName, ownFirstName
+        'the first name first: %MFN starts with %MN
+        MySignature = Replace$(MySignature, PATTERN_MY_FIRST_NAME, ownFirstName)
+        MySignature = Replace$(MySignature, PATTERN_MY_NAME, ownName)
+    End If
+
     Dim OutlookHeader As String
     If CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER Then
         OutlookHeader = vbNullString
@@ -1626,18 +1638,27 @@ End Function
 'Description:
 '   Returns the name of the user ("Firstname Lastname"), vbNullString if it cannot be determined
 Private Function getOwnName() As String
+    Dim ownFirstName As String
+    getOwnNames getOwnName, ownFirstName
+End Function
+
+'Description:
+'   Returns name ("Firstname Lastname") and first name of the user, vbNullString if they cannot be determined
+'Notes:
+'   * Names are returned by reference
+Private Sub getOwnNames(ByRef ownName As String, ByRef ownFirstName As String)
+    ownName = vbNullString
+    ownFirstName = vbNullString
+
     Dim rawName As String
     On Error Resume Next
     rawName = session.CurrentUser.Name
     On Error GoTo 0
-    If Len(rawName) = 0 Then Exit Function
+    If Len(rawName) = 0 Then Exit Sub
 
-    Dim senderName As String
-    Dim firstName As String
     Dim lastName As String
-    getNamesOutOfString rawName, senderName, firstName, lastName
-    getOwnName = senderName
-End Function
+    getNamesOutOfString rawName, ownName, ownFirstName, lastName
+End Sub
 
 'Description:
 '   Returns the language of Outlook's user interface (e.g., 1031 for German, 1033 for English)
@@ -2074,6 +2095,24 @@ Public Sub BeforeSend(ByVal mailToSend As Object)
         mailToSend.Body = plainText
     End If
     mark.Delete
+End Sub
+
+'Description:
+'   Sends the mail shown in the active window with its colors (as HTML mail), whatever the configuration says.
+'   For a button of the message window.
+Public Sub SendWithColors()
+    Dim mailToSend As Object
+    Set mailToSend = Application.ActiveInspector.CurrentItem
+    If TypeName(mailToSend) <> "MailItem" Then Exit Sub
+
+    'without the mark, BeforeSend leaves the mail alone
+    Dim mark As UserProperty
+    Set mark = mailToSend.UserProperties.Find(COLORED_MAIL_PROPERTY)
+    If Not mark Is Nothing Then
+        mark.Delete
+    End If
+
+    mailToSend.Send
 End Sub
 
 'Description:

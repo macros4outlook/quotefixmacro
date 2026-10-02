@@ -1513,10 +1513,9 @@ catch:
     NewMail.Display
 
     'jump to the right place
-    Dim i As Long
-    For i = 1 To downCount
-        SendKeys "{DOWN}"
-    Next
+    If downCount > 0 Then
+        MoveCursorDown NewMail, downCount
+    End If
 
     If USE_SOFTWRAP Then
         ResizeWindowForSoftWrap
@@ -1820,6 +1819,28 @@ Private Function StripQuotes(ByVal quotedText As String, ByVal stripLevel As Lon
     StripQuotes = res
 End Function
 
+
+'Description:
+'   Moves the cursor of the displayed mail from the beginning down by the given number of lines (paragraphs)
+'   The Word editor of the inspector is used. SendKeys is only the fallback: called repeatedly, it may switch off NumLock
+Private Sub MoveCursorDown(ByVal mail As MailItem, ByVal lineCount As Long)
+    Const wdParagraph As Long = 4
+    Const wdStory As Long = 6
+
+    On Error GoTo fallback
+    Dim editor As Object
+    Set editor = mail.GetInspector.WordEditor
+    With editor.Windows(1).Selection
+        .HomeKey wdStory
+        .MoveDown wdParagraph, lineCount
+    End With
+    Exit Sub
+
+fallback:
+    On Error GoTo 0
+    SendKeys "{DOWN " & lineCount & "}", True
+    DoEvents
+End Sub
 
 'resize window so that the text editor wraps the text automatically
 'after N characters. Outlook wraps text automatically after sending it,

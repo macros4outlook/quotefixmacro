@@ -11,6 +11,10 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 
 * With `USE_QUOTING_TEMPLATE`, the English template (`QUOTING_TEMPLATE_EN`) is chosen automatically for a mail written in English; the language is detected from the text, as for the header of the original mail. `FixedReplyAllEnglish` still forces it. [#3](https://github.com/macros4outlook/quotefixmacro/issues/3)
 
+### Fixed
+
+* The cursor is moved to the quote (or to `%C`) through the editor instead of one `SendKeys` call per line, which could switch off NumLock. [#33](https://github.com/macros4outlook/quotefixmacro/issues/33)
+
 ## [2026-10-02] - 2026-10-02
 
 ### Added

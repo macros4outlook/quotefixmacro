@@ -2,3 +2,5 @@
 *.bas text eol=crlf
 *.cls text eol=crlf
 *.doccls text eol=crlf
+# Registry files are double-clicked on Windows
+*.reg text eol=crlf

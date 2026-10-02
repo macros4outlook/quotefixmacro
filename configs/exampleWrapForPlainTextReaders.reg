@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+; Wrap the quoted text at 71 characters instead of 75.
+; Only needed if colored replies are sent as HTML mail (COLORIZER_HTML_RECIPIENTS or SendWithColors)
+; to people who read mails as plain text: Outlook makes the plain text alternative of an HTML mail
+; itself and wraps lines longer than 71 characters anew, which breaks the quotes.
+[HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\Config]
+"LINE_WRAP_AFTER"="71"

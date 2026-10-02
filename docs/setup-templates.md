@@ -6,6 +6,7 @@ parent: Setup
 
 Templates are **the** place to take full advantage of QuoteFixMacro.
 The macro replaces certain tokens in the signature. Therefore, the signature can also be used as a template for a message.
+The default template in `QuoteFixMacro.bas` (`DEFAULT_QUOTING_TEMPLATE`) uses `%MN` for your name, so it works without any change.
 
 Please double check that the template is used as "Forward/Reply" signature under Extra... > Options > E-Mail-Format > Signatures... > E-Mail-Signature
 
@@ -19,6 +20,8 @@ Please double check that the template is used as "Forward/Reply" signature under
 | `%SN` | Sender's name |
 | `%SE` | Sender's email address |
 | `%D` | Date of the quoted mail in `yyyy-mm-dd HH:MM` |
+| `%MN` | Your own name, as Outlook knows it (`Firstname Lastname`) |
+| `%MFN` | Your own first name |
 
 ## Examples
 

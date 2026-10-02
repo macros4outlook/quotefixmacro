@@ -101,7 +101,10 @@ End Sub
 ```
 
 Without it, the mail is sent as HTML mail with the colors.
-With `COLORIZER_SEND_AS_PLAIN` set to `False`, the recipients get the colors on purpose.
+With `COLORIZER_SEND_AS_PLAIN` set to `False`, every recipient gets the colors on purpose.
+`COLORIZER_HTML_RECIPIENTS` lists the recipients who get the colors nevertheless, as addresses or domains separated by `;` (e.g., `@example.org;jennifer.muster@example.com`); a mail is sent as HTML mail if all of its recipients are listed.
+Keep in mind that the plain text alternative of such an HTML mail is made by Outlook, which wraps lines longer than 71 characters anew; readers of plain text see broken quotes.
+See [`configs/exampleColoredQuotes.reg`](https://github.com/macros4outlook/quotefixmacro/blob/main/configs/exampleColoredQuotes.reg).
 
 ## Strip sender's signature
 

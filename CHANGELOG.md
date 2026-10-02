@@ -10,6 +10,8 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 ### Added
 
 * With `USE_QUOTING_TEMPLATE`, the English template (`QUOTING_TEMPLATE_EN`) is chosen automatically for a mail written in English; the language is detected from the text, as for the header of the original mail. `FixedReplyAllEnglish` still forces it. [#3](https://github.com/macros4outlook/quotefixmacro/issues/3)
+* `COLORIZER_HTML_RECIPIENTS`: recipients (addresses or domains) who get a colored reply as HTML mail, while everybody else gets plain text.
+* Example `.reg` files for the configuration are in the new folder `configs/`.
 
 ### Fixed
 

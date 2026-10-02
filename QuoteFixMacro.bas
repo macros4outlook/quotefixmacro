@@ -1308,6 +1308,15 @@ catch:
         Exit Sub
     End If
 
+    'The text of the original mail: it decides the language, and it is quoted in replies
+    Dim originalText As String
+    If isMail Then
+        originalText = getOriginalText(OriginalMail, originalIsPlain)
+    Else
+        'MeetingItem does not offer HTMLBody
+        originalText = OriginalMeeting.Body
+    End If
+
     'Reply: Outlook creates the reply without the original text, header and text of the original are added below.
     'The original mail is never modified. The reply is always a plain text mail.
     Dim NewReplyStyle As OlActionReplyStyle
@@ -1377,9 +1386,9 @@ catch:
 
         'Header and text of the original are put into BodyLines the way Outlook does it when it prefixes a plain text mail
         If isMail Then
-            BodyLines = Split(getQuotedOriginalOfMail(OriginalMail, originalIsPlain), vbCrLf)
+            BodyLines = Split(getQuotedOriginalOfMail(OriginalMail, originalText), vbCrLf)
         Else
-            BodyLines = Split(getQuotedOriginalOfMeeting(OriginalMeeting), vbCrLf)
+            BodyLines = Split(getQuotedOriginalOfMeeting(OriginalMeeting, originalText), vbCrLf)
         End If
         lineCounter = 0
 
@@ -1393,7 +1402,8 @@ catch:
     If USE_QUOTING_TEMPLATE Then
         'Override MySignature in case the QUOTING_TEMPLATE should be used
         'lineCounter is still valid, because lineCounter is based on the current message whereas QUOTING_TEMPLATE is a general setting
-        If UseEnglishTemplate Then
+        'The English template is used for a mail written in English, or on request (FixedReplyAllEnglish)
+        If UseEnglishTemplate Or (DetectLanguage(originalText) = LANGUAGE_ENGLISH) Then
             MySignature = QUOTING_TEMPLATE_EN
         Else
             MySignature = QUOTING_TEMPLATE
@@ -1549,17 +1559,20 @@ Private Function getSignatureOfEmptyReply(ByRef BodyLines() As String) As String
 End Function
 
 'Description:
-'   Returns header and text of a mail the way Outlook puts them into the reply to a plain text mail:
-'   each line is prefixed, header and text are separated by an empty line
-Private Function getQuotedOriginalOfMail(ByVal item As MailItem, ByVal isPlainText As Boolean) As String
-    Dim originalText As String
+'   Returns the text of a mail: the plain text, or the text made of the HTML
+Private Function getOriginalText(ByVal item As MailItem, ByVal isPlainText As Boolean) As String
     If isPlainText Then
-        originalText = item.Body
+        getOriginalText = item.Body
     Else
         'Outlook offers HTML for Rich Text mails, too
-        originalText = HtmlToPlainText(item.HTMLBody)
+        getOriginalText = HtmlToPlainText(item.HTMLBody)
     End If
+End Function
 
+'Description:
+'   Returns header and text of a mail the way Outlook puts them into the reply to a plain text mail:
+'   each line is prefixed, header and text are separated by an empty line
+Private Function getQuotedOriginalOfMail(ByVal item As MailItem, ByVal originalText As String) As String
     Dim senderEmail As String
     If item.senderEmailType = "SMTP" Then
         senderEmail = item.senderEmailAddress
@@ -1572,7 +1585,7 @@ Private Function getQuotedOriginalOfMail(ByVal item As MailItem, ByVal isPlainTe
 End Function
 
 'Code duplication of getQuotedOriginalOfMail, because there is no common ancestor of MailItem and MeetingItem
-Private Function getQuotedOriginalOfMeeting(ByVal item As MeetingItem) As String
+Private Function getQuotedOriginalOfMeeting(ByVal item As MeetingItem, ByVal originalText As String) As String
     Dim senderEmail As String
     If item.senderEmailType = "SMTP" Then
         senderEmail = item.senderEmailAddress
@@ -1589,10 +1602,9 @@ Private Function getQuotedOriginalOfMeeting(ByVal item As MeetingItem) As String
     Next
 
     Dim header As String
-    header = BuildOutlookHeader(getHeaderLanguageId(item.Body), item.senderName, senderEmail, Format$(item.SentOn, DATE_FORMAT), recipientNames, vbNullString, item.Subject)
+    header = BuildOutlookHeader(getHeaderLanguageId(originalText), item.senderName, senderEmail, Format$(item.SentOn, DATE_FORMAT), recipientNames, vbNullString, item.Subject)
 
-    'MeetingItem does not offer HTMLBody
-    getQuotedOriginalOfMeeting = QuoteText(header & vbCrLf & item.Body)
+    getQuotedOriginalOfMeeting = QuoteText(header & vbCrLf & originalText)
 End Function
 
 'Description:

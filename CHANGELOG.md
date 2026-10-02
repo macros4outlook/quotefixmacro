@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in the form `YYYY-MM-DD`.
 
+## [Unreleased]
+
+### Added
+
+* With `USE_QUOTING_TEMPLATE`, the English template (`QUOTING_TEMPLATE_EN`) is chosen automatically for a mail written in English; the language is detected from the text, as for the header of the original mail. `FixedReplyAllEnglish` still forces it. [#3](https://github.com/macros4outlook/quotefixmacro/issues/3)
+
 ## [2026-10-02] - 2026-10-02
 
 ### Added
@@ -200,6 +206,7 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 
 * First public release
 
+[Unreleased]: https://github.com/macros4outlook/quotefixmacro/compare/v2026-10-02...HEAD
 [2026-10-02]: https://github.com/macros4outlook/quotefixmacro/compare/v1.9...v2026-10-02
 [1.9]: https://github.com/macros4outlook/quotefixmacro/compare/v1.8...v1.9
 [1.8]: https://github.com/macros4outlook/quotefixmacro/compare/v1.7...v1.8

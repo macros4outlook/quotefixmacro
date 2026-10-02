@@ -1,0 +1,11 @@
+Windows Registry Editor Version 5.00
+
+; Colored quotes while writing a reply (USE_COLORIZER).
+; Needs Application_ItemSend in ThisOutlookSession to send the mail as plain text, see
+; https://macros4outlook.github.io/quotefixmacro/advanced-features.html#colored-quotes
+[HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\Config]
+"USE_COLORIZER"="True"
+
+; Recipients who get the colors (HTML mail) nevertheless: addresses or domains, separated by ";".
+; Everybody else gets the plain text mail. Remove the line to send plain text to everybody.
+"COLORIZER_HTML_RECIPIENTS"="@example.org;jennifer.muster@example.com"

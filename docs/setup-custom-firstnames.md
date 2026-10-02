@@ -25,7 +25,7 @@ At each entry, there are two keys: `email` stating the email to match and `first
 #### Direct import using `.reg` files
 
 Alternatively, create an `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry.
-The distribution of QuoteFixMacro already contains an [`exampleFirstNameConfiguration.reg`](exampleFirstNameConfiguration.reg) with the content below.
+The distribution of QuoteFixMacro already contains [`configs/exampleFirstNameConfiguration.reg`](https://github.com/macros4outlook/quotefixmacro/blob/main/configs/exampleFirstNameConfiguration.reg) with the content below.
 
 ```reg
 Windows Registry Editor Version 5.00

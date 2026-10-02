@@ -53,6 +53,10 @@ Private Const DEFAULT_NUM_QUOTE_COLORS As Long = 6
 'Send a colored reply as plain text mail?
 Private Const DEFAULT_COLORIZER_SEND_AS_PLAIN As Boolean = True
 
+'Recipients who get the colored reply as HTML mail nevertheless: addresses or domains ("@example.org"), separated by ";"
+'A mail is sent as HTML mail if all of its recipients are listed
+Private Const DEFAULT_COLORIZER_HTML_RECIPIENTS As String = ""
+
 
 '--------------------------------------------------------
 '*** Feature SoftWrap ***
@@ -163,6 +167,7 @@ Private Const MAX_HEADER_LINES          As Long = 8
 Private USE_COLORIZER As Boolean
 Private NUM_QUOTE_COLORS As Long
 Private COLORIZER_SEND_AS_PLAIN As Boolean
+Private COLORIZER_HTML_RECIPIENTS As String
 Private USE_SOFTWRAP As Boolean
 Private SEVENTY_SIX_CHARS As String
 Private PIXEL_PER_CHARACTER As Double
@@ -318,6 +323,7 @@ Public Sub StoreDefaultConfiguration()
     SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_COLORIZER", DEFAULT_USE_COLORIZER
     SaveSetting APPNAME, REG_GROUP_CONFIG, "NUM_QUOTE_COLORS", DEFAULT_NUM_QUOTE_COLORS
     SaveSetting APPNAME, REG_GROUP_CONFIG, "COLORIZER_SEND_AS_PLAIN", DEFAULT_COLORIZER_SEND_AS_PLAIN
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "COLORIZER_HTML_RECIPIENTS", DEFAULT_COLORIZER_HTML_RECIPIENTS
     SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", DEFAULT_USE_SOFTWRAP
     SaveSetting APPNAME, REG_GROUP_CONFIG, "SEVENTY_SIX_CHARS", DEFAULT_SEVENTY_SIX_CHARS
     SaveSetting APPNAME, REG_GROUP_CONFIG, "PIXEL_PER_CHARACTER", DEFAULT_PIXEL_PER_CHARACTER
@@ -339,6 +345,7 @@ Public Sub LoadConfiguration()
     'NUM_RTF_COLORS is the name of the setting in versions up to 1.9
     NUM_QUOTE_COLORS = Val(GetSetting(APPNAME, REG_GROUP_CONFIG, "NUM_QUOTE_COLORS", GetSetting(APPNAME, REG_GROUP_CONFIG, "NUM_RTF_COLORS", DEFAULT_NUM_QUOTE_COLORS)))
     COLORIZER_SEND_AS_PLAIN = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "COLORIZER_SEND_AS_PLAIN", DEFAULT_COLORIZER_SEND_AS_PLAIN))
+    COLORIZER_HTML_RECIPIENTS = GetSetting(APPNAME, REG_GROUP_CONFIG, "COLORIZER_HTML_RECIPIENTS", DEFAULT_COLORIZER_HTML_RECIPIENTS)
     USE_SOFTWRAP = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "USE_SOFTWRAP", DEFAULT_USE_SOFTWRAP))
     SEVENTY_SIX_CHARS = GetSetting(APPNAME, REG_GROUP_CONFIG, "SEVENTY_SIX_CHARS", DEFAULT_SEVENTY_SIX_CHARS)
     PIXEL_PER_CHARACTER = CDbl(GetSetting(APPNAME, REG_GROUP_CONFIG, "PIXEL_PER_CHARACTER", DEFAULT_PIXEL_PER_CHARACTER))
@@ -2047,7 +2054,14 @@ Public Sub BeforeSend(ByVal mailToSend As Object)
     If mark Is Nothing Then Exit Sub
 
     LoadConfiguration
-    If COLORIZER_SEND_AS_PLAIN Then
+    Dim sendAsPlain As Boolean
+    sendAsPlain = COLORIZER_SEND_AS_PLAIN
+    If sendAsPlain And Len(COLORIZER_HTML_RECIPIENTS) > 0 Then
+        'the recipients listed get the colors
+        sendAsPlain = Not AllRecipientsListed(getRecipientAddresses(mailToSend), COLORIZER_HTML_RECIPIENTS)
+    End If
+
+    If sendAsPlain Then
         'Outlook's own conversion to plain text wraps the lines anew and puts an empty line behind each paragraph,
         'therefore the text is taken from the HTML by QuoteFixHtml
         Dim plainText As String
@@ -2061,3 +2075,72 @@ Public Sub BeforeSend(ByVal mailToSend As Object)
     End If
     mark.Delete
 End Sub
+
+'Description:
+'   Returns the addresses of the recipients of a mail, separated by ";"
+Private Function getRecipientAddresses(ByVal mailToSend As Object) As String
+    Dim curRecipient As Recipient
+    For Each curRecipient In mailToSend.Recipients
+        Dim address As String
+        address = vbNullString
+
+        On Error Resume Next
+        'a recipient of the own Exchange organization has an X.500 address, its SMTP address is in the directory
+        If curRecipient.AddressEntry.Type = "EX" Then
+            address = curRecipient.AddressEntry.GetExchangeUser.PrimarySmtpAddress
+        End If
+        If Len(address) = 0 Then
+            address = curRecipient.Address
+        End If
+        On Error GoTo 0
+
+        If Len(getRecipientAddresses) > 0 Then
+            getRecipientAddresses = getRecipientAddresses & ";"
+        End If
+        getRecipientAddresses = getRecipientAddresses & address
+    Next
+End Function
+
+'Description:
+'   True if every recipient (addresses separated by ";") is listed, by its address or by its domain given as "@domain"
+'   The comparison ignores the case. Nothing is listed if one of the two lists is empty.
+'Notes:
+'   * Public to enable testing
+Public Function AllRecipientsListed(ByVal recipients As String, ByVal listed As String) As Boolean
+    Dim recipientList() As String
+    recipientList = Split(LCase$(recipients), ";")
+    Dim entries() As String
+    entries = Split(LCase$(listed), ";")
+
+    Dim recipientCount As Long
+    Dim i As Long
+    For i = LBound(recipientList) To UBound(recipientList)
+        Dim address As String
+        address = Trim$(recipientList(i))
+        If Len(address) > 0 Then
+            recipientCount = recipientCount + 1
+            If Not IsAddressListed(address, entries) Then Exit Function
+        End If
+    Next
+
+    AllRecipientsListed = (recipientCount > 0)
+End Function
+
+Private Function IsAddressListed(ByVal address As String, ByRef entries() As String) As Boolean
+    Dim i As Long
+    For i = LBound(entries) To UBound(entries)
+        Dim entry As String
+        entry = Trim$(entries(i))
+        If Len(entry) > 0 Then
+            If Left$(entry, 1) = "@" Then
+                If Right$(address, Len(entry)) = entry Then
+                    IsAddressListed = True
+                    Exit Function
+                End If
+            ElseIf address = entry Then
+                IsAddressListed = True
+                Exit Function
+            End If
+        End If
+    Next
+End Function

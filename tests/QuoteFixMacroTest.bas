@@ -951,3 +951,22 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
+
+'@TestMethod("color")
+Private Sub allRecipientsListedByAddressOrDomain()
+    On Error GoTo TestFail
+
+    Assert.AreEqual True, QuoteFixMacro.AllRecipientsListed("a@thu.de;b@thu.de", "@thu.de")
+    Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed("a@thu.de;x@other.org", "@thu.de")
+    Assert.AreEqual True, QuoteFixMacro.AllRecipientsListed("Boss@Example.org", "boss@example.org")
+    Assert.AreEqual True, QuoteFixMacro.AllRecipientsListed("a@thu.de;boss@example.org", "@thu.de; boss@example.org")
+    Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed("a@thu.de", vbNullString)
+    Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed(vbNullString, "@thu.de")
+    'the domain has to match completely
+    Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed("a@nothu.de", "@thu.de")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub

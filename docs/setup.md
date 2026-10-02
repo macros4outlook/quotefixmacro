@@ -86,10 +86,13 @@ Thus, any settings are overwritten during an update.
 QuoteFixMacro can read settings from the registry.
 The macro **NEVER** stores entries in the registry by itself.
 
-You can store the default configuration in the registry:
+Store only the settings you want to differ from the defaults; everything else keeps following the defaults of new versions.
+Unknown or outdated entries are ignored.
 
-1. by executing `StoreDefaultConfiguration()`
-2. by writing a routing executing command similar to the following: `Call SaveSetting(APPNAME, REG_GROUP_CONFIG, "STRIP_SIGNATURE", "false")`
-3. by manually creating entries in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
+1. Import a `.reg` file: the folder [`configs/`](https://github.com/macros4outlook/quotefixmacro/tree/main/configs) contains examples (colored quotes, custom first names) to adapt and double-click.
+2. Or create the entries by hand in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\Config` (string values, e.g., `USE_COLORIZER` = `True`).
+3. Or write a routine executing commands similar to `Call SaveSetting("QuoteFixMacro", "Config", "STRIP_SIGNATURE", "False")`.
+
+`StoreDefaultConfiguration()` writes *all* defaults into the registry; after that, the defaults of a new version are not used anymore.
 
 <!-- markdownlint-disable-file MD033 -->

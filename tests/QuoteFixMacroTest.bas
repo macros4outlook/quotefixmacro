@@ -970,3 +970,109 @@ TestExit:
 TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
+
+'@TestMethod("condense")
+Private Sub condenseAttributionOfTicketSystem()
+    On Error GoTo TestFail
+
+    'a ticket system quotes the older mail below a one-line attribution, without prefixing it
+    outlookOutput = vbNullString & _
+        "> Hallo Herr Ross," & vbNewLine & _
+        "> " & vbNewLine & _
+        "> die Kapazitaet ist erhoeht." & vbNewLine & _
+        "> " & vbNewLine & _
+        "> 2026-10-01 16:15 - Art Ross schrieb: " & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Hallo Adam," & vbNewLine & _
+        "> " & vbNewLine & _
+        "> bitte pruefen." & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Von: Swift, Adam <adam@example.org>" & vbNewLine & _
+        "> Datum: Donnerstag, 1. Oktober 2026 um 16:02" & vbNewLine & _
+        "> An: Ross, Art <art@example.org>" & vbNewLine & _
+        "> Betreff: Testing" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Hallo Art,"
+    expectedResult = vbNullString & _
+        "> Hallo Herr Ross," & vbNewLine & _
+        "> " & vbNewLine & _
+        "> die Kapazitaet ist erhoeht." & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Art Ross wrote on 2026-10-01 16:15:" & vbNewLine & _
+        ">> Hallo Adam," & vbNewLine & _
+        ">> " & vbNewLine & _
+        ">> bitte pruefen." & vbNewLine & _
+        ">> " & vbNewLine & _
+        ">> Adam Swift wrote on 1. Oktober 2026 um 16:02:" & vbNewLine & _
+        ">>> Hallo Art,"
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput, SourceHtml)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("condense")
+Private Sub condenseAttributionAboveQuoteIsKept()
+    On Error GoTo TestFail
+
+    'the attribution of a mail program whose quote is prefixed already stays as it is
+    outlookOutput = vbNullString & _
+        "> Fine with me." & vbNewLine & _
+        "> " & vbNewLine & _
+        "> 2026-10-01 16:15 - Art Ross wrote:" & vbNewLine & _
+        "> > Hallo Adam," & vbNewLine & _
+        "> > bitte pruefen."
+    expectedResult = vbNullString & _
+        "> Fine with me." & vbNewLine & _
+        "> " & vbNewLine & _
+        "> 2026-10-01 16:15 - Art Ross wrote:" & vbNewLine & _
+        ">> Hallo Adam," & vbNewLine & _
+        ">> bitte pruefen."
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput, SourceHtml)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("condense")
+Private Sub condenseForwardedMessageWithDateBehindSubject()
+    On Error GoTo TestFail
+
+    'a ticket system forwards a mail with a marker of four dashes and the date behind the subject
+    outlookOutput = vbNullString & _
+        "> please have a look." & vbNewLine & _
+        "> ---- Weitergeleitete Nachricht von ""Ross, Art"" <art@example.com> ---" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Von: ""Ross, Art"" <art@example.com>" & vbNewLine & _
+        "> An: ""support@example.com"" <support@example.com>" & vbNewLine & _
+        "> Betreff: Problem" & vbNewLine & _
+        "> Datum: 2026-09-30 15:10:02" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Guten Tag,"
+    expectedResult = vbNullString & _
+        "> please have a look." & vbNewLine & _
+        "> Art Ross wrote on 2026-09-30 15:10:" & vbNewLine & _
+        ">> Guten Tag,"
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput, SourceHtml)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub

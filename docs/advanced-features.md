@@ -56,7 +56,7 @@ The rules, and why [par](http://www.nicemice.net/par/) is not used for that, are
 
 ## Condense Headers
 
-In a reply, the header of each older mail within the quoted text (`From:`, `Sent:`, `To:`, `Subject:`, in any language, with or without the line `-----Original Message-----`) is condensed to one line, and the text below it gets one quote level more:
+In a reply, the header of each older mail within the quoted text (`From:`, `Sent:`, `To:`, `Subject:`, in any language, with or without the line `-----Original Message-----`; also the one-line attribution of ticket systems, `01.10.2026 16:15 - Firstname Lastname schrieb:`) is condensed to one line, and the text below it gets one quote level more:
 
 ```text
 Art Ross wrote on 2011-04-07 09:36:

@@ -14,6 +14,7 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 * Example `.reg` files for the configuration are in the new folder `configs/`.
 * `%MN` and `%MFN` in templates stand for your own name and first name; the default template uses `%MN` instead of `{Name}` and works without any change.
 * `SendWithColors`, a macro for the message window: sends the current colored reply as HTML mail whatever the configuration says.
+* Condensed headers: the one-line attribution of ticket systems (`01.10.2026 16:15 - Firstname Lastname schrieb:`) above text which is not quoted deeper starts an older mail, too; forward markers of four dashes and a date line behind the subject are understood.
 
 ### Fixed
 

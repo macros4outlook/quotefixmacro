@@ -161,6 +161,10 @@ Private Const PATTERN_MY_FIRST_NAME     As String = "%MFN"
 Private Const LABELS_FROM               As String = " from von de da van fra od af "
 'Labels of the last line of such a header ("Subject:")
 Private Const LABELS_SUBJECT            As String = " subject betreff objet oggetto onderwerp asunto assunto emne temat aihe "
+'Labels of the date line of such a header, which some programs put behind the subject
+Private Const LABELS_DATE               As String = " sent date datum gesendet envoye inviato enviado verzonden sendt skickat "
+'The last word of a one-line attribution ("01.10.2026 16:15 - Firstname Lastname schrieb:")
+Private Const WORDS_WROTE               As String = " wrote schrieb schreef skrev scrisse kirjoitti "
 'A header has at most this number of lines
 Private Const MAX_HEADER_LINES          As Long = 8
 
@@ -576,7 +580,19 @@ Public Function CondenseHeaders(ByVal text As String) As String
 
         Dim endIndex As Long
         Dim condensedHeader As String
-        If TryCondenseHeader(rows, i, endIndex, condensedHeader) Then
+        Dim isHeader As Boolean
+        isHeader = TryCondenseHeader(rows, i, endIndex, condensedHeader)
+        If Not isHeader Then
+            'a one-line attribution above text which is not quoted deeper: the older mail starts here
+            If TryCondenseAttribution(rows(i), condensedHeader) Then
+                If NextTextLevel(rows, i) <= level Then
+                    isHeader = True
+                    endIndex = i
+                End If
+            End If
+        End If
+
+        If isHeader Then
             Dim condensedLevel As Long
             If level + extraLevels > previousTextLevel Then
                 'the older mail is quoted deeper already
@@ -646,10 +662,13 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
     Dim hasMarker As Boolean
     hasMarker = IsHeaderMarker(line)
     If hasMarker Then
-        i = i + 1
-        If i > UBound(rows) Then Exit Function
-        If CalcNesting(rows(i)).level <> level Then Exit Function
-        line = StripLine(rows(i))
+        'the "From:" line follows the marker, possibly behind empty lines
+        Do
+            i = i + 1
+            If i > UBound(rows) Then Exit Function
+            If CalcNesting(rows(i)).level <> level Then Exit Function
+            line = StripLine(rows(i))
+        Loop While Len(line) = 0
     End If
 
     If Not IsListedLabel(GetLabel(line), LABELS_FROM) Then Exit Function
@@ -677,7 +696,19 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
                 If IsDateLike(values(valueCount)) Then dateIndex = valueCount
             End If
             If IsListedLabel(label, LABELS_SUBJECT) Then
+                'the subject is the last line, unless the date follows it
                 i = i + 1
+                If i <= UBound(rows) Then
+                    If CalcNesting(rows(i)).level = level And dateIndex = 0 And valueCount < MAX_HEADER_LINES Then
+                        line = StripLine(rows(i))
+                        If IsListedLabel(GetLabel(line), LABELS_DATE) Then
+                            valueCount = valueCount + 1
+                            values(valueCount) = Trim$(Mid$(line, Len(GetLabel(line)) + 2))
+                            If IsDateLike(values(valueCount)) Then dateIndex = valueCount
+                            i = i + 1
+                        End If
+                    End If
+                End If
                 Exit Do
             End If
         ElseIf valueCount > 0 And Len(values(valueCount)) >= 50 Then
@@ -716,10 +747,66 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
     TryCondenseHeader = True
 End Function
 
-'"-----Original Message-----" (any language), or the line Outlook on the web puts above a header
+'Description:
+'   Checks whether the row is the one-line attribution which ticket systems write above a quoted mail
+'   without prefixing it: "01.10.2026 16:15 - Firstname Lastname schrieb:" (or "wrote:")
+'Returns:
+'   True if it is one. Then, condensedHeader is the line replacing it
+Private Function TryCondenseAttribution(ByVal row As String, ByRef condensedHeader As String) As Boolean
+    Dim line As String
+    line = StripLine(row)
+    If Right$(line, 1) <> ":" Then Exit Function
+
+    Dim posSeparator As Long
+    posSeparator = InStr(line, " - ")
+    If posSeparator = 0 Then Exit Function
+
+    Dim sDate As String
+    sDate = Left$(line, posSeparator - 1)
+    If Not IsDateLike(sDate) Then Exit Function
+
+    'the rest: "Firstname Lastname schrieb"
+    Dim rest As String
+    rest = Mid$(line, posSeparator + 3, Len(line) - posSeparator - 3)
+    Dim posLastWord As Long
+    posLastWord = InStrRev(rest, " ")
+    If posLastWord = 0 Then Exit Function
+    If Not IsListedLabel(Mid$(rest, posLastWord + 1), WORDS_WROTE) Then Exit Function
+
+    Dim senderRaw As String
+    Dim senderEmail As String
+    SplitSender Left$(rest, posLastWord - 1), senderRaw, senderEmail
+    If Len(senderRaw) = 0 Then Exit Function
+    Dim senderName As String
+    Dim firstName As String
+    Dim lastName As String
+    getNamesOutOfString senderRaw, senderName, firstName, lastName, senderEmail
+
+    condensedHeader = CONDENSED_HEADER_FORMAT
+    condensedHeader = Replace$(condensedHeader, PATTERN_SENDER_NAME, senderName)
+    condensedHeader = Replace$(condensedHeader, PATTERN_SENT_DATE, FormatHeaderDate(sDate))
+    condensedHeader = Replace$(condensedHeader, PATTERN_SENDER_EMAIL, senderEmail)
+    condensedHeader = Replace$(condensedHeader, PATTERN_RECIPIENTS, vbNullString)
+
+    TryCondenseAttribution = True
+End Function
+
+'Returns the quote level of the next row with text behind start, or the level of start if there is none
+Private Function NextTextLevel(ByRef rows() As String, ByVal start As Long) As Long
+    Dim i As Long
+    For i = start + 1 To UBound(rows)
+        If Len(StripLine(rows(i))) > 0 Then
+            NextTextLevel = CalcNesting(rows(i)).level
+            Exit Function
+        End If
+    Next
+    NextTextLevel = CalcNesting(rows(start)).level
+End Function
+
+'"-----Original Message-----" (any language), "---- Forwarded message ----", or the line Outlook on the web puts above a header
 Private Function IsHeaderMarker(ByVal line As String) As Boolean
     If Left$(line, Len(PGP_MARKER)) = PGP_MARKER Then Exit Function
-    IsHeaderMarker = (Left$(line, 5) = "-----") Or (Left$(line, 10) = "__________")
+    IsHeaderMarker = (Left$(line, 4) = "----") Or (Left$(line, 10) = "__________")
 End Function
 
 'Description:

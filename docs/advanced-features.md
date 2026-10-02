@@ -23,8 +23,9 @@ Tools > Options > Mail Format > Signatures...
 
 ## English replies
 
-The variable `QUOTING_TEMPLATE_EN` can be used to store en English quoting template.
-In case `USE_QUOTING_TEMPLATE` is `True` and `FixedReplyAllEnglish()` is called, that template is used.
+`QUOTING_TEMPLATE_EN` is the template for replies to mails written in English.
+If `USE_QUOTING_TEMPLATE` is `True`, it is used automatically when the original mail is detected as English (the same detection as for the header of the original mail), and always by `FixedReplyAllEnglish()`.
+For a mail in any other language, or if the language is not clear, `QUOTING_TEMPLATE` is used.
 
 ## Replying to HTML mails
 

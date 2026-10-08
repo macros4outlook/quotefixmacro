@@ -16,6 +16,10 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 * `SendWithColors`, a macro for the message window: sends the current colored reply as HTML mail whatever the configuration says.
 * Condensed headers: the one-line attribution of ticket systems (`01.10.2026 16:15 - Firstname Lastname schrieb:`) above text which is not quoted deeper starts an older mail, too; forward markers of four dashes and a date line behind the subject are understood.
 
+### Removed
+
+* Removed `QuoteFixWithPar.bas` and `TestPar`, the experiments with par (see the decision record on wrapping).
+
 ### Fixed
 
 * The cursor is moved to the quote (or to `%C`) through the editor instead of one `SendKeys` call per line, which could switch off NumLock. [#33](https://github.com/macros4outlook/quotefixmacro/issues/33)

@@ -21,14 +21,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # madrlint needs JDK 25. It is installed here, because the download by jbang (--java 25) failed on the runner now and then.
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        with:
+          distribution: temurin
+          java-version: '25'
       - uses: jbangdev/setup-jbang@2b1b465a7b75f4222b81426f23a01e013aa7b95c # v0.1.1
       - name: Check each decision record with madrlint
-        # --java 25: madrlint needs JDK 25, which jbang downloads. The alias points to a jar, so it cannot declare that itself.
         # -n 11: the rule on internet links is skipped, it needs a native library which is not part of madrlint.jar
         run: |
           jbang trust add https://github.com/adr/madrlint/
           status=0
           for file in docs/decisions/[0-9][0-9][0-9][0-9]-*.md; do
-            jbang --java 25 madrlint@adr/madrlint -n 11 --output-format github-actions "$file" || status=1
+            jbang madrlint@adr/madrlint -n 11 --output-format github-actions "$file" || status=1
           done
           exit $status

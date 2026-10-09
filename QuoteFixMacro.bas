@@ -2237,7 +2237,7 @@ End Function
 
 'Description:
 '   Escapes a line for HTML: text between emphasis markers (roles from MatchEmphasisMarkers) is bold or underlined
-'   The markers stay part of the text, so that the conversion back to plain text yields them again
+'   The markers are left out; the conversion back to plain text (HtmlToPlainText) adds them again for <b> and <u>
 'Parameters:
 '   isBold, isUnderlined: the emphasis at the beginning of the line, changed to the one at its end
 Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, ByVal underlineRoles As String, ByRef isBold As Boolean, ByRef isUnderlined As Boolean) As String
@@ -2268,19 +2268,35 @@ Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, 
             isBold = continuedBold
             isUnderlined = continuedUnderlined
         End If
-        If Mid$(boldRoles, pos, 1) = "o" Then isBold = True
-        If Mid$(underlineRoles, pos, 1) = "o" Then isUnderlined = True
+        Dim isMarker As Boolean
+        isMarker = False
+        Select Case Mid$(boldRoles, pos, 1)
+            Case "o"
+                isBold = True
+                isMarker = True
+            Case "c"
+                isBold = False
+                isMarker = True
+        End Select
+        Select Case Mid$(underlineRoles, pos, 1)
+            Case "o"
+                isUnderlined = True
+                isMarker = True
+            Case "c"
+                isUnderlined = False
+                isMarker = True
+        End Select
 
-        If (isBold <> segmentIsBold) Or (isUnderlined <> segmentIsUnderlined) Then
+        If isMarker Or (isBold <> segmentIsBold) Or (isUnderlined <> segmentIsUnderlined) Then
             res = res & StyledHtml(Mid$(row, segmentStart, pos - segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
             segmentStart = pos
+            If isMarker Then
+                'the marker itself is not shown
+                segmentStart = pos + 1
+            End If
             segmentIsBold = isBold
             segmentIsUnderlined = isUnderlined
         End If
-
-        'the closing marker is still emphasized, the emphasis ends behind it
-        If Mid$(boldRoles, pos, 1) = "c" Then isBold = False
-        If Mid$(underlineRoles, pos, 1) = "c" Then isUnderlined = False
     Next
     res = res & StyledHtml(Mid$(row, segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
 
@@ -2292,19 +2308,12 @@ Private Function StyledHtml(ByVal text As String, ByVal isBold As Boolean, ByVal
     res = EscapeHtml(text, atLineStart)
     If Len(res) = 0 Then Exit Function
 
-    'styles instead of <b> and <u>: the conversion back to plain text would add markers for these
-    Dim style As String
-    If isBold Then
-        style = "font-weight:bold"
-    End If
+    'Word keeps <b> and <u> when the reply is edited, so that HtmlToPlainText finds them again
     If isUnderlined Then
-        If Len(style) > 0 Then
-            style = style & ";"
-        End If
-        style = style & "text-decoration:underline"
+        res = "<u>" & res & "</u>"
     End If
-    If Len(style) > 0 Then
-        res = "<span style=""" & style & """>" & res & "</span>"
+    If isBold Then
+        res = "<b>" & res & "</b>"
     End If
 
     StyledHtml = res

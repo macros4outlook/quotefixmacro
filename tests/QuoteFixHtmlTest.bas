@@ -222,6 +222,23 @@ TestFail:
 End Sub
 
 '@TestMethod("html")
+Private Sub htmlEmphasisOverLines()
+    On Error GoTo TestFail
+
+    'an emphasis over several lines (e.g., of a colored reply) gets one pair of markers, unless an empty line or another quote level is in between
+    Assert.AreEqual "> werden _neuartige, auch" & vbNewLine & "> risikoreiche Ansaetze_, deren", HtmlToPlainText("<p style='margin:0'><span style='color:#1F6FB2'>&gt; werden <u>neuartige, auch</u></span>&#8203;</p><p style='margin:0'><span style='color:#1F6FB2'>&gt; <u>risikoreiche Ansaetze</u>, deren</span>&#8203;</p>")
+    Assert.AreEqual "*a" & vbNewLine & "b*", HtmlToPlainText("<p style='margin:0'><b>a</b></p><p style='margin:0'><b>b</b></p>")
+    Assert.AreEqual "> _a_" & vbNewLine & ">> _b_", HtmlToPlainText("<p style='margin:0'>&gt; <u>a</u></p><p style='margin:0'>&gt;&gt; <u>b</u></p>")
+    Assert.AreEqual "_a_" & vbNewLine & vbNewLine & "_b_", HtmlToPlainText("<p style='margin:0'><u>a</u></p><p style='margin:0'>&nbsp;</p><p style='margin:0'><u>b</u></p>")
+    Assert.AreEqual "*From:* Art" & vbNewLine & "*Sent:* today", HtmlToPlainText("<p class=MsoNormal><b>From:</b> Art<br><b>Sent:</b> today</p>")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("html")
 Private Sub htmlWhiteSpaceIsCollapsed()
     On Error GoTo TestFail
 

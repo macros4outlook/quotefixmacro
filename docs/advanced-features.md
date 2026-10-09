@@ -73,7 +73,7 @@ This helps to see who wrote what while answering.
 The author of a quote level is taken from the condensed header above it ("X wrote on ...:"), which is shown as heading in the author's color.
 Your own quoted text is dark gray.
 If the headers are not condensed, each quote level gets a color instead.
-Text marked as `*bold*` or `_underlined_` (e.g., from the bold or underlined text of an HTML mail) is shown bold or underlined; the markers stay, so that the plain text mail has them, too.
+Text marked as `*bold*` or `_underlined_` (e.g., from the bold or underlined text of an HTML mail) is shown bold or underlined, without the markers; when the mail is converted to plain text, the markers are added again.
 To choose per reply, put the macros `FixedReplyColored` and `FixedReplyPlain` (or `FixedReplyAllColored` and `FixedReplyAllPlain`) on the toolbar: they reply with and without colors, whatever `USE_COLORIZER` says; `FixedReply` and `FixedReplyAll` follow the setting.
 
 To answer inline, press <kbd>Enter</kbd> at the end of a quoted line: the new paragraph is black.

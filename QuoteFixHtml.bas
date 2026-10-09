@@ -67,6 +67,9 @@ Private openMarkers As String
 Private carriedMarkers As String
 'the markers the text has opened, but not closed yet (e.g., a text in bold running over several paragraphs)
 Private textOpenMarkers As String
+'the markers written at the end of the last line: the emphasis may continue in the next line
+Private markersClosedAtLineEnd As String
+Private markersClosedSinceLastChar As String
 Private boldDepth As Long
 Private underlineDepth As Long
 
@@ -97,6 +100,8 @@ Public Function HtmlToPlainText(ByVal html As String) As String
     openMarkers = vbNullString
     carriedMarkers = vbNullString
     textOpenMarkers = vbNullString
+    markersClosedAtLineEnd = vbNullString
+    markersClosedSinceLastChar = vbNullString
     boldDepth = 0
     underlineDepth = 0
     inAnchor = False
@@ -447,6 +452,11 @@ Private Sub WritePendingMarkers(ByVal firstChar As String)
         ElseIf InStr(textOpenMarkers, marker) > 0 Then
             'the text continues one which has its opening marker already (Word puts each paragraph into an element of its own)
             carriedMarkers = carriedMarkers & marker
+        ElseIf ContinuesLastLine(marker) Then
+            'one pair of markers for an emphasis over several lines (e.g., the lines of a colored reply): the closing marker of the last line is dropped
+            resultText = Left$(resultText, Len(resultText) - 3) & vbCrLf
+            markersClosedAtLineEnd = Replace$(markersClosedAtLineEnd, marker, vbNullString)
+            openMarkers = openMarkers & marker
         Else
             curLine = curLine & marker
             openMarkers = openMarkers & marker
@@ -462,6 +472,7 @@ Private Sub WriteClosingMarker(ByVal marker As String)
     If Len(curLine) > 0 Then
         If Right$(curLine, 1) <> marker Then
             curLine = curLine & marker
+            markersClosedSinceLastChar = markersClosedSinceLastChar & marker
         End If
         Exit Sub
     End If
@@ -479,8 +490,38 @@ Private Sub WriteClosingMarker(ByVal marker As String)
     resultText = Left$(resultText, lineEnd - 2) & marker & Mid$(resultText, lineEnd - 1)
     If lastEmptyLineLevel >= 0 Then
         lengthBeforeLastLine = lengthBeforeLastLine + 1
+    Else
+        markersClosedAtLineEnd = markersClosedAtLineEnd & marker
     End If
 End Sub
+
+'Description:
+'   Checks whether an emphasis starting at the beginning of the current line continues the one closed at the end of the last line:
+'   the current line has nothing but its quote prefix yet, the last line has the same prefix, and no empty line is in between
+Private Function ContinuesLastLine(ByVal marker As String) As Boolean
+    If InStr(markersClosedAtLineEnd, marker) = 0 Then Exit Function
+    If lastEmptyLineLevel >= 0 Then Exit Function
+    If Len(Replace$(Replace$(curLine, ">", vbNullString), " ", vbNullString)) > 0 Then Exit Function
+    If Right$(resultText, 3) <> marker & vbCrLf Then Exit Function
+
+    'the last line has the prefix of the current quote level in front of its text
+    ContinuesLastLine = (QuotePrefixLevel(Mid$(resultText, lengthBeforeLastLine + 1)) = quoteLevel + QuotePrefixLevel(curLine))
+End Function
+
+'The number of ">" at the beginning of a line (spaces between them are skipped)
+Private Function QuotePrefixLevel(ByVal line As String) As Long
+    Dim i As Long
+    For i = 1 To Len(line)
+        Select Case Mid$(line, i, 1)
+            Case ">"
+                QuotePrefixLevel = QuotePrefixLevel + 1
+            Case " "
+                'between the quote signs
+            Case Else
+                Exit Function
+        End Select
+    Next
+End Function
 
 'Paragraphs written by Word (Outlook) and paragraphs without margin are shown without space in between
 Private Function IsCompactParagraph(ByVal tag As String) As Boolean
@@ -631,6 +672,7 @@ Private Sub AppendDecodedText(ByVal text As String)
                     curLine = curLine & " "
                 End If
                 pendingSpace = False
+                markersClosedSinceLastChar = vbNullString
                 If InStr(textOpenMarkers, c) > 0 Then
                     'the text closes its marker
                     textOpenMarkers = Replace$(textOpenMarkers, c, vbNullString)
@@ -692,6 +734,8 @@ Private Sub FinishLine(ByVal force As Boolean)
 
     EmitLine RTrim$(curMarker & text)
     curMarker = vbNullString
+    markersClosedAtLineEnd = markersClosedSinceLastChar
+    markersClosedSinceLastChar = vbNullString
 End Sub
 
 'Description:

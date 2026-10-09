@@ -1006,16 +1006,16 @@ End Sub
 Private Sub coloredHtmlShowsEmphasis()
     On Error GoTo TestFail
 
-    'the markers stay, the text between them is bold or underlined, also over two lines
+    'the text between the markers is bold or underlined, also over two lines; the markers are left out
     outlookOutput = vbNullString & _
         "> werden _neuartige, auch" & vbNewLine & _
         "> risikoreiche Ansaetze_, deren" & vbNewLine & _
         "*own* text, 5 * 3 and snake_case_name"
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; werden <span style=""text-decoration:underline"">_neuartige, auch</span></span>&#8203;</p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; <span style=""text-decoration:underline"">risikoreiche Ansaetze_</span>, deren</span>&#8203;</p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""font-weight:bold"">*own*</span> text, 5 * 3 and snake_case_name</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; werden <u>neuartige, auch</u></span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; <u>risikoreiche Ansaetze</u>, deren</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><b>own</b> text, 5 * 3 and snake_case_name</p>" & vbNewLine & _
         "</div></body></html>"
 
     Assert.AreEqual expectedResult, QuoteFixMacro.TextToColoredHtml(outlookOutput, vbNullString)

@@ -43,7 +43,7 @@ Art Ross wrote on 2011-04-07 09:36:
 * `CONDENSED_HEADER_FORMAT` is the format of the condensed line, by default `%SN wrote on %D:`.
   Placeholders: `%SN` sender, `%SE` address of the sender, `%D` date (in `DATE_FORMAT`), `%TO` recipients.
 * `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER` (default `True`) also condenses the header of the mail you reply to.
-  Set it to `False` if your template says that already (e.g., "You wrote on %D:").
+  With `False`, the quote starts without any line about the original mail, so your template has to say it: either a line of your own (e.g., "You wrote on %D:") or `%OH`, which stands for the whole header of the original mail.
 
 When forwarding (`FixedForward`), only headers marked with `-----Original Message-----` and quoted deeper than the text around them are condensed, as in earlier versions.
 

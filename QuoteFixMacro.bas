@@ -274,6 +274,22 @@ Public Sub FixedReplyAll()
     FixMailText m, TypeReplyAll
 End Sub
 
+'"Fixed Reply All" with colored quotes, whatever USE_COLORIZER says
+Public Sub FixedReplyAllColored()
+    Dim m As Object
+    Set m = GetCurrentItem()
+
+    FixMailText m, TypeReplyAll, False, True
+End Sub
+
+'"Fixed Reply All" as plain text, whatever USE_COLORIZER says
+Public Sub FixedReplyAllPlain()
+    Dim m As Object
+    Set m = GetCurrentItem()
+
+    FixMailText m, TypeReplyAll, False, False
+End Sub
+
 '"Fixed Reply All" functionality with English template
 Public Sub FixedReplyAllEnglish()
     Dim m As Object

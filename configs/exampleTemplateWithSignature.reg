@@ -1,0 +1,9 @@
+Windows Registry Editor Version 5.00
+
+; Template inside the code (USE_QUOTING_TEMPLATE) with the signature from Outlook below it (KEEP_SIGNATURE).
+; The template has the greeting and the quote; the signature stays as maintained in Outlook.
+; A colored reply (USE_COLORIZER) to an HTML mail keeps the signature as HTML, with its pictures, see
+; https://macros4outlook.github.io/quotefixmacro/advanced-features.html#keep-the-outlook-signature
+[HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\Config]
+"USE_QUOTING_TEMPLATE"="True"
+"KEEP_SIGNATURE"="True"

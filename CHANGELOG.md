@@ -15,6 +15,7 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 * `%MN` and `%MFN` in templates stand for your own name and first name; the default template uses `%MN` instead of `{Name}` and works without any change.
 * `SendWithColors`, a macro for the message window: sends the current colored reply as HTML mail whatever the configuration says.
 * `FixedReplyColored`, `FixedReplyPlain`, `FixedReplyAllColored` and `FixedReplyAllPlain`: reply with or without colored quotes, whatever `USE_COLORIZER` says.
+* `KEEP_SIGNATURE`: with `USE_QUOTING_TEMPLATE`, the signature Outlook puts into the reply stays below the template; a colored reply to an HTML mail keeps it as HTML, with its pictures.
 * Condensed headers: the one-line attribution of ticket systems (`01.10.2026 16:15 - Firstname Lastname schrieb:`) above text which is not quoted deeper starts an older mail, too; forward markers of four dashes and a date line behind the subject are understood.
 
 ### Removed

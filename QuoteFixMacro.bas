@@ -101,6 +101,10 @@ Private Const DEFAULT_QUOTING_TEMPLATE As String = "Dear %FN,\n\n(reply inline)\
 'English quote template
 Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
+'If USE_QUOTING_TEMPLATE is set: keep the signature Outlook puts into the reply below the template?
+'A colored reply (USE_COLORIZER) to an HTML mail keeps it as HTML, with its pictures
+Private Const DEFAULT_KEEP_SIGNATURE As Boolean = False
+
 '--------------------------------------------------------
 '*** Configuration of condensing ***
 '--------------------------------------------------------
@@ -185,6 +189,7 @@ Private STRIP_SIGNATURE As Boolean
 Private USE_QUOTING_TEMPLATE As Boolean
 Private QUOTING_TEMPLATE As String
 Private QUOTING_TEMPLATE_EN As String
+Private KEEP_SIGNATURE As Boolean
 Private CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS As Boolean
 Private CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER As Boolean
 Private CONDENSED_HEADER_FORMAT As String
@@ -373,6 +378,7 @@ Public Sub StoreDefaultConfiguration()
     SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "KEEP_SIGNATURE", DEFAULT_KEEP_SIGNATURE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS
     SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
     SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", DEFAULT_CONDENSED_HEADER_FORMAT
@@ -402,6 +408,8 @@ Public Sub LoadConfiguration()
 
     QUOTING_TEMPLATE_EN = GetSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN)
     QUOTING_TEMPLATE_EN = Replace$(QUOTING_TEMPLATE_EN, "\n", vbCrLf)
+
+    KEEP_SIGNATURE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "KEEP_SIGNATURE", DEFAULT_KEEP_SIGNATURE))
 
     Dim count As Variant
     count = CDbl(GetSetting(APPNAME, REG_GROUP_FIRSTNAMES, "Count", 0))
@@ -1487,7 +1495,15 @@ catch:
     'the reply methods will return null (forward method is ok)
     If NewMail Is Nothing Then Exit Sub
 
-    If Not originalIsPlain Then
+    'A colored reply keeps the HTML of Outlook's signature, with its pictures (KEEP_SIGNATURE)
+    Dim signatureHtml As String
+    If USE_QUOTING_TEMPLATE And KEEP_SIGNATURE And USE_COLORIZER Then
+        If NewMail.bodyFormat = olFormatHTML Then
+            signatureHtml = NewMail.HTMLBody
+        End If
+    End If
+
+    If Not originalIsPlain And Len(signatureHtml) = 0 Then
         NewMail.bodyFormat = olFormatPlain
     End If
 
@@ -1532,7 +1548,9 @@ catch:
         End If
     End If
 
+    Dim outlookSignature As String
     If USE_QUOTING_TEMPLATE Then
+        outlookSignature = MySignature
         'Override MySignature in case the QUOTING_TEMPLATE should be used
         'lineCounter is still valid, because lineCounter is based on the current message whereas QUOTING_TEMPLATE is a general setting
         'The English template is used for a mail written in English, or on request (FixedReplyAllEnglish)
@@ -1640,11 +1658,25 @@ catch:
         MySignature = Replace$(MySignature, PATTERN_CURSOR_POSITION, vbNullString)
     End If
 
+    'Outlook's signature below the template; the HTML one is added below
+    If USE_QUOTING_TEMPLATE And KEEP_SIGNATURE And Len(signatureHtml) = 0 Then
+        Do While Right$(outlookSignature, 2) = vbCrLf
+            outlookSignature = Left$(outlookSignature, Len(outlookSignature) - 2)
+        Loop
+        If Len(outlookSignature) > 0 Then
+            MySignature = MySignature & vbCrLf & vbCrLf & outlookSignature
+        End If
+    End If
+
     MySignature = cleanUpDoubleLines(MySignature)
 
     If USE_COLORIZER Then
         NewMail.bodyFormat = olFormatHTML
-        NewMail.HTMLBody = TextToColoredHtml(MySignature, getOwnName())
+        If Len(signatureHtml) > 0 Then
+            NewMail.HTMLBody = InsertColoredHtml(TextToColoredHtml(MySignature, getOwnName()), signatureHtml)
+        Else
+            NewMail.HTMLBody = TextToColoredHtml(MySignature, getOwnName())
+        End If
         'the mark lets ThisOutlookSession convert the mail to plain text before it is sent
         NewMail.UserProperties.Add(COLORED_MAIL_PROPERTY, olText, False).Value = "yes"
     Else
@@ -2188,6 +2220,54 @@ Private Function EscapeHtml(ByVal text As String) As String
 End Function
 
 'Description:
+'   Puts the content of a colored HTML (TextToColoredHtml) at the beginning of the body of another HTML,
+'   e.g., in front of Outlook's signature in a reply. Head and pictures of the other HTML are kept.
+'Notes:
+'   * Public to enable testing
+Public Function InsertColoredHtml(ByVal coloredHtml As String, ByVal html As String) As String
+    Dim fragmentStart As Long
+    Dim fragmentEnd As Long
+    fragmentStart = InStr(coloredHtml, "<body>") + Len("<body>")
+    fragmentEnd = InStrRev(coloredHtml, "</body>")
+
+    Dim bodyStart As Long
+    bodyStart = InStr(LCase$(html), "<body")
+    If bodyStart > 0 Then
+        bodyStart = InStr(bodyStart, html, ">")
+    End If
+    If bodyStart = 0 Or fragmentStart <= Len("<body>") Or fragmentEnd = 0 Then
+        InsertColoredHtml = coloredHtml
+        Exit Function
+    End If
+
+    InsertColoredHtml = Left$(html, bodyStart) & Mid$(coloredHtml, fragmentStart, fragmentEnd - fragmentStart) & Mid$(html, bodyStart + 1)
+End Function
+
+'Description:
+'   Deletes the pictures embedded in the HTML of a mail (e.g., the logo of a signature):
+'   in a plain text mail, they would show up as attachments
+Private Sub deleteEmbeddedPictures(ByVal mailToSend As Object)
+    Const PR_ATTACH_CONTENT_ID As String = "http://schemas.microsoft.com/mapi/proptag/0x3712001F"
+
+    Dim html As String
+    html = LCase$(mailToSend.HTMLBody)
+
+    Dim i As Long
+    For i = mailToSend.Attachments.count To 1 Step -1
+        Dim contentId As String
+        contentId = vbNullString
+        On Error Resume Next
+        contentId = mailToSend.Attachments.item(i).PropertyAccessor.GetProperty(PR_ATTACH_CONTENT_ID)
+        On Error GoTo 0
+        If Len(contentId) > 0 Then
+            If InStr(html, "cid:" & LCase$(contentId)) > 0 Then
+                mailToSend.Attachments.item(i).Delete
+            End If
+        End If
+    Next
+End Sub
+
+'Description:
 '   Has to be called by ThisOutlookSession before a mail is sent:
 '   a colored reply is converted to plain text (COLORIZER_SEND_AS_PLAIN)
 Public Sub BeforeSend(ByVal mailToSend As Object)
@@ -2214,6 +2294,7 @@ Public Sub BeforeSend(ByVal mailToSend As Object)
         plainText = Replace$(vbCrLf & plainText & vbCrLf, vbCrLf & "--" & vbCrLf, vbCrLf & "-- " & vbCrLf)
         plainText = Mid$(plainText, 3, Len(plainText) - 4)
 
+        deleteEmbeddedPictures mailToSend
         mailToSend.bodyFormat = olFormatPlain
         mailToSend.Body = plainText
     End If

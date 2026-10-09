@@ -88,7 +88,7 @@ The macro **NEVER** stores entries in the registry by itself.
 Store only the settings you want to differ from the defaults; everything else keeps following the defaults of new versions.
 Unknown or outdated entries are ignored.
 
-1. Import a `.reg` file: the folder [`configs/`](https://github.com/macros4outlook/quotefixmacro/tree/main/configs) contains examples (colored quotes, custom first names) to adapt and double-click.
+1. Import a `.reg` file: the folder [`configs/`](https://github.com/macros4outlook/quotefixmacro/tree/main/configs) contains examples (colored quotes, custom first names, template with the Outlook signature) to adapt and double-click.
 2. Or create the entries by hand in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\Config` (string values, e.g., `USE_COLORIZER` = `True`).
 3. Or write a routine executing commands similar to `Call SaveSetting("QuoteFixMacro", "Config", "STRIP_SIGNATURE", "False")`.
 

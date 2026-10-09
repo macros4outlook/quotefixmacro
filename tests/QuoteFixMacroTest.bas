@@ -971,6 +971,27 @@ TestFail:
     Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
 End Sub
 
+'@TestMethod("color")
+Private Sub coloredHtmlIsPutInFrontOfOutlooksSignature()
+    On Error GoTo TestFail
+
+    Dim signatureHtml As String
+    signatureHtml = "<html><head><style>p.MsoNormal {margin:0}</style></head>" & vbNewLine & _
+        "<body lang=DE link=""#0563C1""><div class=WordSection1><p class=MsoNormal>Regards<img src=""cid:image001.png@01DC0000.00000000""></p></div></body></html>"
+    expectedResult = "<html><head><style>p.MsoNormal {margin:0}</style></head>" & vbNewLine & _
+        "<body lang=DE link=""#0563C1""><div style=""margin:0"">text</div><div class=WordSection1><p class=MsoNormal>Regards<img src=""cid:image001.png@01DC0000.00000000""></p></div></body></html>"
+
+    Assert.AreEqual expectedResult, QuoteFixMacro.InsertColoredHtml("<html><body><div style=""margin:0"">text</div></body></html>", signatureHtml)
+
+    'without a body, the colored HTML is used alone
+    Assert.AreEqual "<html><body>x</body></html>", QuoteFixMacro.InsertColoredHtml("<html><body>x</body></html>", "Regards")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
 '@TestMethod("condense")
 Private Sub condenseAttributionOfTicketSystem()
     On Error GoTo TestFail

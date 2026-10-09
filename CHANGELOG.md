@@ -23,6 +23,7 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 
 ### Fixed
 
+* The default template does not say "You wrote on %D:" anymore: the quote starts with the condensed header of the original mail, which says it already.
 * The cursor is moved to the quote (or to `%C`) through the editor instead of one `SendKeys` call per line, which could switch off NumLock. [#33](https://github.com/macros4outlook/quotefixmacro/issues/33)
 
 ## [2026-10-02] - 2026-10-02

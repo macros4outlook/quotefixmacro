@@ -96,10 +96,10 @@ Private Const DEFAULT_STRIP_SIGNATURE As Boolean = True
 Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = False
 
 'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
-Private Const DEFAULT_QUOTING_TEMPLATE As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE As String = "Dear %FN,\n\n(reply inline)\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
 'English quote template
-Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
 '--------------------------------------------------------
 '*** Configuration of condensing ***

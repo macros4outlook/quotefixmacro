@@ -23,6 +23,8 @@ Please double check that the template is used as "Forward/Reply" signature under
 | `%MN`   | Your own name, as Outlook knows it (`Firstname Lastname`)                                      |
 | `%MFN`  | Your own first name                                                                            |
 
+The quote starts with the line "Sender wrote on date:" (see [Condense Headers](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#condense-headers)), so a template does not need to say that.
+
 ## Examples
 
 ### Simple with some QuoteFixMacro advertisement
@@ -31,8 +33,6 @@ Please double check that the template is used as "Forward/Reply" signature under
 Hello %FN,
 
 (inline reply powered by QuoteFixMacro - see https://macros4outlook.github.io/quotefixmacro/)
-
-You wrote on %D:
 
 %Q
 
@@ -47,8 +47,6 @@ Oliver
 %FN,
 
 %C
-
-%SN wrote on %D:
 
 %Q
 

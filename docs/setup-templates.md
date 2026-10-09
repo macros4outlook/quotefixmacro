@@ -39,7 +39,7 @@ Hello %FN,
 
 Cheers,
 
-Oliver
+%MFN
 ```
 
 ### Cursor above the quote
@@ -52,7 +52,7 @@ Oliver
 %Q
 
 Greetings,
-Hans
+%MFN
 ```
 
 ### Minimal template
@@ -64,5 +64,5 @@ Hans
 
 Best,
 
-Amie
+%MFN
 ```

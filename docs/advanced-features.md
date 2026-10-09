@@ -86,6 +86,7 @@ This helps to see who wrote what while answering.
 The author of a quote level is taken from the condensed header above it ("X wrote on ...:"), which is shown as heading in the author's color.
 Your own quoted text is dark gray.
 If the headers are not condensed, each quote level gets a color instead.
+To choose per reply, put the macros `FixedReplyColored` and `FixedReplyPlain` (or `FixedReplyAllColored` and `FixedReplyAllPlain`) on the toolbar: they reply with and without colors, whatever `USE_COLORIZER` says; `FixedReply` and `FixedReplyAll` follow the setting.
 
 To answer inline, press <kbd>Enter</kbd> at the end of a quoted line: the new paragraph is black.
 If you split a quoted line in its middle, the text you type keeps the color of the quote; <kbd>Ctrl</kbd>+<kbd>Space</kbd> resets it.

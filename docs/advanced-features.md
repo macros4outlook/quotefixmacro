@@ -28,7 +28,7 @@ With `KEEP_SIGNATURE` set to `True`, that signature stays below the template: th
 Outlook chooses the signature as usual, that is, the one set for replies of the account.
 
 * A colored reply (`USE_COLORIZER`) to an HTML mail keeps the signature as HTML, with its pictures (e.g., a logo).
-  If the mail is converted to plain text before it is sent (`COLORIZER_SEND_AS_PLAIN`), the pictures are removed, and the text of the signature remains.
+  If the mail is converted to plain text before it is sent (`COLORIZER_SEND_AS_PLAIN`), the pictures are removed, and the text of the signature remains (bold text as `*text*`).
 * Otherwise, the reply is a plain text mail and gets the text of the signature.
 
 See [`configs/exampleTemplateWithSignature.reg`](https://github.com/macros4outlook/quotefixmacro/blob/main/configs/exampleTemplateWithSignature.reg).
@@ -71,6 +71,7 @@ This helps to see who wrote what while answering.
 The author of a quote level is taken from the condensed header above it ("X wrote on ...:"), which is shown as heading in the author's color.
 Your own quoted text is dark gray.
 If the headers are not condensed, each quote level gets a color instead.
+Text marked as `*bold*` or `_underlined_` (e.g., from the bold or underlined text of an HTML mail) is shown bold or underlined; the markers stay, so that the plain text mail has them, too.
 To choose per reply, put the macros `FixedReplyColored` and `FixedReplyPlain` (or `FixedReplyAllColored` and `FixedReplyAllPlain`) on the toolbar: they reply with and without colors, whatever `USE_COLORIZER` says; `FixedReply` and `FixedReplyAll` follow the setting.
 
 To answer inline, press <kbd>Enter</kbd> at the end of a quoted line: the new paragraph is black.

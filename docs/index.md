@@ -101,6 +101,7 @@ The reply is a plain text mail, whose quoted text is taken from the HTML of the 
 * Quotes within the original mail (`<blockquote>`, as written by Gmail, Thunderbird, and Apple Mail) are kept as quote levels.
 * Each paragraph is wrapped on its own at `LINE_WRAP_AFTER`.
 * A link is shown as `text <target>`.
+* Bold text is marked as `*text*`, underlined text as `_text_`, as usual in plain text mails.
 * Pictures and formatting are lost.
 
 Forwarding such a mail is left to Outlook.

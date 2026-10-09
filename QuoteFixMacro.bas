@@ -697,7 +697,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
     Dim i As Long
     i = start
     Dim line As String
-    line = StripLine(rows(i))
+    line = HeaderLine(rows(i))
 
     Dim hasMarker As Boolean
     hasMarker = IsHeaderMarker(line)
@@ -707,7 +707,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
             i = i + 1
             If i > UBound(rows) Then Exit Function
             If CalcNesting(rows(i)).level <> level Then Exit Function
-            line = StripLine(rows(i))
+            line = HeaderLine(rows(i))
         Loop While Len(line) = 0
     End If
 
@@ -723,7 +723,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
 
     Do While i <= UBound(rows)
         If CalcNesting(rows(i)).level <> level Then Exit Do
-        line = StripLine(rows(i))
+        line = HeaderLine(rows(i))
         If Len(line) = 0 Then Exit Do
 
         Dim label As String
@@ -740,7 +740,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
                 i = i + 1
                 If i <= UBound(rows) Then
                     If CalcNesting(rows(i)).level = level And dateIndex = 0 And valueCount < MAX_HEADER_LINES Then
-                        line = StripLine(rows(i))
+                        line = HeaderLine(rows(i))
                         If IsListedLabel(GetLabel(line), LABELS_DATE) Then
                             valueCount = valueCount + 1
                             values(valueCount) = Trim$(Mid$(line, Len(GetLabel(line)) + 2))
@@ -788,13 +788,41 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
 End Function
 
 'Description:
+'   Returns the text of a row of a header without quote prefix and emphasis markers:
+'   HTML mails show the labels (or the sender) in bold, "*From:* Art Ross" is read as "From: Art Ross"
+Private Function HeaderLine(ByVal row As String) As String
+    Dim line As String
+    line = StripLine(row)
+    If (InStr(line, "*") = 0) And (InStr(line, "_") = 0) Then
+        HeaderLine = line
+        Exit Function
+    End If
+
+    Dim rows(0 To 0) As String
+    rows(0) = line
+    Dim boldRoles() As String
+    boldRoles = MatchEmphasisMarkers(rows, "*")
+    Dim underlineRoles() As String
+    underlineRoles = MatchEmphasisMarkers(rows, "_")
+
+    Dim res As String
+    Dim pos As Long
+    For pos = 1 To Len(line)
+        If (Mid$(boldRoles(0), pos, 1) = " ") And (Mid$(underlineRoles(0), pos, 1) = " ") Then
+            res = res & Mid$(line, pos, 1)
+        End If
+    Next
+    HeaderLine = res
+End Function
+
+'Description:
 '   Checks whether the row is the one-line attribution which ticket systems write above a quoted mail
 '   without prefixing it: "01.10.2026 16:15 - Firstname Lastname schrieb:" (or "wrote:")
 'Returns:
 '   True if it is one. Then, condensedHeader is the line replacing it
 Private Function TryCondenseAttribution(ByVal row As String, ByRef condensedHeader As String) As Boolean
     Dim line As String
-    line = StripLine(row)
+    line = HeaderLine(row)
     If Right$(line, 1) <> ":" Then Exit Function
 
     Dim posSeparator As Long
@@ -2065,6 +2093,14 @@ Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String)
     Dim rows() As String
     rows = Split(Replace$(text, vbCrLf, vbLf), vbLf)
 
+    'the emphasis markers (*bold*, _underlined_), matched over the lines
+    Dim boldRoles() As String
+    boldRoles = MatchEmphasisMarkers(rows, "*")
+    Dim underlineRoles() As String
+    underlineRoles = MatchEmphasisMarkers(rows, "_")
+    Dim isBold As Boolean
+    Dim isUnderlined As Boolean
+
     Dim i As Long
     For i = LBound(rows) To UBound(rows)
         Dim level As Long
@@ -2098,7 +2134,7 @@ Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String)
         End If
 
         Dim content As String
-        content = EscapeHtml(rows(i))
+        content = EmphasizedHtml(rows(i), boldRoles(i), underlineRoles(i), isBold, isUnderlined)
         If Len(content) = 0 Then
             'an empty paragraph would be dropped
             content = "&nbsp;"
@@ -2110,6 +2146,164 @@ Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String)
     Next
 
     TextToColoredHtml = html & "</div></body></html>"
+End Function
+
+'Description:
+'   Finds the pairs of emphasis markers (e.g., *bold*) in the lines
+'   A pair may span several lines of the same quote level, but no empty line
+'Returns:
+'   For each line a string as long as the line: "o" at an opening marker, "c" at a closing marker, " " elsewhere
+Private Function MatchEmphasisMarkers(ByRef rows() As String, ByVal marker As String) As String()
+    If UBound(rows) < LBound(rows) Then
+        MatchEmphasisMarkers = rows
+        Exit Function
+    End If
+
+    Dim roles() As String
+    ReDim roles(LBound(rows) To UBound(rows))
+
+    Dim isOpen As Boolean
+    Dim openRow As Long
+    Dim openPos As Long
+    Dim openLevel As Long
+
+    Dim i As Long
+    For i = LBound(rows) To UBound(rows)
+        roles(i) = Space$(Len(rows(i)))
+
+        Dim level As Long
+        level = CalcNesting(rows(i)).level
+        If (Len(StripLine(rows(i))) = 0) Or (level <> openLevel) Then
+            isOpen = False
+        End If
+
+        Dim pos As Long
+        For pos = 1 To Len(rows(i))
+            If Mid$(rows(i), pos, 1) = marker Then
+                If isOpen Then
+                    If IsClosingMarker(rows(i), pos) Then
+                        Mid$(roles(openRow), openPos, 1) = "o"
+                        Mid$(roles(i), pos, 1) = "c"
+                        isOpen = False
+                    End If
+                ElseIf IsOpeningMarker(rows(i), pos) Then
+                    isOpen = True
+                    openRow = i
+                    openPos = pos
+                    openLevel = level
+                End If
+            End If
+        Next
+    Next
+
+    MatchEmphasisMarkers = roles
+End Function
+
+'An opening marker is followed by text and stands at the beginning of a word
+Private Function IsOpeningMarker(ByVal row As String, ByVal pos As Long) As Boolean
+    If pos >= Len(row) Then Exit Function
+
+    Dim nextChar As String
+    nextChar = Mid$(row, pos + 1, 1)
+    If (nextChar = " ") Or (nextChar = Mid$(row, pos, 1)) Then Exit Function
+
+    If pos = 1 Then
+        IsOpeningMarker = True
+    Else
+        'space, quote prefix, opening bracket, quotation mark (also the typographic ones), or another marker
+        IsOpeningMarker = (InStr(" >([""'*_" & ChrW$(8222) & ChrW$(8220) & ChrW$(8218) & ChrW$(8216) & ChrW$(171) & ChrW$(187), Mid$(row, pos - 1, 1)) > 0)
+    End If
+End Function
+
+'A closing marker follows text and stands at the end of a word
+Private Function IsClosingMarker(ByVal row As String, ByVal pos As Long) As Boolean
+    If pos = 1 Then Exit Function
+
+    Dim previousChar As String
+    previousChar = Mid$(row, pos - 1, 1)
+    If (previousChar = " ") Or (previousChar = Mid$(row, pos, 1)) Then Exit Function
+
+    If pos = Len(row) Then
+        IsClosingMarker = True
+    Else
+        'space, punctuation, closing bracket, quotation mark (also the typographic ones), or another marker
+        IsClosingMarker = (InStr(" .,;:!?)]""'*_" & ChrW$(8220) & ChrW$(8221) & ChrW$(8217) & ChrW$(171) & ChrW$(187), Mid$(row, pos + 1, 1)) > 0)
+    End If
+End Function
+
+'Description:
+'   Escapes a line for HTML: text between emphasis markers (roles from MatchEmphasisMarkers) is bold or underlined
+'   The markers stay part of the text, so that the conversion back to plain text yields them again
+'Parameters:
+'   isBold, isUnderlined: the emphasis at the beginning of the line, changed to the one at its end
+Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, ByVal underlineRoles As String, ByRef isBold As Boolean, ByRef isUnderlined As Boolean) As String
+    Dim res As String
+
+    'an emphasis continued from the line above starts behind the quote prefix
+    Dim contentStart As Long
+    contentStart = 1
+    Do While contentStart <= Len(row)
+        If InStr("> ", Mid$(row, contentStart, 1)) = 0 Then Exit Do
+        contentStart = contentStart + 1
+    Loop
+    Dim continuedBold As Boolean
+    continuedBold = isBold
+    Dim continuedUnderlined As Boolean
+    continuedUnderlined = isUnderlined
+    isBold = False
+    isUnderlined = False
+
+    Dim segmentStart As Long
+    segmentStart = 1
+    Dim segmentIsBold As Boolean
+    Dim segmentIsUnderlined As Boolean
+
+    Dim pos As Long
+    For pos = 1 To Len(row)
+        If pos = contentStart Then
+            isBold = continuedBold
+            isUnderlined = continuedUnderlined
+        End If
+        If Mid$(boldRoles, pos, 1) = "o" Then isBold = True
+        If Mid$(underlineRoles, pos, 1) = "o" Then isUnderlined = True
+
+        If (isBold <> segmentIsBold) Or (isUnderlined <> segmentIsUnderlined) Then
+            res = res & StyledHtml(Mid$(row, segmentStart, pos - segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
+            segmentStart = pos
+            segmentIsBold = isBold
+            segmentIsUnderlined = isUnderlined
+        End If
+
+        'the closing marker is still emphasized, the emphasis ends behind it
+        If Mid$(boldRoles, pos, 1) = "c" Then isBold = False
+        If Mid$(underlineRoles, pos, 1) = "c" Then isUnderlined = False
+    Next
+    res = res & StyledHtml(Mid$(row, segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
+
+    EmphasizedHtml = res
+End Function
+
+Private Function StyledHtml(ByVal text As String, ByVal isBold As Boolean, ByVal isUnderlined As Boolean, ByVal atLineStart As Boolean) As String
+    Dim res As String
+    res = EscapeHtml(text, atLineStart)
+    If Len(res) = 0 Then Exit Function
+
+    'styles instead of <b> and <u>: the conversion back to plain text would add markers for these
+    Dim style As String
+    If isBold Then
+        style = "font-weight:bold"
+    End If
+    If isUnderlined Then
+        If Len(style) > 0 Then
+            style = style & ";"
+        End If
+        style = style & "text-decoration:underline"
+    End If
+    If Len(style) > 0 Then
+        res = "<span style=""" & style & """>" & res & "</span>"
+    End If
+
+    StyledHtml = res
 End Function
 
 Private Function HasKnownAuthor(ByRef authorOfLevel() As String, ByVal level As Long) As Boolean
@@ -2202,14 +2396,16 @@ End Function
 
 'Description:
 '   Escapes the characters having a meaning in HTML; spaces at the beginning and multiple spaces are kept
-Private Function EscapeHtml(ByVal text As String) As String
+'Parameters:
+'   atLineStart: a space at the beginning is kept as a non-breaking space
+Private Function EscapeHtml(ByVal text As String, Optional ByVal atLineStart As Boolean = True) As String
     Dim res As String
     res = Replace$(text, "&", "&amp;")
     res = Replace$(res, "<", "&lt;")
     res = Replace$(res, ">", "&gt;")
     res = Replace$(res, """", "&quot;")
 
-    If Left$(res, 1) = " " Then
+    If atLineStart And (Left$(res, 1) = " ") Then
         res = "&nbsp;" & Mid$(res, 2)
     End If
     Do While InStr(res, "  ") > 0

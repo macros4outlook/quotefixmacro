@@ -215,6 +215,37 @@ TestFail:
 End Sub
 
 '@TestMethod("condense")
+Private Sub condenseHeaderWithBoldLabels()
+    On Error GoTo TestFail
+
+    'HTML mails show the labels in bold, HtmlToPlainText marks them
+    outlookOutput = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> > *From:* Art Ross" & vbNewLine & _
+        "> > *Sent:* 2011-04-07 09:36" & vbNewLine & _
+        "> > *To:* Adam Swift" & vbNewLine & _
+        "> > *Subject:* RE: Testing" & vbNewLine & _
+        "> > " & vbNewLine & _
+        "> > Hi Adam,"
+    expectedResult = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Art Ross wrote on 2011-04-07 09:36:" & vbNewLine & _
+        ">> Hi Adam,"
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("condense")
 Private Sub condenseHeaderUnparsableDateIsNotTakenFromPreviousHeader()
     On Error GoTo TestFail
 
@@ -964,6 +995,30 @@ Private Sub allRecipientsListedByAddressOrDomain()
     Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed(vbNullString, "@example.org")
     'the domain has to match completely
     Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed("a@noexample.org", "@example.org")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("color")
+Private Sub coloredHtmlShowsEmphasis()
+    On Error GoTo TestFail
+
+    'the markers stay, the text between them is bold or underlined, also over two lines
+    outlookOutput = vbNullString & _
+        "> werden _neuartige, auch" & vbNewLine & _
+        "> risikoreiche Ansaetze_, deren" & vbNewLine & _
+        "*own* text, 5 * 3 and snake_case_name"
+    expectedResult = vbNullString & _
+        "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; werden <span style=""text-decoration:underline"">_neuartige, auch</span></span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; <span style=""text-decoration:underline"">risikoreiche Ansaetze_</span>, deren</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""font-weight:bold"">*own*</span> text, 5 * 3 and snake_case_name</p>" & vbNewLine & _
+        "</div></body></html>"
+
+    Assert.AreEqual expectedResult, QuoteFixMacro.TextToColoredHtml(outlookOutput, vbNullString)
 
 TestExit:
     Exit Sub

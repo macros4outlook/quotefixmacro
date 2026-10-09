@@ -9,6 +9,7 @@ Attribute VB_Name = "QuoteFixHtml"
 '
 '  * Quotes (<blockquote>) are marked with ">", one for each level
 '  * Paragraphs, line breaks, list items and table rows become lines
+'  * Bold text is marked as *text*, underlined text as _text_
 '  * Scripts, styles and comments are dropped
 
 '@Folder("QuoteFixMacro")
@@ -58,6 +59,17 @@ Private paragraphIsCompact As Boolean
 Private listCounters(1 To 20) As Long
 Private listLevel As Long
 
+'the emphasis markers (* bold, _ underlined) waiting for the first character of their text
+Private pendingMarkers As String
+'the emphasis markers whose text has begun, written by this module: they get a closing marker
+Private openMarkers As String
+'the emphasis markers whose text has begun with the marker itself (e.g., *text* in bold): the text has its closing marker
+Private carriedMarkers As String
+'the markers the text has opened, but not closed yet (e.g., a text in bold running over several paragraphs)
+Private textOpenMarkers As String
+Private boldDepth As Long
+Private underlineDepth As Long
+
 Private inAnchor As Boolean
 Private anchorHref As String
 Private anchorText As String
@@ -81,6 +93,12 @@ Public Function HtmlToPlainText(ByVal html As String) As String
     atPreStart = False
     paragraphIsCompact = False
     listLevel = 0
+    pendingMarkers = vbNullString
+    openMarkers = vbNullString
+    carriedMarkers = vbNullString
+    textOpenMarkers = vbNullString
+    boldDepth = 0
+    underlineDepth = 0
     inAnchor = False
 
     Dim pos As Long
@@ -358,6 +376,12 @@ Private Sub HandleTag(ByVal tag As String, ByRef html As String, ByRef pos As Lo
                 curMarker = GetListMarker()
             End If
 
+        Case "b", "strong"
+            HandleEmphasis "*", isClosingTag, boldDepth
+
+        Case "u"
+            HandleEmphasis "_", isClosingTag, underlineDepth
+
         Case "img"
             If Not isClosingTag Then
                 Dim altText As String
@@ -376,6 +400,86 @@ Private Sub HandleTag(ByVal tag As String, ByRef html As String, ByRef pos As Lo
                 inAnchor = True
             End If
     End Select
+End Sub
+
+'Description:
+'   Marks bold text as *text* and underlined text as _text_
+'   Nested elements of the same kind get one pair of markers, elements without text get none
+'   The markers of a text running over several lines are put at its beginning and at its end
+Private Sub HandleEmphasis(ByVal marker As String, ByVal isClosingTag As Boolean, ByRef depth As Long)
+    'preformatted text is kept as it is
+    If preLevel > 0 Then Exit Sub
+
+    If Not isClosingTag Then
+        depth = depth + 1
+        If depth = 1 Then
+            pendingMarkers = pendingMarkers & marker
+        End If
+        Exit Sub
+    End If
+
+    If depth = 0 Then Exit Sub
+    depth = depth - 1
+    If depth > 0 Then Exit Sub
+
+    If InStr(pendingMarkers, marker) > 0 Then
+        'no text in between
+        pendingMarkers = Replace$(pendingMarkers, marker, vbNullString)
+    ElseIf InStr(openMarkers, marker) > 0 Then
+        openMarkers = Replace$(openMarkers, marker, vbNullString)
+        WriteClosingMarker marker
+    Else
+        carriedMarkers = Replace$(carriedMarkers, marker, vbNullString)
+    End If
+End Sub
+
+'Description:
+'   Puts the pending opening markers in front of the first character of the text
+'   A marker is not doubled if the text starts with it already (e.g., *text* in bold)
+Private Sub WritePendingMarkers(ByVal firstChar As String)
+    Dim i As Long
+    For i = 1 To Len(pendingMarkers)
+        Dim marker As String
+        marker = Mid$(pendingMarkers, i, 1)
+        If marker = firstChar Then
+            carriedMarkers = carriedMarkers & marker
+            textOpenMarkers = textOpenMarkers & marker
+        ElseIf InStr(textOpenMarkers, marker) > 0 Then
+            'the text continues one which has its opening marker already (Word puts each paragraph into an element of its own)
+            carriedMarkers = carriedMarkers & marker
+        Else
+            curLine = curLine & marker
+            openMarkers = openMarkers & marker
+        End If
+    Next
+    pendingMarkers = vbNullString
+End Sub
+
+'Description:
+'   Puts a closing marker behind the last character of the text (of the last line if the current one is empty)
+'   A marker is not doubled if the text ends with it already
+Private Sub WriteClosingMarker(ByVal marker As String)
+    If Len(curLine) > 0 Then
+        If Right$(curLine, 1) <> marker Then
+            curLine = curLine & marker
+        End If
+        Exit Sub
+    End If
+
+    'the end of the last line with text: an empty line may follow it
+    Dim lineEnd As Long
+    If lastEmptyLineLevel >= 0 Then
+        lineEnd = lengthBeforeLastLine
+    Else
+        lineEnd = Len(resultText)
+    End If
+    If lineEnd < 3 Then Exit Sub
+    If Mid$(resultText, lineEnd - 2, 1) = marker Then Exit Sub
+
+    resultText = Left$(resultText, lineEnd - 2) & marker & Mid$(resultText, lineEnd - 1)
+    If lastEmptyLineLevel >= 0 Then
+        lengthBeforeLastLine = lengthBeforeLastLine + 1
+    End If
 End Sub
 
 'Paragraphs written by Word (Outlook) and paragraphs without margin are shown without space in between
@@ -527,6 +631,13 @@ Private Sub AppendDecodedText(ByVal text As String)
                     curLine = curLine & " "
                 End If
                 pendingSpace = False
+                If InStr(textOpenMarkers, c) > 0 Then
+                    'the text closes its marker
+                    textOpenMarkers = Replace$(textOpenMarkers, c, vbNullString)
+                End If
+                If Len(pendingMarkers) > 0 Then
+                    WritePendingMarkers c
+                End If
                 curLine = curLine & c
                 curLineHasContent = True
         End Select
@@ -602,6 +713,8 @@ Private Sub EmitLine(ByVal text As String)
 
     If Len(text) = 0 Then
         lastEmptyLineLevel = quoteLevel
+        'a text marked by the text itself does not continue over an empty line
+        textOpenMarkers = vbNullString
     Else
         lastEmptyLineLevel = -1
     End If

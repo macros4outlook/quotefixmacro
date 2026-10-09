@@ -152,10 +152,10 @@ Private Sub htmlOutlookHeaderOfQuotedMail()
     expectedResult = vbNullString & _
         "Answer" & vbNewLine & _
         vbNewLine & _
-        "From: Art Ross <art@example.com>" & vbNewLine & _
-        "Sent: Thursday, April 7, 2011 9:36 AM" & vbNewLine & _
-        "To: Adam Swift <adam@example.com>" & vbNewLine & _
-        "Subject: Testing" & vbNewLine & _
+        "*From:* Art Ross <art@example.com>" & vbNewLine & _
+        "*Sent:* Thursday, April 7, 2011 9:36 AM" & vbNewLine & _
+        "*To:* Adam Swift <adam@example.com>" & vbNewLine & _
+        "*Subject:* Testing" & vbNewLine & _
         vbNewLine & _
         "Question"
 
@@ -175,9 +175,45 @@ Private Sub htmlHorizontalRule()
     expectedResult = vbNullString & _
         "Answer" & vbNewLine & _
         "________________________________" & vbNewLine & _
-        "From: Art Ross"
+        "*From:* Art Ross"
 
     Assert.AreEqual expectedResult, HtmlToPlainText(html)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("html")
+Private Sub htmlEmphasis()
+    On Error GoTo TestFail
+
+    Assert.AreEqual "werden _neuartige, auch risikoreiche Ansaetze_, deren", HtmlToPlainText("<p>werden <u>neuartige, auch risikoreiche Ansaetze</u>, deren</p>")
+    Assert.AreEqual "*Vector-Stiftung:*", HtmlToPlainText("<p class=MsoNormal><b><span style='font-size:12pt'>Vector-Stiftung:</span></b><o:p></o:p></p>")
+    'no markers for an element without text, one pair for nested elements, spaces outside
+    Assert.AreEqual "x", HtmlToPlainText("<b> </b>x")
+    Assert.AreEqual "*a b c*", HtmlToPlainText("<b>a <strong>b</strong> c</b>")
+    Assert.AreEqual "a *b* c", HtmlToPlainText("a<b> b </b>c")
+    Assert.AreEqual "*_x_*", HtmlToPlainText("<b><u>x</u></b>")
+    Assert.AreEqual "*line1" & vbNewLine & "line2*", HtmlToPlainText("<p><b>line1<br>line2</b></p>")
+    Assert.AreEqual "> *x* y", HtmlToPlainText("<blockquote><b>x</b> y</blockquote>")
+    Assert.AreEqual "x", HtmlToPlainText("<pre><b>x</b></pre>")
+    Assert.AreEqual "*x*", HtmlToPlainText("<p><b>x</p></b>")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("html")
+Private Sub htmlEmphasisMarkedByTheText()
+    On Error GoTo TestFail
+
+    'a colored reply edited in Word: the text has the markers already, and Word puts the bold or underlined parts into <b> or <u>
+    Assert.AreEqual "*a b* c", HtmlToPlainText("<p><b>*a b*</b> c</p>")
+    Assert.AreEqual "_neuartige, auch" & vbNewLine & "risikoreiche_", HtmlToPlainText("<p style='margin:0'><u>_neuartige, auch</u></p><p style='margin:0'><u>risikoreiche_</u></p>")
 
 TestExit:
     Exit Sub
@@ -191,7 +227,7 @@ Private Sub htmlWhiteSpaceIsCollapsed()
 
     html = "<div>  Hello" & vbNewLine & "   <b>Adam</b> ,  how" & vbTab & "are <i> you</i>?  </div>"
 
-    Assert.AreEqual "Hello Adam , how are you?", HtmlToPlainText(html)
+    Assert.AreEqual "Hello *Adam* , how are you?", HtmlToPlainText(html)
 
 TestExit:
     Exit Sub

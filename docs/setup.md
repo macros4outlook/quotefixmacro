@@ -29,7 +29,6 @@ Note: You can easily import all files at once by dragging them from the Explorer
    Replies do not depend on it, because QuoteFixMacro prefixes the original text itself.
 
    * Change the value of "When replying to a message" to "Prefix each line of the original message"
-   <!-- markdownlint-disable-next-line MD038 -->
    * Ensure that "Prefix each line in a plain-text message with" contains "`> `"
    * Change the value "When replying to a message" back to "Include original message text"
 
@@ -72,7 +71,7 @@ Remember, these buttons are in Outlook's main window, and also in the message wi
 1. Right-click on the toolbar and select "Customize..."
 2. Go to the "Quick Access Toolbar" tab
 3. Choose "Macros" at "Choose commands from"
-3. Drag the "FixedReply" and "FixedReplyAll" entries and drop it onto the toolbar
+4. Drag the "FixedReply" and "FixedReplyAll" entries and drop it onto the toolbar
 
 You can also change the name and image of the newly created buttons using the customization dialog.
 If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a shortcut for reply.
@@ -94,5 +93,3 @@ Unknown or outdated entries are ignored.
 3. Or write a routine executing commands similar to `Call SaveSetting("QuoteFixMacro", "Config", "STRIP_SIGNATURE", "False")`.
 
 `StoreDefaultConfiguration()` writes *all* defaults into the registry; after that, the defaults of a new version are not used anymore.
-
-<!-- markdownlint-disable-file MD033 -->

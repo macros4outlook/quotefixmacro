@@ -48,5 +48,3 @@ Remark: In the message window, the reply button cannot be inserted as in Outlook
 
 Similar to the above. Outlook 2010, however, does not enable the use of `&` any more. You have to find out the number of the button in the shortcut bar.
 Just press <kbd>Alt</kbd> and you'll see the number. Use that in the Autohotkey Macro.
-
-<!-- markdownlint-disable-file MD033 -->

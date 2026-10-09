@@ -102,5 +102,3 @@ Then, QuoteFixMacro reads the signature from `DEFAULT_QUOTING_TEMPLATE_EN` for E
 ## Random Signature Generation
 
 In case you want to try out the current "random signature generation", import `RandomSignature.bas`.
-
-<!-- markdownlint-disable-file MD033 -->

@@ -11,7 +11,7 @@ The key `Count` states how many entries you made.
 `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\firstnames\1` contains the first entry, `...\2` the second, and so on.
 At each entry, there are two keys: `email` stating the email to match and `firstName` the first name to use.
 
-#### Step-by-step instruction
+## Step-by-step instruction
 
 1. Open regedit
 1. Navigate to `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro`
@@ -22,7 +22,7 @@ At each entry, there are two keys: `email` stating the email to match and `first
 1. Create string value `firstName` with the first name to be used
 1. Repeat steps 5 to 7 until `X` is reached. Replace `1` at `firstnames.1` by the appropriate number
 
-#### Direct import using `.reg` files
+## Direct import using `.reg` files
 
 Alternatively, create an `example.reg` file with following content and adapt it to your needs. Then double click on "example.reg" and import it into your registry.
 The distribution of QuoteFixMacro already contains [`configs/exampleFirstNameConfiguration.reg`](https://github.com/macros4outlook/quotefixmacro/blob/main/configs/exampleFirstNameConfiguration.reg) with the content below.

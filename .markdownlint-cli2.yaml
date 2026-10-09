@@ -1,0 +1,21 @@
+# Configuration of markdownlint-cli2, used by .github/workflows/markdownlint.yml
+config:
+  # One sentence per line: lines are not limited in length
+  MD013: false
+  # The changelog repeats "Added", "Fixed", ... for each version
+  MD024:
+    siblings_only: true
+  # The title in the front matter is the name in the navigation of the website, the page has its own heading
+  MD025:
+    front_matter_title: ""
+  # Keys are written as <kbd>
+  MD033:
+    allowed_elements:
+      - kbd
+  # The quote prefix "> " is written as code with its space
+  MD038: false
+  # Tables are aligned, so that they are readable as plain text, too
+  MD060:
+    style: aligned
+ignores:
+  - "PLAN.md"

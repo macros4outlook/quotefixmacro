@@ -1,0 +1,29 @@
+name: Check Markdown
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**.md'
+      - '.markdownlint-cli2.yaml'
+      - '.github/workflows/markdownlint.yml'
+  pull_request:
+    paths:
+      - '**.md'
+      - '.markdownlint-cli2.yaml'
+      - '.github/workflows/markdownlint.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The rules are configured in .markdownlint-cli2.yaml
+      - uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
+        with:
+          globs: '**/*.md'

@@ -234,5 +234,3 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 [1.2]: https://github.com/macros4outlook/quotefixmacro/commits/v1.2b
 [1.1]: https://github.com/macros4outlook/quotefixmacro/commits/v1.2b
 [1.0a]: https://github.com/macros4outlook/quotefixmacro/commits/v1.2b
-
-<!-- markdownlint-disable-file MD024 -->

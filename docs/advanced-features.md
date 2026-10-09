@@ -11,10 +11,12 @@ Configuration is done via constants in the QuoteFix code (see below for a storag
 
 ## Configure the template inside the code
 
-The variable `QUOTING_TEMPLATE` can be used to store the quoting template.
+With `USE_QUOTING_TEMPLATE` set to `True`, QuoteFixMacro uses the template `QUOTING_TEMPLATE` instead of the signature from Outlook (for mails in English: `QUOTING_TEMPLATE_EN`, see below).
 Thus, the Outlook configuration can be left untouched.
+The defaults are `DEFAULT_QUOTING_TEMPLATE` and `DEFAULT_QUOTING_TEMPLATE_EN` in the code.
+To change a template, store it in the registry, e.g., with [`configs/exampleTemplateWithSignature.reg`](https://github.com/macros4outlook/quotefixmacro/blob/main/configs/exampleTemplateWithSignature.reg); a new line is written as `\n`.
 
-If this is not enabled, one has to configure Outlook differently:
+Without the setting, one has to configure Outlook:
 
 Tools > Options > Mail Format > Signatures...
 
@@ -106,11 +108,6 @@ Outlook wraps text automatically after sending it, but doesn't display the wrap 
 Thus, this is useful to double-check that no new line breaks are introduced by Outlook when sending an email.
 
 One can set `USE_SOFTWRAP` to `False` to disable it.
-
-## Use templates from the code
-
-Instead of confuring a template in the signature setting, one can set `DEFAULT_USE_QUOTING_TEMPLATE` to `True`.
-Then, QuoteFixMacro reads the signature from `DEFAULT_QUOTING_TEMPLATE_EN` for English emails and from `DEFAULT_QUOTING_TEMPLATE` for all other languages.
 
 ## Random Signature Generation
 

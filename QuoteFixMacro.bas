@@ -1630,11 +1630,10 @@ catch:
     End If
     MySignature = Replace$(MySignature, PATTERN_SENDER_NAME, senderName)
 
-    If InStr(MySignature, PATTERN_MY_NAME) > 0 Then
+    If (InStr(MySignature, PATTERN_MY_NAME) > 0) Or (InStr(MySignature, PATTERN_MY_FIRST_NAME) > 0) Then
         Dim ownName As String
         Dim ownFirstName As String
         getOwnNames ownName, ownFirstName
-        'the first name first: %MFN starts with %MN
         MySignature = Replace$(MySignature, PATTERN_MY_FIRST_NAME, ownFirstName)
         MySignature = Replace$(MySignature, PATTERN_MY_NAME, ownName)
     End If

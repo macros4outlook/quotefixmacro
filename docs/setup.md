@@ -78,10 +78,15 @@ If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a s
 Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro.
 Nevertheless, the mapping can be done by using AutoHotkey (see below).
 
+## Update
+
+The modules depend on each other: update all of them together.
+In the VBA editor, remove the modules `QuoteFixMacro`, `QuoteFixNames`, and `QuoteFixHtml` (File > Remove..., no export needed), and import the new `.bas` files as described above.
+
 ## Persist settings across updates
 
-An update of QuoteFixMacro happens by replacing the content of the `.bas` file.
-Thus, any settings are overwritten during an update.
+An update replaces the modules.
+Thus, any settings changed in the code are overwritten during an update.
 QuoteFixMacro can read settings from the registry.
 The macro **NEVER** stores entries in the registry by itself.
 

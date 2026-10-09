@@ -250,6 +250,22 @@ Public Sub FixedReply()
     FixMailText m, TypeReply
 End Sub
 
+'"Fixed Reply" with colored quotes, whatever USE_COLORIZER says
+Public Sub FixedReplyColored()
+    Dim m As Object
+    Set m = GetCurrentItem()
+
+    FixMailText m, TypeReply, False, True
+End Sub
+
+'"Fixed Reply" as plain text, whatever USE_COLORIZER says
+Public Sub FixedReplyPlain()
+    Dim m As Object
+    Set m = GetCurrentItem()
+
+    FixMailText m, TypeReply, False, False
+End Sub
+
 '"Fixed Reply All" functionality - has to be made available as shortcut in Outlook
 Public Sub FixedReplyAll()
     Dim m As Object
@@ -1312,8 +1328,12 @@ Public Function ReFormatText(ByVal text As String, Optional ByVal textSource As 
 End Function
 
 ' @param UseEnglishTemplate In case USE_QUOTING_TEMPLATE is True, should the default or the English template be used?
-Private Sub FixMailText(ByVal SelectedObject As Object, ByRef MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False)
+' @param Colorize If given, overrides USE_COLORIZER for this reply
+Private Sub FixMailText(ByVal SelectedObject As Object, ByRef MailMode As ReplyType, Optional ByVal UseEnglishTemplate As Boolean = False, Optional ByVal Colorize As Variant)
     LoadConfiguration
+    If Not IsMissing(Colorize) Then
+        USE_COLORIZER = CBool(Colorize)
+    End If
 
     'we only understand mail items and meeting items , no PostItems, NoteItems, ...
     If Not (TypeName(SelectedObject) = "MailItem") And _

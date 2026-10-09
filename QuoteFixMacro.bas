@@ -96,10 +96,10 @@ Private Const DEFAULT_STRIP_SIGNATURE As Boolean = True
 Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = False
 
 'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
-Private Const DEFAULT_QUOTING_TEMPLATE As String = "Dear %FN,\n\n(reply inline)\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE As String = "Hallo %FN,\n\n(Antwort inline)\n\n%Q\n\nMit freundlichen Grüßen\n\n%MN\n\n(Antwort inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
 'English quote template
-Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\n%Q\n\nCheers,\n\n%MFN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
 'If USE_QUOTING_TEMPLATE is set: keep the signature Outlook puts into the reply below the template?
 'A colored reply (USE_COLORIZER) to an HTML mail keeps it as HTML, with its pictures
@@ -2140,6 +2140,11 @@ Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String)
             content = "&nbsp;"
         ElseIf Len(spanStyle) > 0 Then
             content = "<span style=""" & spanStyle & """>" & content & "</span>"
+        End If
+        If Right$(content, 7) = "</span>" Then
+            'Word gives the cursor at the end of the line the format of the character before it, and the text typed after Enter gets it, too.
+            'An invisible character without format behind the span keeps that text black.
+            content = content & "&#8203;"
         End If
 
         html = html & "<p style=""margin:0"">" & content & "</p>" & vbCrLf

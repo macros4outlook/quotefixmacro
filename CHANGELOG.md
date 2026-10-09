@@ -12,7 +12,8 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 * With `USE_QUOTING_TEMPLATE`, the English template (`QUOTING_TEMPLATE_EN`) is chosen automatically for a mail written in English; the language is detected from the text, as for the header of the original mail. `FixedReplyAllEnglish` still forces it. [#3](https://github.com/macros4outlook/quotefixmacro/issues/3)
 * `COLORIZER_HTML_RECIPIENTS`: recipients (addresses or domains) who get a colored reply as HTML mail, while everybody else gets plain text.
 * Example `.reg` files for the configuration are in the new folder `configs/`.
-* `%MN` and `%MFN` in templates stand for your own name and first name; the default template uses `%MN` instead of `{Name}` and works without any change.
+* `%MN` and `%MFN` in templates stand for your own name and first name; the default templates use them instead of `{Name}` and work without any change.
+* The default template for mails not detected as English (`QUOTING_TEMPLATE`) is German and closes with "Mit freundlichen Grüßen" and your full name; the English one closes with "Cheers," and your first name.
 * `SendWithColors`, a macro for the message window: sends the current colored reply as HTML mail whatever the configuration says.
 * `FixedReplyColored`, `FixedReplyPlain`, `FixedReplyAllColored` and `FixedReplyAllPlain`: reply with or without colored quotes, whatever `USE_COLORIZER` says.
 * `KEEP_SIGNATURE`: with `USE_QUOTING_TEMPLATE`, the signature Outlook puts into the reply stays below the template; a colored reply to an HTML mail keeps it as HTML, with its pictures.
@@ -25,6 +26,7 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 
 ### Fixed
 
+* Colored mode: the text typed after <kbd>Enter</kbd> at the end of a quoted line is black, not in the color of the quote.
 * The default template does not say "You wrote on %D:" anymore: the quote starts with the condensed header of the original mail, which says it already.
 * The cursor is moved to the quote (or to `%C`) through the editor instead of one `SendKeys` call per line, which could switch off NumLock. [#33](https://github.com/macros4outlook/quotefixmacro/issues/33)
 

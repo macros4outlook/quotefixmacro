@@ -904,10 +904,10 @@ Private Sub coloredHtmlHasOneParagraphPerLineAndColorsPerLevel()
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
         "<p style=""margin:0"">Hi &lt;you&gt; &amp; &quot;me&quot;</p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; level one</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; level two</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; level one</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; level two</span>&#8203;</p>" & vbNewLine & _
         "<p style=""margin:0"">&nbsp;</p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt;&gt;&gt;&gt;&gt; level seven has the first color again</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt;&gt;&gt;&gt;&gt; level seven has the first color again</span>&#8203;</p>" & vbNewLine & _
         "<p style=""margin:0"">&nbsp; * two spaces &nbsp;in front and within</p>" & vbNewLine & _
         "</div></body></html>"
 
@@ -935,14 +935,14 @@ Private Sub coloredHtmlColorsPerAuthor()
         ">>> when do we meet?"
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; </span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; is it ok?</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; </span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">&gt;&gt; Art Ross wrote on 2011-04-05 10:00:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt; when do we meet?</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; </span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; is it ok?</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; </span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">&gt;&gt; Art Ross wrote on 2011-04-05 10:00:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt; when do we meet?</span>&#8203;</p>" & vbNewLine & _
         "</div></body></html>"
 
     Assert.AreEqual expectedResult, QuoteFixMacro.TextToColoredHtml(outlookOutput, vbNullString)
@@ -967,12 +967,12 @@ Private Sub coloredHtmlOwnTextIsGray()
         ">>> when do we meet?"
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#555555;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#555555"">&gt;&gt; is it ok?</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt;&gt; Drift Over wrote on 2011-04-05 10:00:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt;&gt; when do we meet?</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#555555;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#555555"">&gt;&gt; is it ok?</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt;&gt; Drift Over wrote on 2011-04-05 10:00:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt;&gt; when do we meet?</span>&#8203;</p>" & vbNewLine & _
         "</div></body></html>"
 
     Assert.AreEqual expectedResult, QuoteFixMacro.TextToColoredHtml(outlookOutput, "Adam Swift")
@@ -1013,8 +1013,8 @@ Private Sub coloredHtmlShowsEmphasis()
         "*own* text, 5 * 3 and snake_case_name"
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; werden <span style=""text-decoration:underline"">_neuartige, auch</span></span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; <span style=""text-decoration:underline"">risikoreiche Ansaetze_</span>, deren</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; werden <span style=""text-decoration:underline"">_neuartige, auch</span></span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; <span style=""text-decoration:underline"">risikoreiche Ansaetze_</span>, deren</span>&#8203;</p>" & vbNewLine & _
         "<p style=""margin:0""><span style=""font-weight:bold"">*own*</span> text, 5 * 3 and snake_case_name</p>" & vbNewLine & _
         "</div></body></html>"
 

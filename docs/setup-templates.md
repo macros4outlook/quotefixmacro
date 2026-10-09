@@ -6,7 +6,7 @@ parent: Setup
 
 Templates are **the** place to take full advantage of QuoteFixMacro.
 The macro replaces certain tokens in the signature. Therefore, the signature can also be used as a template for a message.
-The default template in `QuoteFixMacro.bas` (`DEFAULT_QUOTING_TEMPLATE`) uses `%MN` for your name, so it works without any change.
+The default templates in `QuoteFixMacro.bas` work without any change and show both styles: `DEFAULT_QUOTING_TEMPLATE` (German, for all mails not detected as English) closes with "Mit freundlichen Grüßen" and your full name (`%MN`), `DEFAULT_QUOTING_TEMPLATE_EN` with "Cheers," and your first name (`%MFN`).
 
 Please double check that the template is used as "Forward/Reply" signature under Extra... > Options > E-Mail-Format > Signatures... > E-Mail-Signature
 

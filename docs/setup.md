@@ -42,7 +42,7 @@ Note: You can easily import all files at once by dragging them from the Explorer
    * "Automatic wrap text at character": 76 characters (which is the default when you did not touch that setting)
 
 4. QuoteFixMacro also replies to HTML mails: The reply is a plain text mail, the original mail is left untouched.
-   See [Advanced Features](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#replying-to-html-mails) for details.
+   See [Replying to HTML mails](https://macros4outlook.github.io/quotefixmacro/#replying-to-html-mails) for details.
    Reading all emails as plain text is therefore optional.\
    🇺🇸: Navigate to Tools > Options > Trust Center > Trust Center Settings... > Email Security > "Read as Plain Text"
 

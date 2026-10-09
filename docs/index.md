@@ -92,6 +92,25 @@ See what I mean?
 
 And the best thing about QuoteFixMacro is, **there is absolutely nothing you have to do**. It's all done automatically. You click reply and QuoteFixMacro will immediately reformat the message for proper quoting! No message you send is ever going to look like the one in the example at the top again... And if you get all your friends to use this program, too, such messy quotes will soon become the exception to the rule. And even if you don't, QuoteFixMacro will attempt to fix all their messy quotes when you reply to their messages!
 
+## Replying to HTML mails
+
+QuoteFixMacro also handles mails which are not plain text mails (HTML and Rich Text).
+The original mail is left untouched.
+The reply is a plain text mail, whose quoted text is taken from the HTML of the original mail:
+
+* Quotes within the original mail (`<blockquote>`, as written by Gmail, Thunderbird, and Apple Mail) are kept as quote levels.
+* Each paragraph is wrapped on its own at `LINE_WRAP_AFTER`.
+* A link is shown as `text <target>`.
+* Pictures and formatting are lost.
+
+Forwarding such a mail is left to Outlook.
+
+## Header of the original mail
+
+In a reply, the header of the original mail (`-----Original Message-----`, which `%OH` stands for) is written by QuoteFixMacro.
+Its language follows the language of the original mail, which is detected by counting frequent German and English words in the newest part of the mail.
+If there is no clear result (e.g., for a very short mail), the header is German if Outlook is German, and English otherwise.
+
 ## Acknowledgements
 
 QuoteFix Macro is a VB-Macro for Outlook created by Oliver Kopp, Lars Monsees, and Daniel Martin.

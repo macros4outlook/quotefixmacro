@@ -27,33 +27,6 @@ Tools > Options > Mail Format > Signatures...
 If `USE_QUOTING_TEMPLATE` is `True`, it is used automatically when the original mail is detected as English (the same detection as for the header of the original mail), and always by `FixedReplyAllEnglish()`.
 For a mail in any other language, or if the language is not clear, `QUOTING_TEMPLATE` is used.
 
-## Replying to HTML mails
-
-QuoteFixMacro also handles mails which are not plain text mails (HTML and Rich Text).
-The original mail is left untouched.
-The reply is a plain text mail, whose quoted text is taken from the HTML of the original mail:
-
-* Quotes within the original mail (`<blockquote>`, as written by Gmail, Thunderbird, and Apple Mail) are kept as quote levels.
-* Each paragraph is wrapped on its own at `LINE_WRAP_AFTER`.
-* A link is shown as `text <target>`.
-* Pictures and formatting are lost.
-
-Forwarding such a mail is left to Outlook.
-
-The setting `CONVERT_TO_PLAIN` of former versions does not exist anymore.
-
-## Header of the original mail
-
-In a reply, the header of the original mail (`-----Original Message-----`, which `%OH` stands for) is written by QuoteFixMacro.
-Its language follows the language of the original mail, which is detected by counting frequent German and English words in the newest part of the mail.
-If there is no clear result (e.g., for a very short mail), the header is German if Outlook is German, and English otherwise.
-There is no setting for it.
-
-## Wrapping of the quoted text
-
-In a reply, QuoteFixMacro prefixes and wraps the original text itself.
-The rules, and why [par](http://www.nicemice.net/par/) is not used for that, are described in the [decision on wrapping](https://macros4outlook.github.io/quotefixmacro/decisions/0001-wrap-quoted-text-with-built-in-code-instead-of-par.html).
-
 ## Condense Headers
 
 In a reply, the header of each older mail within the quoted text (`From:`, `Sent:`, `To:`, `Subject:`, in any language, with or without the line `-----Original Message-----`; also the one-line attribution of ticket systems, `01.10.2026 16:15 - Firstname Lastname schrieb:`) is condensed to one line, and the text below it gets one quote level more:

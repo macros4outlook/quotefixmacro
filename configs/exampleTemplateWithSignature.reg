@@ -7,3 +7,9 @@ Windows Registry Editor Version 5.00
 [HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\Config]
 "USE_QUOTING_TEMPLATE"="True"
 "KEEP_SIGNATURE"="True"
+
+; The templates, as in QuoteFixMacro.bas (DEFAULT_QUOTING_TEMPLATE, DEFAULT_QUOTING_TEMPLATE_EN); change them here instead of in the code.
+; \n is a new line (written as \\n in this file, as \n in regedit). QUOTING_TEMPLATE_EN is used for mails detected as English, see
+; https://macros4outlook.github.io/quotefixmacro/setup-templates.html
+"QUOTING_TEMPLATE"="Dear %FN,\\n\\n(reply inline)\\n\\n%Q\\n\\nCheers,\\n\\n%MN\\n\\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+"QUOTING_TEMPLATE_EN"="Dear %FN,\\n\\n(reply inline)\\n\\n%Q\\n\\nCheers,\\n\\n%MN\\n\\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"

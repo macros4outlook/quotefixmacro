@@ -1,0 +1,15 @@
+# Configuration of markdownlint-cli2, used by .github/workflows/markdownlint.yml
+config:
+  # One sentence per line: lines are not limited in length
+  MD013: false
+  # Keys are written as <kbd>
+  MD033:
+    allowed_elements:
+      - kbd
+  # The quote prefix "> " is written as code with its space
+  MD038: false
+  # Tables are aligned, so that they are readable as plain text, too
+  MD060:
+    style: aligned
+ignores:
+  - "PLAN.md"

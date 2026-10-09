@@ -29,7 +29,6 @@ Note: You can easily import all files at once by dragging them from the Explorer
    Replies do not depend on it, because QuoteFixMacro prefixes the original text itself.
 
    * Change the value of "When replying to a message" to "Prefix each line of the original message"
-   <!-- markdownlint-disable-next-line MD038 -->
    * Ensure that "Prefix each line in a plain-text message with" contains "`> `"
    * Change the value "When replying to a message" back to "Include original message text"
 
@@ -42,7 +41,7 @@ Note: You can easily import all files at once by dragging them from the Explorer
    * "Automatic wrap text at character": 76 characters (which is the default when you did not touch that setting)
 
 4. QuoteFixMacro also replies to HTML mails: The reply is a plain text mail, the original mail is left untouched.
-   See [Advanced Features](https://macros4outlook.github.io/quotefixmacro/advanced-features.html#replying-to-html-mails) for details.
+   See [Replying to HTML mails](https://macros4outlook.github.io/quotefixmacro/#replying-to-html-mails) for details.
    Reading all emails as plain text is therefore optional.\
    🇺🇸: Navigate to Tools > Options > Trust Center > Trust Center Settings... > Email Security > "Read as Plain Text"
 
@@ -72,27 +71,30 @@ Remember, these buttons are in Outlook's main window, and also in the message wi
 1. Right-click on the toolbar and select "Customize..."
 2. Go to the "Quick Access Toolbar" tab
 3. Choose "Macros" at "Choose commands from"
-3. Drag the "FixedReply" and "FixedReplyAll" entries and drop it onto the toolbar
+4. Drag the "FixedReply" and "FixedReplyAll" entries and drop it onto the toolbar
 
 You can also change the name and image of the newly created buttons using the customization dialog.
 If you use "Fixed&Reply" as the name, <kbd>Alt</kbd>+<kbd>R</kbd> is kept as a shortcut for reply.
 Since Outlook does not support custom keybindings, you cannot map the shortcut <kbd>Ctrl</kbd>+<kbd>R</kbd> to the new FixedReply macro.
 Nevertheless, the mapping can be done by using AutoHotkey (see below).
 
+## Update
+
+The modules depend on each other: update all of them together.
+In the VBA editor, remove the modules `QuoteFixMacro`, `QuoteFixNames`, and `QuoteFixHtml` (File > Remove..., no export needed), and import the new `.bas` files as described above.
+
 ## Persist settings across updates
 
-An update of QuoteFixMacro happens by replacing the content of the `.bas` file.
-Thus, any settings are overwritten during an update.
+An update replaces the modules.
+Thus, any settings changed in the code are overwritten during an update.
 QuoteFixMacro can read settings from the registry.
 The macro **NEVER** stores entries in the registry by itself.
 
 Store only the settings you want to differ from the defaults; everything else keeps following the defaults of new versions.
 Unknown or outdated entries are ignored.
 
-1. Import a `.reg` file: the folder [`configs/`](https://github.com/macros4outlook/quotefixmacro/tree/main/configs) contains examples (colored quotes, custom first names) to adapt and double-click.
+1. Import a `.reg` file: the folder [`configs/`](https://github.com/macros4outlook/quotefixmacro/tree/main/configs) contains examples (colored quotes, custom first names, templates with the Outlook signature) to adapt and double-click.
 2. Or create the entries by hand in this registry hive: `HKEY_CURRENT_USER\Software\VB and VBA Program Settings\QuoteFixMacro\Config` (string values, e.g., `USE_COLORIZER` = `True`).
 3. Or write a routine executing commands similar to `Call SaveSetting("QuoteFixMacro", "Config", "STRIP_SIGNATURE", "False")`.
 
 `StoreDefaultConfiguration()` writes *all* defaults into the registry; after that, the defaults of a new version are not used anymore.
-
-<!-- markdownlint-disable-file MD033 -->

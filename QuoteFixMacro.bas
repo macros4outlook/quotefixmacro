@@ -96,10 +96,14 @@ Private Const DEFAULT_STRIP_SIGNATURE As Boolean = True
 Private Const DEFAULT_USE_QUOTING_TEMPLATE As Boolean = False
 
 'If the constant USE_QUOTING_TEMPLATE is set, this template is used instead of the signature
-Private Const DEFAULT_QUOTING_TEMPLATE As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE As String = "Hallo %FN,\n\n(Antwort inline)\n\n%Q\n\nMit freundlichen Grüßen\n\n%MN\n\n(Antwort inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
 
 'English quote template
-Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\nYou wrote on %D:\n\n%Q\n\nCheers,\n\n%MN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+Private Const DEFAULT_QUOTING_TEMPLATE_EN As String = "Dear %FN,\n\n(reply inline)\n\n%Q\n\nCheers,\n\n%MFN\n\n(Reply inline - powered by https://macros4outlook.github.io/quotefixmacro/)"
+
+'If USE_QUOTING_TEMPLATE is set: keep the signature Outlook puts into the reply below the template?
+'A colored reply (USE_COLORIZER) to an HTML mail keeps it as HTML, with its pictures
+Private Const DEFAULT_KEEP_SIGNATURE As Boolean = False
 
 '--------------------------------------------------------
 '*** Configuration of condensing ***
@@ -185,6 +189,7 @@ Private STRIP_SIGNATURE As Boolean
 Private USE_QUOTING_TEMPLATE As Boolean
 Private QUOTING_TEMPLATE As String
 Private QUOTING_TEMPLATE_EN As String
+Private KEEP_SIGNATURE As Boolean
 Private CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS As Boolean
 Private CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER As Boolean
 Private CONDENSED_HEADER_FORMAT As String
@@ -373,6 +378,7 @@ Public Sub StoreDefaultConfiguration()
     SaveSetting APPNAME, REG_GROUP_CONFIG, "USE_QUOTING_TEMPLATE", DEFAULT_USE_QUOTING_TEMPLATE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE", DEFAULT_QUOTING_TEMPLATE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN
+    SaveSetting APPNAME, REG_GROUP_CONFIG, "KEEP_SIGNATURE", DEFAULT_KEEP_SIGNATURE
     SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS", DEFAULT_CONDENSE_EMBEDDED_QUOTED_OUTLOOK_HEADERS
     SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER", DEFAULT_CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER
     SaveSetting APPNAME, REG_GROUP_CONFIG, "CONDENSED_HEADER_FORMAT", DEFAULT_CONDENSED_HEADER_FORMAT
@@ -402,6 +408,8 @@ Public Sub LoadConfiguration()
 
     QUOTING_TEMPLATE_EN = GetSetting(APPNAME, REG_GROUP_CONFIG, "QUOTING_TEMPLATE_EN", DEFAULT_QUOTING_TEMPLATE_EN)
     QUOTING_TEMPLATE_EN = Replace$(QUOTING_TEMPLATE_EN, "\n", vbCrLf)
+
+    KEEP_SIGNATURE = CBool(GetSetting(APPNAME, REG_GROUP_CONFIG, "KEEP_SIGNATURE", DEFAULT_KEEP_SIGNATURE))
 
     Dim count As Variant
     count = CDbl(GetSetting(APPNAME, REG_GROUP_FIRSTNAMES, "Count", 0))
@@ -689,7 +697,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
     Dim i As Long
     i = start
     Dim line As String
-    line = StripLine(rows(i))
+    line = HeaderLine(rows(i))
 
     Dim hasMarker As Boolean
     hasMarker = IsHeaderMarker(line)
@@ -699,7 +707,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
             i = i + 1
             If i > UBound(rows) Then Exit Function
             If CalcNesting(rows(i)).level <> level Then Exit Function
-            line = StripLine(rows(i))
+            line = HeaderLine(rows(i))
         Loop While Len(line) = 0
     End If
 
@@ -715,7 +723,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
 
     Do While i <= UBound(rows)
         If CalcNesting(rows(i)).level <> level Then Exit Do
-        line = StripLine(rows(i))
+        line = HeaderLine(rows(i))
         If Len(line) = 0 Then Exit Do
 
         Dim label As String
@@ -732,7 +740,7 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
                 i = i + 1
                 If i <= UBound(rows) Then
                     If CalcNesting(rows(i)).level = level And dateIndex = 0 And valueCount < MAX_HEADER_LINES Then
-                        line = StripLine(rows(i))
+                        line = HeaderLine(rows(i))
                         If IsListedLabel(GetLabel(line), LABELS_DATE) Then
                             valueCount = valueCount + 1
                             values(valueCount) = Trim$(Mid$(line, Len(GetLabel(line)) + 2))
@@ -780,13 +788,41 @@ Private Function TryCondenseHeader(ByRef rows() As String, ByVal start As Long, 
 End Function
 
 'Description:
+'   Returns the text of a row of a header without quote prefix and emphasis markers:
+'   HTML mails show the labels (or the sender) in bold, "*From:* Art Ross" is read as "From: Art Ross"
+Private Function HeaderLine(ByVal row As String) As String
+    Dim line As String
+    line = StripLine(row)
+    If (InStr(line, "*") = 0) And (InStr(line, "_") = 0) Then
+        HeaderLine = line
+        Exit Function
+    End If
+
+    Dim rows(0 To 0) As String
+    rows(0) = line
+    Dim boldRoles() As String
+    boldRoles = MatchEmphasisMarkers(rows, "*")
+    Dim underlineRoles() As String
+    underlineRoles = MatchEmphasisMarkers(rows, "_")
+
+    Dim res As String
+    Dim pos As Long
+    For pos = 1 To Len(line)
+        If (Mid$(boldRoles(0), pos, 1) = " ") And (Mid$(underlineRoles(0), pos, 1) = " ") Then
+            res = res & Mid$(line, pos, 1)
+        End If
+    Next
+    HeaderLine = res
+End Function
+
+'Description:
 '   Checks whether the row is the one-line attribution which ticket systems write above a quoted mail
 '   without prefixing it: "01.10.2026 16:15 - Firstname Lastname schrieb:" (or "wrote:")
 'Returns:
 '   True if it is one. Then, condensedHeader is the line replacing it
 Private Function TryCondenseAttribution(ByVal row As String, ByRef condensedHeader As String) As Boolean
     Dim line As String
-    line = StripLine(row)
+    line = HeaderLine(row)
     If Right$(line, 1) <> ":" Then Exit Function
 
     Dim posSeparator As Long
@@ -1487,7 +1523,15 @@ catch:
     'the reply methods will return null (forward method is ok)
     If NewMail Is Nothing Then Exit Sub
 
-    If Not originalIsPlain Then
+    'A colored reply keeps the HTML of Outlook's signature, with its pictures (KEEP_SIGNATURE)
+    Dim signatureHtml As String
+    If USE_QUOTING_TEMPLATE And KEEP_SIGNATURE And USE_COLORIZER Then
+        If NewMail.bodyFormat = olFormatHTML Then
+            signatureHtml = NewMail.HTMLBody
+        End If
+    End If
+
+    If Not originalIsPlain And Len(signatureHtml) = 0 Then
         NewMail.bodyFormat = olFormatPlain
     End If
 
@@ -1532,7 +1576,9 @@ catch:
         End If
     End If
 
+    Dim outlookSignature As String
     If USE_QUOTING_TEMPLATE Then
+        outlookSignature = MySignature
         'Override MySignature in case the QUOTING_TEMPLATE should be used
         'lineCounter is still valid, because lineCounter is based on the current message whereas QUOTING_TEMPLATE is a general setting
         'The English template is used for a mail written in English, or on request (FixedReplyAllEnglish)
@@ -1584,11 +1630,10 @@ catch:
     End If
     MySignature = Replace$(MySignature, PATTERN_SENDER_NAME, senderName)
 
-    If InStr(MySignature, PATTERN_MY_NAME) > 0 Then
+    If (InStr(MySignature, PATTERN_MY_NAME) > 0) Or (InStr(MySignature, PATTERN_MY_FIRST_NAME) > 0) Then
         Dim ownName As String
         Dim ownFirstName As String
         getOwnNames ownName, ownFirstName
-        'the first name first: %MFN starts with %MN
         MySignature = Replace$(MySignature, PATTERN_MY_FIRST_NAME, ownFirstName)
         MySignature = Replace$(MySignature, PATTERN_MY_NAME, ownName)
     End If
@@ -1640,11 +1685,25 @@ catch:
         MySignature = Replace$(MySignature, PATTERN_CURSOR_POSITION, vbNullString)
     End If
 
+    'Outlook's signature below the template; the HTML one is added below
+    If USE_QUOTING_TEMPLATE And KEEP_SIGNATURE And Len(signatureHtml) = 0 Then
+        Do While Right$(outlookSignature, 2) = vbCrLf
+            outlookSignature = Left$(outlookSignature, Len(outlookSignature) - 2)
+        Loop
+        If Len(outlookSignature) > 0 Then
+            MySignature = MySignature & vbCrLf & vbCrLf & outlookSignature
+        End If
+    End If
+
     MySignature = cleanUpDoubleLines(MySignature)
 
     If USE_COLORIZER Then
         NewMail.bodyFormat = olFormatHTML
-        NewMail.HTMLBody = TextToColoredHtml(MySignature, getOwnName())
+        If Len(signatureHtml) > 0 Then
+            NewMail.HTMLBody = InsertColoredHtml(TextToColoredHtml(MySignature, getOwnName()), signatureHtml)
+        Else
+            NewMail.HTMLBody = TextToColoredHtml(MySignature, getOwnName())
+        End If
         'the mark lets ThisOutlookSession convert the mail to plain text before it is sent
         NewMail.UserProperties.Add(COLORED_MAIL_PROPERTY, olText, False).Value = "yes"
     Else
@@ -2033,6 +2092,14 @@ Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String)
     Dim rows() As String
     rows = Split(Replace$(text, vbCrLf, vbLf), vbLf)
 
+    'the emphasis markers (*bold*, _underlined_), matched over the lines
+    Dim boldRoles() As String
+    boldRoles = MatchEmphasisMarkers(rows, "*")
+    Dim underlineRoles() As String
+    underlineRoles = MatchEmphasisMarkers(rows, "_")
+    Dim isBold As Boolean
+    Dim isUnderlined As Boolean
+
     Dim i As Long
     For i = LBound(rows) To UBound(rows)
         Dim level As Long
@@ -2066,18 +2133,190 @@ Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String)
         End If
 
         Dim content As String
-        content = EscapeHtml(rows(i))
+        content = EmphasizedHtml(rows(i), boldRoles(i), underlineRoles(i), isBold, isUnderlined)
         If Len(content) = 0 Then
             'an empty paragraph would be dropped
             content = "&nbsp;"
         ElseIf Len(spanStyle) > 0 Then
             content = "<span style=""" & spanStyle & """>" & content & "</span>"
         End If
+        If Right$(content, 7) = "</span>" Then
+            'Word gives the cursor at the end of the line the format of the character before it, and the text typed after Enter gets it, too.
+            'An invisible character without format behind the span keeps that text black.
+            content = content & "&#8203;"
+        End If
 
         html = html & "<p style=""margin:0"">" & content & "</p>" & vbCrLf
     Next
 
     TextToColoredHtml = html & "</div></body></html>"
+End Function
+
+'Description:
+'   Finds the pairs of emphasis markers (e.g., *bold*) in the lines
+'   A pair may span several lines of the same quote level, but no empty line
+'Returns:
+'   For each line a string as long as the line: "o" at an opening marker, "c" at a closing marker, " " elsewhere
+Private Function MatchEmphasisMarkers(ByRef rows() As String, ByVal marker As String) As String()
+    If UBound(rows) < LBound(rows) Then
+        MatchEmphasisMarkers = rows
+        Exit Function
+    End If
+
+    Dim roles() As String
+    ReDim roles(LBound(rows) To UBound(rows))
+
+    Dim isOpen As Boolean
+    Dim openRow As Long
+    Dim openPos As Long
+    Dim openLevel As Long
+
+    Dim i As Long
+    For i = LBound(rows) To UBound(rows)
+        roles(i) = Space$(Len(rows(i)))
+
+        Dim level As Long
+        level = CalcNesting(rows(i)).level
+        If (Len(StripLine(rows(i))) = 0) Or (level <> openLevel) Then
+            isOpen = False
+        End If
+
+        Dim pos As Long
+        For pos = 1 To Len(rows(i))
+            If Mid$(rows(i), pos, 1) = marker Then
+                If isOpen Then
+                    If IsClosingMarker(rows(i), pos) Then
+                        Mid$(roles(openRow), openPos, 1) = "o"
+                        Mid$(roles(i), pos, 1) = "c"
+                        isOpen = False
+                    End If
+                ElseIf IsOpeningMarker(rows(i), pos) Then
+                    isOpen = True
+                    openRow = i
+                    openPos = pos
+                    openLevel = level
+                End If
+            End If
+        Next
+    Next
+
+    MatchEmphasisMarkers = roles
+End Function
+
+'An opening marker is followed by text and stands at the beginning of a word
+Private Function IsOpeningMarker(ByVal row As String, ByVal pos As Long) As Boolean
+    If pos >= Len(row) Then Exit Function
+
+    Dim nextChar As String
+    nextChar = Mid$(row, pos + 1, 1)
+    If (nextChar = " ") Or (nextChar = Mid$(row, pos, 1)) Then Exit Function
+
+    If pos = 1 Then
+        IsOpeningMarker = True
+    Else
+        'space, quote prefix, opening bracket, quotation mark (also the typographic ones), or another marker
+        IsOpeningMarker = (InStr(" >([""'*_" & ChrW$(8222) & ChrW$(8220) & ChrW$(8218) & ChrW$(8216) & ChrW$(171) & ChrW$(187), Mid$(row, pos - 1, 1)) > 0)
+    End If
+End Function
+
+'A closing marker follows text and stands at the end of a word
+Private Function IsClosingMarker(ByVal row As String, ByVal pos As Long) As Boolean
+    If pos = 1 Then Exit Function
+
+    Dim previousChar As String
+    previousChar = Mid$(row, pos - 1, 1)
+    If (previousChar = " ") Or (previousChar = Mid$(row, pos, 1)) Then Exit Function
+
+    If pos = Len(row) Then
+        IsClosingMarker = True
+    Else
+        'space, punctuation, closing bracket, quotation mark (also the typographic ones), or another marker
+        IsClosingMarker = (InStr(" .,;:!?)]""'*_" & ChrW$(8220) & ChrW$(8221) & ChrW$(8217) & ChrW$(171) & ChrW$(187), Mid$(row, pos + 1, 1)) > 0)
+    End If
+End Function
+
+'Description:
+'   Escapes a line for HTML: text between emphasis markers (roles from MatchEmphasisMarkers) is bold or underlined
+'   The markers are left out; the conversion back to plain text (HtmlToPlainText) adds them again for <b> and <u>
+'Parameters:
+'   isBold, isUnderlined: the emphasis at the beginning of the line, changed to the one at its end
+Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, ByVal underlineRoles As String, ByRef isBold As Boolean, ByRef isUnderlined As Boolean) As String
+    Dim res As String
+
+    'an emphasis continued from the line above starts behind the quote prefix
+    Dim contentStart As Long
+    contentStart = 1
+    Do While contentStart <= Len(row)
+        If InStr("> ", Mid$(row, contentStart, 1)) = 0 Then Exit Do
+        contentStart = contentStart + 1
+    Loop
+    Dim continuedBold As Boolean
+    continuedBold = isBold
+    Dim continuedUnderlined As Boolean
+    continuedUnderlined = isUnderlined
+    isBold = False
+    isUnderlined = False
+
+    Dim segmentStart As Long
+    segmentStart = 1
+    Dim segmentIsBold As Boolean
+    Dim segmentIsUnderlined As Boolean
+
+    Dim pos As Long
+    For pos = 1 To Len(row)
+        If pos = contentStart Then
+            isBold = continuedBold
+            isUnderlined = continuedUnderlined
+        End If
+        Dim isMarker As Boolean
+        isMarker = False
+        Select Case Mid$(boldRoles, pos, 1)
+            Case "o"
+                isBold = True
+                isMarker = True
+            Case "c"
+                isBold = False
+                isMarker = True
+        End Select
+        Select Case Mid$(underlineRoles, pos, 1)
+            Case "o"
+                isUnderlined = True
+                isMarker = True
+            Case "c"
+                isUnderlined = False
+                isMarker = True
+        End Select
+
+        If isMarker Or (isBold <> segmentIsBold) Or (isUnderlined <> segmentIsUnderlined) Then
+            res = res & StyledHtml(Mid$(row, segmentStart, pos - segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
+            segmentStart = pos
+            If isMarker Then
+                'the marker itself is not shown
+                segmentStart = pos + 1
+            End If
+            segmentIsBold = isBold
+            segmentIsUnderlined = isUnderlined
+        End If
+    Next
+    res = res & StyledHtml(Mid$(row, segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
+
+    EmphasizedHtml = res
+End Function
+
+Private Function StyledHtml(ByVal text As String, ByVal isBold As Boolean, ByVal isUnderlined As Boolean, ByVal atLineStart As Boolean) As String
+    Dim res As String
+    res = EscapeHtml(text, atLineStart)
+    If Len(res) = 0 Then Exit Function
+
+    'Word keeps <b> and <u> when the reply is edited, so that HtmlToPlainText finds them again
+    If isUnderlined Then
+        res = "<u>" & res & "</u>"
+    End If
+    If isBold Then
+        res = "<b>" & res & "</b>"
+    End If
+
+    StyledHtml = res
 End Function
 
 Private Function HasKnownAuthor(ByRef authorOfLevel() As String, ByVal level As Long) As Boolean
@@ -2170,14 +2409,16 @@ End Function
 
 'Description:
 '   Escapes the characters having a meaning in HTML; spaces at the beginning and multiple spaces are kept
-Private Function EscapeHtml(ByVal text As String) As String
+'Parameters:
+'   atLineStart: a space at the beginning is kept as a non-breaking space
+Private Function EscapeHtml(ByVal text As String, Optional ByVal atLineStart As Boolean = True) As String
     Dim res As String
     res = Replace$(text, "&", "&amp;")
     res = Replace$(res, "<", "&lt;")
     res = Replace$(res, ">", "&gt;")
     res = Replace$(res, """", "&quot;")
 
-    If Left$(res, 1) = " " Then
+    If atLineStart And (Left$(res, 1) = " ") Then
         res = "&nbsp;" & Mid$(res, 2)
     End If
     Do While InStr(res, "  ") > 0
@@ -2186,6 +2427,54 @@ Private Function EscapeHtml(ByVal text As String) As String
 
     EscapeHtml = res
 End Function
+
+'Description:
+'   Puts the content of a colored HTML (TextToColoredHtml) at the beginning of the body of another HTML,
+'   e.g., in front of Outlook's signature in a reply. Head and pictures of the other HTML are kept.
+'Notes:
+'   * Public to enable testing
+Public Function InsertColoredHtml(ByVal coloredHtml As String, ByVal html As String) As String
+    Dim fragmentStart As Long
+    Dim fragmentEnd As Long
+    fragmentStart = InStr(coloredHtml, "<body>") + Len("<body>")
+    fragmentEnd = InStrRev(coloredHtml, "</body>")
+
+    Dim bodyStart As Long
+    bodyStart = InStr(LCase$(html), "<body")
+    If bodyStart > 0 Then
+        bodyStart = InStr(bodyStart, html, ">")
+    End If
+    If bodyStart = 0 Or fragmentStart <= Len("<body>") Or fragmentEnd = 0 Then
+        InsertColoredHtml = coloredHtml
+        Exit Function
+    End If
+
+    InsertColoredHtml = Left$(html, bodyStart) & Mid$(coloredHtml, fragmentStart, fragmentEnd - fragmentStart) & Mid$(html, bodyStart + 1)
+End Function
+
+'Description:
+'   Deletes the pictures embedded in the HTML of a mail (e.g., the logo of a signature):
+'   in a plain text mail, they would show up as attachments
+Private Sub deleteEmbeddedPictures(ByVal mailToSend As Object)
+    Const PR_ATTACH_CONTENT_ID As String = "http://schemas.microsoft.com/mapi/proptag/0x3712001F"
+
+    Dim html As String
+    html = LCase$(mailToSend.HTMLBody)
+
+    Dim i As Long
+    For i = mailToSend.Attachments.count To 1 Step -1
+        Dim contentId As String
+        contentId = vbNullString
+        On Error Resume Next
+        contentId = mailToSend.Attachments.item(i).PropertyAccessor.GetProperty(PR_ATTACH_CONTENT_ID)
+        On Error GoTo 0
+        If Len(contentId) > 0 Then
+            If InStr(html, "cid:" & LCase$(contentId)) > 0 Then
+                mailToSend.Attachments.item(i).Delete
+            End If
+        End If
+    Next
+End Sub
 
 'Description:
 '   Has to be called by ThisOutlookSession before a mail is sent:
@@ -2214,6 +2503,7 @@ Public Sub BeforeSend(ByVal mailToSend As Object)
         plainText = Replace$(vbCrLf & plainText & vbCrLf, vbCrLf & "--" & vbCrLf, vbCrLf & "-- " & vbCrLf)
         plainText = Mid$(plainText, 3, Len(plainText) - 4)
 
+        deleteEmbeddedPictures mailToSend
         mailToSend.bodyFormat = olFormatPlain
         mailToSend.Body = plainText
     End If

@@ -11,48 +11,35 @@ Configuration is done via constants in the QuoteFix code (see below for a storag
 
 ## Configure the template inside the code
 
-The variable `QUOTING_TEMPLATE` can be used to store the quoting template.
+With `USE_QUOTING_TEMPLATE` set to `True`, QuoteFixMacro uses the template `QUOTING_TEMPLATE` instead of the signature from Outlook (for mails in English: `QUOTING_TEMPLATE_EN`, see below).
 Thus, the Outlook configuration can be left untouched.
+The defaults are `DEFAULT_QUOTING_TEMPLATE` and `DEFAULT_QUOTING_TEMPLATE_EN` in the code.
+To change a template, store it in the registry, e.g., with [`configs/exampleTemplateWithSignature.reg`](https://github.com/macros4outlook/quotefixmacro/blob/main/configs/exampleTemplateWithSignature.reg); a new line is written as `\n`.
 
-If this is not enabled, one has to configure Outlook differently:
+Without the setting, one has to configure Outlook:
 
 Tools > Options > Mail Format > Signatures...
 
 * Create a signature that is only used for reply and forward. You have to insert at least `%Q` to get the quoted original mail.
 * Assign this signature to every mail account you want to use.
 
+## Keep the Outlook signature
+
+With `USE_QUOTING_TEMPLATE`, the template replaces the signature Outlook puts into the reply.
+With `KEEP_SIGNATURE` set to `True`, that signature stays below the template: the template has the greeting and the quote, the signature is maintained in Outlook as before.
+Outlook chooses the signature as usual, that is, the one set for replies of the account.
+
+* A colored reply (`USE_COLORIZER`) to an HTML mail keeps the signature as HTML, with its pictures (e.g., a logo).
+  If the mail is converted to plain text before it is sent (`COLORIZER_SEND_AS_PLAIN`), the pictures are removed, and the text of the signature remains (bold text as `*text*`).
+* Otherwise, the reply is a plain text mail and gets the text of the signature.
+
+See [`configs/exampleTemplateWithSignature.reg`](https://github.com/macros4outlook/quotefixmacro/blob/main/configs/exampleTemplateWithSignature.reg).
+
 ## English replies
 
 `QUOTING_TEMPLATE_EN` is the template for replies to mails written in English.
 If `USE_QUOTING_TEMPLATE` is `True`, it is used automatically when the original mail is detected as English (the same detection as for the header of the original mail), and always by `FixedReplyAllEnglish()`.
 For a mail in any other language, or if the language is not clear, `QUOTING_TEMPLATE` is used.
-
-## Replying to HTML mails
-
-QuoteFixMacro also handles mails which are not plain text mails (HTML and Rich Text).
-The original mail is left untouched.
-The reply is a plain text mail, whose quoted text is taken from the HTML of the original mail:
-
-* Quotes within the original mail (`<blockquote>`, as written by Gmail, Thunderbird, and Apple Mail) are kept as quote levels.
-* Each paragraph is wrapped on its own at `LINE_WRAP_AFTER`.
-* A link is shown as `text <target>`.
-* Pictures and formatting are lost.
-
-Forwarding such a mail is left to Outlook.
-
-The setting `CONVERT_TO_PLAIN` of former versions does not exist anymore.
-
-## Header of the original mail
-
-In a reply, the header of the original mail (`-----Original Message-----`, which `%OH` stands for) is written by QuoteFixMacro.
-Its language follows the language of the original mail, which is detected by counting frequent German and English words in the newest part of the mail.
-If there is no clear result (e.g., for a very short mail), the header is German if Outlook is German, and English otherwise.
-There is no setting for it.
-
-## Wrapping of the quoted text
-
-In a reply, QuoteFixMacro prefixes and wraps the original text itself.
-The rules, and why [par](http://www.nicemice.net/par/) is not used for that, are described in the [decision on wrapping](https://macros4outlook.github.io/quotefixmacro/decisions/0001-wrap-quoted-text-with-built-in-code-instead-of-par.html).
 
 ## Condense Headers
 
@@ -70,7 +57,7 @@ Art Ross wrote on 2011-04-07 09:36:
 * `CONDENSED_HEADER_FORMAT` is the format of the condensed line, by default `%SN wrote on %D:`.
   Placeholders: `%SN` sender, `%SE` address of the sender, `%D` date (in `DATE_FORMAT`), `%TO` recipients.
 * `CONDENSE_FIRST_EMBEDDED_QUOTED_OUTLOOK_HEADER` (default `True`) also condenses the header of the mail you reply to.
-  Set it to `False` if your template says that already (e.g., "You wrote on %D:").
+  With `False`, the quote starts without any line about the original mail, so your template has to say it: either a line of your own (e.g., "You wrote on %D:") or `%OH`, which stands for the whole header of the original mail.
 
 When forwarding (`FixedForward`), only headers marked with `-----Original Message-----` and quoted deeper than the text around them are condensed, as in earlier versions.
 
@@ -86,6 +73,7 @@ This helps to see who wrote what while answering.
 The author of a quote level is taken from the condensed header above it ("X wrote on ...:"), which is shown as heading in the author's color.
 Your own quoted text is dark gray.
 If the headers are not condensed, each quote level gets a color instead.
+Text marked as `*bold*` or `_underlined_` (e.g., from the bold or underlined text of an HTML mail) is shown bold or underlined, without the markers; when the mail is converted to plain text, the markers are added again.
 To choose per reply, put the macros `FixedReplyColored` and `FixedReplyPlain` (or `FixedReplyAllColored` and `FixedReplyAllPlain`) on the toolbar: they reply with and without colors, whatever `USE_COLORIZER` says; `FixedReply` and `FixedReplyAll` follow the setting.
 
 To answer inline, press <kbd>Enter</kbd> at the end of a quoted line: the new paragraph is black.
@@ -121,13 +109,6 @@ Thus, this is useful to double-check that no new line breaks are introduced by O
 
 One can set `USE_SOFTWRAP` to `False` to disable it.
 
-## Use templates from the code
-
-Instead of confuring a template in the signature setting, one can set `DEFAULT_USE_QUOTING_TEMPLATE` to `True`.
-Then, QuoteFixMacro reads the signature from `DEFAULT_QUOTING_TEMPLATE_EN` for English emails and from `DEFAULT_QUOTING_TEMPLATE` for all other languages.
-
 ## Random Signature Generation
 
 In case you want to try out the current "random signature generation", import `RandomSignature.bas`.
-
-<!-- markdownlint-disable-file MD033 -->

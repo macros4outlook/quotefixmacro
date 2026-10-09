@@ -215,6 +215,37 @@ TestFail:
 End Sub
 
 '@TestMethod("condense")
+Private Sub condenseHeaderWithBoldLabels()
+    On Error GoTo TestFail
+
+    'HTML mails show the labels in bold, HtmlToPlainText marks them
+    outlookOutput = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> > *From:* Art Ross" & vbNewLine & _
+        "> > *Sent:* 2011-04-07 09:36" & vbNewLine & _
+        "> > *To:* Adam Swift" & vbNewLine & _
+        "> > *Subject:* RE: Testing" & vbNewLine & _
+        "> > " & vbNewLine & _
+        "> > Hi Adam,"
+    expectedResult = vbNullString & _
+        "> answer of Adam" & vbNewLine & _
+        "> " & vbNewLine & _
+        "> Art Ross wrote on 2011-04-07 09:36:" & vbNewLine & _
+        ">> Hi Adam,"
+
+    Dim processedText As String
+    processedText = QuoteFixMacro.ReFormatText(outlookOutput)
+
+    Assert.AreEqual expectedResult, processedText
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("condense")
 Private Sub condenseHeaderUnparsableDateIsNotTakenFromPreviousHeader()
     On Error GoTo TestFail
 
@@ -873,10 +904,10 @@ Private Sub coloredHtmlHasOneParagraphPerLineAndColorsPerLevel()
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
         "<p style=""margin:0"">Hi &lt;you&gt; &amp; &quot;me&quot;</p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; level one</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; level two</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; level one</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; level two</span>&#8203;</p>" & vbNewLine & _
         "<p style=""margin:0"">&nbsp;</p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt;&gt;&gt;&gt;&gt; level seven has the first color again</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt;&gt;&gt;&gt;&gt; level seven has the first color again</span>&#8203;</p>" & vbNewLine & _
         "<p style=""margin:0"">&nbsp; * two spaces &nbsp;in front and within</p>" & vbNewLine & _
         "</div></body></html>"
 
@@ -904,14 +935,14 @@ Private Sub coloredHtmlColorsPerAuthor()
         ">>> when do we meet?"
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; </span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; is it ok?</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; </span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">&gt;&gt; Art Ross wrote on 2011-04-05 10:00:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt; when do we meet?</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; </span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; is it ok?</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt; </span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">&gt;&gt; Art Ross wrote on 2011-04-05 10:00:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt;&gt;&gt; when do we meet?</span>&#8203;</p>" & vbNewLine & _
         "</div></body></html>"
 
     Assert.AreEqual expectedResult, QuoteFixMacro.TextToColoredHtml(outlookOutput, vbNullString)
@@ -936,12 +967,12 @@ Private Sub coloredHtmlOwnTextIsGray()
         ">>> when do we meet?"
     expectedResult = vbNullString & _
         "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#555555;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#555555"">&gt;&gt; is it ok?</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt;&gt; Drift Over wrote on 2011-04-05 10:00:</span></p>" & vbNewLine & _
-        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt;&gt; when do we meet?</span></p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2;font-weight:bold"">Art Ross wrote on 2011-04-07 09:36:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; Hi Adam,</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#555555;font-weight:bold"">&gt; Adam Swift wrote on 2011-04-06 15:12:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#555555"">&gt;&gt; is it ok?</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57;font-weight:bold"">&gt;&gt; Drift Over wrote on 2011-04-05 10:00:</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#2E8B57"">&gt;&gt;&gt; when do we meet?</span>&#8203;</p>" & vbNewLine & _
         "</div></body></html>"
 
     Assert.AreEqual expectedResult, QuoteFixMacro.TextToColoredHtml(outlookOutput, "Adam Swift")
@@ -964,6 +995,51 @@ Private Sub allRecipientsListedByAddressOrDomain()
     Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed(vbNullString, "@example.org")
     'the domain has to match completely
     Assert.AreEqual False, QuoteFixMacro.AllRecipientsListed("a@noexample.org", "@example.org")
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("color")
+Private Sub coloredHtmlShowsEmphasis()
+    On Error GoTo TestFail
+
+    'the text between the markers is bold or underlined, also over two lines; the markers are left out
+    outlookOutput = vbNullString & _
+        "> werden _neuartige, auch" & vbNewLine & _
+        "> risikoreiche Ansaetze_, deren" & vbNewLine & _
+        "*own* text, 5 * 3 and snake_case_name"
+    expectedResult = vbNullString & _
+        "<html><body><div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; werden <u>neuartige, auch</u></span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><span style=""color:#1F6FB2"">&gt; <u>risikoreiche Ansaetze</u>, deren</span>&#8203;</p>" & vbNewLine & _
+        "<p style=""margin:0""><b>own</b> text, 5 * 3 and snake_case_name</p>" & vbNewLine & _
+        "</div></body></html>"
+
+    Assert.AreEqual expectedResult, QuoteFixMacro.TextToColoredHtml(outlookOutput, vbNullString)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("color")
+Private Sub coloredHtmlIsPutInFrontOfOutlooksSignature()
+    On Error GoTo TestFail
+
+    Dim signatureHtml As String
+    signatureHtml = "<html><head><style>p.MsoNormal {margin:0}</style></head>" & vbNewLine & _
+        "<body lang=DE link=""#0563C1""><div class=WordSection1><p class=MsoNormal>Regards<img src=""cid:image001.png@01DC0000.00000000""></p></div></body></html>"
+    expectedResult = "<html><head><style>p.MsoNormal {margin:0}</style></head>" & vbNewLine & _
+        "<body lang=DE link=""#0563C1""><div style=""margin:0"">text</div><div class=WordSection1><p class=MsoNormal>Regards<img src=""cid:image001.png@01DC0000.00000000""></p></div></body></html>"
+
+    Assert.AreEqual expectedResult, QuoteFixMacro.InsertColoredHtml("<html><body><div style=""margin:0"">text</div></body></html>", signatureHtml)
+
+    'without a body, the colored HTML is used alone
+    Assert.AreEqual "<html><body>x</body></html>", QuoteFixMacro.InsertColoredHtml("<html><body>x</body></html>", "Regards")
 
 TestExit:
     Exit Sub

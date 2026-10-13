@@ -2072,8 +2072,9 @@ End Sub
 '   as heading in the color of the author. A level without known author gets the color of the level.
 '   The text of the user (ownName, "Firstname Lastname") is dark gray.
 '   Each line becomes a paragraph without space around it, so that the conversion back to plain text yields the lines again.
-'   The color is set on a span within the paragraph, not on the paragraph: this way, a new paragraph
-'   created by pressing Enter at the end of a quoted line gets the default color (black) for the answer.
+'   The color is set on the words, not on the paragraph and not on the spaces between the words:
+'   Word gives the cursor the format of the character before it, so that the text typed behind a space
+'   (e.g., after pressing Enter behind a sentence) or at the end of a line has the default color (black).
 'Notes:
 '   * Public to enable testing
 Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String) As String
@@ -2133,16 +2134,13 @@ Public Function TextToColoredHtml(ByVal text As String, ByVal ownName As String)
         End If
 
         Dim content As String
-        content = EmphasizedHtml(rows(i), boldRoles(i), underlineRoles(i), isBold, isUnderlined)
+        content = EmphasizedHtml(rows(i), boldRoles(i), underlineRoles(i), isBold, isUnderlined, spanStyle)
         If Len(content) = 0 Then
             'an empty paragraph would be dropped
             content = "&nbsp;"
-        ElseIf Len(spanStyle) > 0 Then
-            content = "<span style=""" & spanStyle & """>" & content & "</span>"
-        End If
-        If Right$(content, 7) = "</span>" Then
-            'Word gives the cursor at the end of the line the format of the character before it, and the text typed after Enter gets it, too.
-            'An invisible character without format behind the span keeps that text black.
+        ElseIf Right$(content, 1) = ">" Then
+            'the line ends with a formatted word: an invisible character without format behind it
+            'keeps the text typed at the end of the line (e.g., after Enter) black
             content = content & "&#8203;"
         End If
 
@@ -2240,7 +2238,8 @@ End Function
 '   The markers are left out; the conversion back to plain text (HtmlToPlainText) adds them again for <b> and <u>
 'Parameters:
 '   isBold, isUnderlined: the emphasis at the beginning of the line, changed to the one at its end
-Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, ByVal underlineRoles As String, ByRef isBold As Boolean, ByRef isUnderlined As Boolean) As String
+'   colorStyle: the style of the words (e.g., their color), vbNullString for none
+Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, ByVal underlineRoles As String, ByRef isBold As Boolean, ByRef isUnderlined As Boolean, ByVal colorStyle As String) As String
     Dim res As String
 
     'an emphasis continued from the line above starts behind the quote prefix
@@ -2288,7 +2287,7 @@ Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, 
         End Select
 
         If isMarker Or (isBold <> segmentIsBold) Or (isUnderlined <> segmentIsUnderlined) Then
-            res = res & StyledHtml(Mid$(row, segmentStart, pos - segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
+            res = res & StyledHtml(Mid$(row, segmentStart, pos - segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1, colorStyle)
             segmentStart = pos
             If isMarker Then
                 'the marker itself is not shown
@@ -2298,15 +2297,23 @@ Private Function EmphasizedHtml(ByVal row As String, ByVal boldRoles As String, 
             segmentIsUnderlined = isUnderlined
         End If
     Next
-    res = res & StyledHtml(Mid$(row, segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1)
+    res = res & StyledHtml(Mid$(row, segmentStart), segmentIsBold, segmentIsUnderlined, segmentStart = 1, colorStyle)
 
     EmphasizedHtml = res
 End Function
 
-Private Function StyledHtml(ByVal text As String, ByVal isBold As Boolean, ByVal isUnderlined As Boolean, ByVal atLineStart As Boolean) As String
+Private Function StyledHtml(ByVal text As String, ByVal isBold As Boolean, ByVal isUnderlined As Boolean, ByVal atLineStart As Boolean, ByVal colorStyle As String) As String
     Dim res As String
     res = EscapeHtml(text, atLineStart)
     If Len(res) = 0 Then Exit Function
+
+    If Len(colorStyle) > 0 Then
+        'each word gets its own span, the spaces between the words stay without format
+        Dim spanStart As String
+        spanStart = "<span style=""" & colorStyle & """>"
+        res = spanStart & Replace$(res, " ", "</span> " & spanStart) & "</span>"
+        res = Replace$(res, spanStart & "</span>", vbNullString)
+    End If
 
     'Word keeps <b> and <u> when the reply is edited, so that HtmlToPlainText finds them again
     If isUnderlined Then

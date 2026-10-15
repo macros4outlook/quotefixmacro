@@ -77,7 +77,7 @@ Text marked as `*bold*` or `_underlined_` (e.g., from the bold or underlined tex
 To choose per reply, put the macros `FixedReplyColored` and `FixedReplyPlain` (or `FixedReplyAllColored` and `FixedReplyAllPlain`) on the toolbar: they reply with and without colors, whatever `USE_COLORIZER` says; `FixedReply` and `FixedReplyAll` follow the setting.
 
 To answer inline, press <kbd>Enter</kbd> at the end of a quoted line: the new paragraph is black.
-If you split a quoted line in its middle, the text you type keeps the color of the quote; <kbd>Ctrl</kbd>+<kbd>Space</kbd> resets it.
+Within a quoted line, e.g., after pressing <kbd>Enter</kbd> behind a sentence, the text you type behind a space is black, too; directly behind a word, it keeps the color of the quote, and <kbd>Ctrl</kbd>+<kbd>Space</kbd> resets it.
 `NUM_QUOTE_COLORS` (at most six) is the number of colors in use: blue, green, purple, amber, teal, brown.
 
 Before the mail is sent, it is converted to a plain text mail, so that the recipients get the same mail as without the colors.

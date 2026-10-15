@@ -7,6 +7,10 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 
 ## [Unreleased]
 
+### Fixed
+
+* Colored mode: the text typed behind a space within a quoted line (e.g., after pressing <kbd>Enter</kbd> behind a sentence) is black, not in the color of the quote.
+
 ## [2026-10-09] - 2026-10-09
 
 ### Added

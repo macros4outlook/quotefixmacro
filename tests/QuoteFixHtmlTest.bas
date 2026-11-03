@@ -306,6 +306,27 @@ TestFail:
 End Sub
 
 '@TestMethod("html")
+Private Sub htmlLinkWrappedOverSeveralLinesIsNotRepeated()
+    On Error GoTo TestFail
+
+    'a long link is wrapped by the sender's HTML, within the text as well as within the attribute
+    html = "<ul><li><a href=""https://example.com/wiki/Notes_on_final_theses"">" & vbNewLine & _
+        "https://example.com/wiki/Notes_on_final_theses</a></li>" & _
+        "<li><a href=""https://example.com/wiki/" & vbNewLine & _
+        "Notes_on_grading"">our page</a></li></ul>"
+    expectedResult = vbNullString & _
+        "* https://example.com/wiki/Notes_on_final_theses" & vbNewLine & _
+        "* our page <https://example.com/wiki/Notes_on_grading>"
+
+    Assert.AreEqual expectedResult, HtmlToPlainText(html)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("html")
 Private Sub htmlMentionIsKeptAsText()
     On Error GoTo TestFail
 

@@ -32,6 +32,12 @@ Private Const NAMED_ENTITIES As String = _
 Private Const CODE_NON_BREAKING_SPACE As Long = 160
 Private Const CODE_SOFT_HYPHEN As Long = 173
 
+'characters without width: zero width space, zero width non-joiner, zero width joiner, byte order mark
+Private Const CODE_ZERO_WIDTH_SPACE As Long = 8203
+Private Const CODE_ZERO_WIDTH_NON_JOINER As Long = 8204
+Private Const CODE_ZERO_WIDTH_JOINER As Long = 8205
+Private Const CODE_BYTE_ORDER_MARK As Long = 65279
+
 'Module Variables to make code more readable (-> parameter passing gets easier)
 
 'the lines converted so far
@@ -570,11 +576,14 @@ Private Sub FinishAnchor()
     If Not inAnchor Then Exit Sub
     inAnchor = False
 
+    Dim linkText As String
+    linkText = GetAnchorText()
+
     Dim target As String
-    target = Trim$(anchorHref)
+    target = StripWhiteSpace(anchorHref)
     If LCase$(Left$(target, 7)) = "mailto:" Then
         'a mention ("@Name") is kept as it is
-        If Left$(Trim$(anchorText), 1) = "@" Then Exit Sub
+        If Left$(linkText, 1) = "@" Then Exit Sub
 
         target = Mid$(target, 8)
         'drop parameters such as "?subject="
@@ -586,13 +595,49 @@ Private Sub FinishAnchor()
         Exit Sub
     End If
 
-    If Len(target) = 0 Or Len(Trim$(anchorText)) = 0 Then Exit Sub
-    If NormalizeLink(anchorText) = NormalizeLink(target) Then Exit Sub
+    If Len(target) = 0 Or Len(linkText) = 0 Then Exit Sub
+    If NormalizeLink(linkText) = NormalizeLink(target) Then Exit Sub
     'a text being a link itself is kept as it is: the target is the same link wrapped by a link checker
-    If IsLink(anchorText) Then Exit Sub
+    If IsLink(linkText) Then Exit Sub
 
     AppendDecodedText " <" & target & ">"
 End Sub
+
+'Description:
+'   The text of the anchor as it appears in the plain text:
+'   a sequence of white space is a single space, characters without width are dropped
+'   The raw text may be spread over several lines, because the sender's HTML wraps long lines
+Private Function GetAnchorText() As String
+    Dim res As String
+    res = anchorText
+
+    res = Replace$(res, ChrW$(CODE_ZERO_WIDTH_SPACE), vbNullString)
+    res = Replace$(res, ChrW$(CODE_ZERO_WIDTH_NON_JOINER), vbNullString)
+    res = Replace$(res, ChrW$(CODE_ZERO_WIDTH_JOINER), vbNullString)
+    res = Replace$(res, ChrW$(CODE_BYTE_ORDER_MARK), vbNullString)
+
+    res = Replace$(res, ChrW$(CODE_NON_BREAKING_SPACE), " ")
+    res = Replace$(res, vbCr, " ")
+    res = Replace$(res, vbLf, " ")
+    res = Replace$(res, vbTab, " ")
+    Do While InStr(res, "  ") > 0
+        res = Replace$(res, "  ", " ")
+    Loop
+
+    GetAnchorText = Trim$(res)
+End Function
+
+'Description:
+'   Removes all white space from a URL: it has none, so any is a line break of the sender's HTML
+Private Function StripWhiteSpace(ByVal text As String) As String
+    Dim res As String
+    res = Replace$(text, vbCr, vbNullString)
+    res = Replace$(res, vbLf, vbNullString)
+    res = Replace$(res, vbTab, vbNullString)
+    res = Replace$(res, " ", vbNullString)
+
+    StripWhiteSpace = res
+End Function
 
 Private Function IsLink(ByVal text As String) As Boolean
     Dim res As String
@@ -640,15 +685,14 @@ Private Sub AppendDecodedText(ByVal text As String)
     Dim nonBreakingSpace As String
     nonBreakingSpace = ChrW$(CODE_NON_BREAKING_SPACE)
 
-    'characters without width: zero width space, zero width non-joiner, zero width joiner, byte order mark
     Dim zeroWidthSpace As String
-    zeroWidthSpace = ChrW$(8203)
+    zeroWidthSpace = ChrW$(CODE_ZERO_WIDTH_SPACE)
     Dim zeroWidthNonJoiner As String
-    zeroWidthNonJoiner = ChrW$(8204)
+    zeroWidthNonJoiner = ChrW$(CODE_ZERO_WIDTH_NON_JOINER)
     Dim zeroWidthJoiner As String
-    zeroWidthJoiner = ChrW$(8205)
+    zeroWidthJoiner = ChrW$(CODE_ZERO_WIDTH_JOINER)
     Dim byteOrderMark As String
-    byteOrderMark = ChrW$(65279)
+    byteOrderMark = ChrW$(CODE_BYTE_ORDER_MARK)
 
     Dim i As Long
     For i = 1 To Len(text)

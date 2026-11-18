@@ -239,6 +239,38 @@ TestFail:
 End Sub
 
 '@TestMethod("html")
+Private Sub htmlWordsMarkedOneByOneKeepTheirLineReadable()
+    On Error GoTo TestFail
+
+    'a colored reply marks each word on its own: a quoted condensed header must not become "*Name* *wrote* *on* *date:*"
+    html = "<div style=""font-family:Consolas,'Courier New',monospace;font-size:10pt"">" & _
+        "<p style=""margin:0""><b>Adam</b> <b>Ross</b> <b>wrote</b> <b>on</b> <b>2026-04-07</b> <b>09:36:</b></p>" & _
+        "<p style=""margin:0"">&gt; Is it ok?</p>" & _
+        "<p style=""margin:0"">&nbsp;</p>" & _
+        "<p style=""margin:0"">Yes.</p>" & _
+        "<p style=""margin:0""><b>&gt;</b> <b>Mary</b> <b>Smith</b> <b>wrote</b> <b>on</b> <b>2026-04-06</b> <b>17:12:</b></p>" & _
+        "<p style=""margin:0"">&gt;&gt; First mail</p>" & _
+        "<p style=""margin:0"">A <b>really</b> important word</p>" & _
+        "<p style=""margin:0""><b>A whole line in bold</b></p></div>"
+    expectedResult = vbNullString & _
+        "Adam Ross wrote on 2026-04-07 09:36:" & vbNewLine & _
+        "> Is it ok?" & vbNewLine & _
+        vbNewLine & _
+        "Yes." & vbNewLine & _
+        "> Mary Smith wrote on 2026-04-06 17:12:" & vbNewLine & _
+        ">> First mail" & vbNewLine & _
+        "A *really* important word" & vbNewLine & _
+        "*A whole line in bold*"
+
+    Assert.AreEqual expectedResult, HtmlToPlainText(html)
+
+TestExit:
+    Exit Sub
+TestFail:
+    Assert.Fail "Test raised an error: #" & Err.Number & " - " & Err.Description
+End Sub
+
+'@TestMethod("html")
 Private Sub htmlWhiteSpaceIsCollapsed()
     On Error GoTo TestFail
 

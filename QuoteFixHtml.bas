@@ -149,7 +149,74 @@ Public Function HtmlToPlainText(ByVal html As String) As String
         resultText = Left$(resultText, Len(resultText) - 2)
     End If
 
-    HtmlToPlainText = resultText
+    HtmlToPlainText = UnifyWordEmphasis(resultText)
+End Function
+
+'Description:
+'   Undoes the emphasis of single words a colored reply is built of
+'   A colored mail marks each word on its own (the color is set on the words, not on the spaces between them),
+'   so that a quoted condensed header comes back as "*Name* *wrote* *on* *date:*" and is not recognized anymore
+'   Only a line whose words all carry their own pair of markers loses them:
+'   one pair around several words (a text really emphasized by its author) is kept
+Private Function UnifyWordEmphasis(ByVal text As String) As String
+    Dim lines() As String
+    lines = Split(text, vbCrLf)
+
+    Dim i As Long
+    For i = LBound(lines) To UBound(lines)
+        lines(i) = LineWithoutWordEmphasis(lines(i))
+    Next
+
+    UnifyWordEmphasis = Join(lines, vbCrLf)
+End Function
+
+Private Function LineWithoutWordEmphasis(ByVal line As String) As String
+    LineWithoutWordEmphasis = line
+
+    'the quote prefix in front of the text is not part of it
+    Dim textStart As Long
+    textStart = 1
+    Do While textStart <= Len(line)
+        Dim c As String
+        c = Mid$(line, textStart, 1)
+        If c <> ">" And c <> " " Then Exit Do
+        textStart = textStart + 1
+    Loop
+
+    Dim words() As String
+    words = Split(Mid$(line, textStart), " ")
+
+    Dim numWords As Long
+    Dim i As Long
+    For i = LBound(words) To UBound(words)
+        If Len(words(i)) > 0 Then
+            If Not IsEmphasizedWord(words(i)) Then Exit Function
+            numWords = numWords + 1
+        End If
+    Next
+    'a single word keeps its markers: its author emphasized it
+    If numWords < 2 Then Exit Function
+
+    For i = LBound(words) To UBound(words)
+        If Len(words(i)) > 0 Then
+            words(i) = Mid$(words(i), 2, Len(words(i)) - 2)
+        End If
+    Next
+
+    LineWithoutWordEmphasis = Left$(line, textStart - 1) & Join(words, " ")
+End Function
+
+'A word with a pair of emphasis markers of its own (e.g., "*word*")
+Private Function IsEmphasizedWord(ByVal word As String) As Boolean
+    If Len(word) < 3 Then Exit Function
+
+    Dim marker As String
+    marker = Left$(word, 1)
+    If marker <> "*" And marker <> "_" Then Exit Function
+    If Right$(word, 1) <> marker Then Exit Function
+
+    'the marker does not appear within the word
+    IsEmphasizedWord = (InStr(Mid$(word, 2, Len(word) - 2), marker) = 0)
 End Function
 
 Private Function IsTagStart(ByVal c As String) As Boolean

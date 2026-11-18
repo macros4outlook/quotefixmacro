@@ -10,6 +10,7 @@ Since 2026-10-02, versions follow [Calendar Versioning](https://calver.org/) in 
 ### Fixed
 
 * Colored mode: the text typed behind a space within a quoted line (e.g., after pressing <kbd>Enter</kbd> behind a sentence) is black, not in the color of the quote.
+* Replies to HTML mails: a link whose text is the link itself is not repeated as `<target>` behind its text anymore if the sender's HTML wrapped the long link over several lines. A target wrapped that way does not get a space within it either.
 
 ## [2026-10-09] - 2026-10-09
 
